@@ -2,7 +2,6 @@
 
 import { useState, useEffect, useRef } from 'react';
 import dynamic from 'next/dynamic';
-import Head from 'next/head';
 import { XMarkIcon, QuestionMarkCircleIcon } from '@heroicons/react/24/outline';
 
 // Dynamically import the VideoEditor component with SSR disabled
@@ -48,11 +47,6 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-purple-50">
-      <Head>
-        <title>YouTube to Shorts Converter | Trim & Resize Videos</title>
-        <meta name="description" content="Easily trim any section of a YouTube video and convert it to portrait format for Shorts, Reels, and TikTok" />
-        <link rel="icon" href="/favicon.ico" />
-      </Head>
 
       <main className="container mx-auto px-4 py-8">
         <div className="text-center mb-8">
@@ -111,9 +105,9 @@ export default function Home() {
                     <div>
                       <h3 className="font-semibold text-lg text-gray-800 mb-2">Upload Your Video</h3>
                       <div className="prose text-gray-700 space-y-2">
-                        <p>• Paste a YouTube URL in the input field <strong>or</strong> click "Select Video" to upload a file</p>
+                        <p>• Click "Select Video" to upload a video file from your device</p>
                         <p>• Supported formats: MP4, WebM, MOV (up to 100MB)</p>
-                        <p className="text-sm text-gray-500">Note: For YouTube videos, we'll process the highest quality available</p>
+                        <p className="text-sm text-gray-500">Note: Ensure your video has good lighting and clear audio for best results</p>
                       </div>
                     </div>
                   </div>

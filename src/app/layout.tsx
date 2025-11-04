@@ -2,8 +2,11 @@ import type { Metadata, Viewport } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Video Shorts Editor",
-  description: "Create short videos from your longer clips",
+  title: "YouTube to Shorts Converter | Trim & Resize Videos",
+  description: "Easily trim any section of a YouTube video and convert it to portrait format for Shorts, Reels, and TikTok",
+  icons: {
+    icon: "/favicon.ico",
+  },
 };
 
 export const viewport: Viewport = {
@@ -23,6 +26,7 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning>
       <head>
         <meta name="theme-color" content="#ffffff" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
       </head>
       <body className="font-sans">
         {children}
