@@ -1,0 +1,634 @@
+'use client';
+
+import { useState, useRef, useEffect, useCallback } from 'react';
+import { useDropzone } from 'react-dropzone';
+import { motion } from 'framer-motion';
+
+interface VideoProcessor {
+  trimVideo: (file: File, start: number, end: number, onProgress: (progress: number) => void) => Promise<Blob>;
+}
+
+const VideoEditor = () => {
+  const [videoProcessor, setVideoProcessor] = useState<VideoProcessor | null>(null);
+  // State management
+  const [isClient, setIsClient] = useState(false);
+  const [videoProcessor, setVideoProcessor] = useState<VideoProcessor | null>(null);
+  const [videoUrl, setVideoUrl] = useState<string | null>(null);
+  const [videoDuration, setVideoDuration] = useState(0);
+  const [currentTime, setCurrentTime] = useState(0);
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [startTime, setStartTime] = useState(0);
+  const [endTime, setEndTime] = useState(0);
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [isTrimming, setIsTrimming] = useState(false);
+  const [trimProgress, setTrimProgress] = useState(0);
+  const [originalFile, setOriginalFile] = useState<File | null>(null);
+  
+  // Refs
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const progressBarRef = useRef<HTMLDivElement>(null);
+  const animationFrameRef = useRef<number | null>(null);
+  const lastTimeRef = useRef<number>(0);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Load video processor on client side only
+  useEffect(() => {
+    setIsClient(true);
+    import('@/utils/videoProcessor').then(mod => {
+      setVideoProcessor({ trimVideo: mod.trimVideo });
+    });
+  }, []);
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      if (animationFrameRef.current) {
+        cancelAnimationFrame(animationFrameRef.current);
+      }
+      if (videoUrl) {
+        URL.revokeObjectURL(videoUrl);
+      }
+    };
+  }, [videoUrl]);
+
+  // Handle video time updates
+  const handleTimeUpdate = useCallback(() => {
+    if (videoRef.current) {
+      setCurrentTime(videoRef.current.currentTime);
+    }
+  }, []);
+
+  // Handle loaded metadata
+  const handleLoadedMetadata = useCallback(() => {
+    if (videoRef.current) {
+      const duration = videoRef.current.duration;
+      setVideoDuration(duration);
+      setEndTime(duration);
+    }
+  }, []);
+
+  // Toggle play/pause
+  const togglePlayPause = useCallback(() => {
+    if (videoRef.current) {
+      if (isPlaying) {
+        videoRef.current.pause();
+      } else {
+        videoRef.current.play().catch(console.error);
+      }
+    }
+  }, [isPlaying]);
+
+  // Handle file drop
+  const onDrop = useCallback((acceptedFiles: File[]) => {
+    const file = acceptedFiles[0];
+    if (file) {
+      const url = URL.createObjectURL(file);
+      setVideoUrl(url);
+      setOriginalFile(file);
+      setStartTime(0);
+      setEndTime(0);
+      setCurrentTime(0);
+    }
+  }, []);
+
+  // Set up dropzone
+  const { getRootProps, getInputProps, isDragActive, open } = useDropzone({
+    onDrop,
+    accept: {
+      'video/*': ['.mp4', '.mov', '.webm', '.avi']
+    },
+    noClick: true, // We'll handle the click manually
+    noKeyboard: true
+  });
+
+  // Format time for display
+  const formatTime = (time: number) => {
+    const minutes = Math.floor(time / 60);
+    const seconds = Math.floor(time % 60);
+    return `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
+  };
+
+  // Don't render anything until we're on the client and video processor is loaded
+  if (!isClient || !videoProcessor) {
+    return <div className="min-h-screen bg-gray-100" />;
+  }
+
+  const [videoDuration, setVideoDuration] = useState(0);
+  const [currentTime, setCurrentTime] = useState(0);
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [startTime, setStartTime] = useState(0);
+  const [endTime, setEndTime] = useState(0);
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [originalFile, setOriginalFile] = useState<File | null>(null);
+  const [isTrimming, setIsTrimming] = useState(false);
+  const [trimProgress, setTrimProgress] = useState(0);
+  
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const progressBarRef = useRef<HTMLDivElement>(null);
+  const animationFrameRef = useRef<number | null>(null);
+  const lastTimeRef = useRef<number>(0);
+
+  const onDrop = async (acceptedFiles: File[]) => {
+    try {
+      const file = acceptedFiles[0];
+      if (file) {
+        const url = URL.createObjectURL(file);
+        setVideoUrl(url);
+        setOriginalFile(file);
+        // Reset trim state
+        setStartTime(0);
+        setEndTime(0);
+      }
+    } catch (error) {
+      console.error('Error handling file upload:', error);
+    }
+  };
+
+  const { getRootProps, getInputProps, isDragActive } = useDropzone({
+    accept: {
+      'video/*': ['.mp4', '.mov', '.webm', '.avi']
+    },
+    onDrop,
+    noClick: true, // We'll handle the click manually
+    noKeyboard: true
+  });
+  
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  
+  const handleClick = () => {
+    if (fileInputRef.current) {
+      fileInputRef.current.click();
+    }
+  };
+  
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      onDrop([file]);
+    }
+  };
+
+  useEffect(() => {
+    return () => {
+      if (videoUrl && videoUrl.startsWith('blob:')) {
+        URL.revokeObjectURL(videoUrl);
+      }
+    };
+  }, [videoUrl]);
+
+  const handleLoadedMetadata = () => {
+    if (videoRef.current) {
+      const duration = videoRef.current.duration || 0;
+      setVideoDuration(duration);
+      setStartTime(0);
+      setEndTime(duration);
+      setCurrentTime(0);
+    }
+  };
+
+  // Update current time and handle auto-pause at end time
+  const updateCurrentTime = (timestamp: number) => {
+    if (!videoRef.current) {
+      animationFrameRef.current = requestAnimationFrame(updateCurrentTime);
+      return;
+    }
+
+    // Throttle updates to ~60fps
+    if (timestamp - lastTimeRef.current > 16) { // ~60fps
+      const currentTime = videoRef.current.currentTime;
+      setCurrentTime(currentTime);
+      
+      // Auto-pause at end time if playing
+      if (endTime > 0 && currentTime >= endTime && isPlaying) {
+        videoRef.current.pause();
+        setIsPlaying(false);
+        // Seek back to start time for better UX
+        if (startTime > 0) {
+          videoRef.current.currentTime = startTime;
+        }
+      }
+      
+      lastTimeRef.current = timestamp;
+    }
+    
+    animationFrameRef.current = requestAnimationFrame(updateCurrentTime);
+  };
+
+  // Set up animation frame for smooth time updates
+  useEffect(() => {
+    if (isPlaying) {
+      lastTimeRef.current = performance.now();
+      updateCurrentTime(lastTimeRef.current);
+    }
+    
+    return () => {
+      if (animationFrameRef.current !== null) {
+        cancelAnimationFrame(animationFrameRef.current);
+        animationFrameRef.current = null;
+      }
+    };
+  }, [isPlaying, endTime, startTime]);
+  
+  const handleSeek = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (videoRef.current) {
+      const newTime = parseFloat(e.target.value);
+      videoRef.current.currentTime = newTime;
+      setCurrentTime(newTime);
+    }
+  };
+
+  const handlePlayPause = async () => {
+    if (videoRef.current) {
+      try {
+        if (isPlaying) {
+          await videoRef.current.pause();
+        } else {
+          await videoRef.current.play();
+        }
+        setIsPlaying(!isPlaying);
+      } catch (error) {
+        console.error('Error toggling play/pause:', error);
+      }
+    }
+  };
+
+  // Handle setting the start time
+  const handleSetStart = () => {
+    if (!videoRef.current) return;
+    const newStartTime = videoRef.current.currentTime;
+    setStartTime(newStartTime);
+    // Reset end time when setting a new start
+    setEndTime(0);
+    // Reset the duration counter
+    setShortDuration(0);
+  };
+
+  const handleSetEnd = () => {
+    if (videoRef.current) {
+      const newEndTime = Math.max(videoRef.current.currentTime, startTime + 0.1);
+      setEndTime(Math.min(newEndTime, videoDuration));
+    }
+  };
+  
+  // Handle creating a short
+  const handleCreateShort = async () => {
+    if (startTime >= endTime || !videoRef.current || !originalFile) return;
+    
+    setIsProcessing(true);
+    setIsTrimming(true);
+    setTrimProgress(0);
+    
+    // Move processing to background
+    setTimeout(async () => {
+      try {
+        // Pause the video if playing
+        if (isPlaying && videoRef.current) {
+          await videoRef.current.pause();
+          setIsPlaying(false);
+        }
+        
+        if (!videoProcessor) {
+          throw new Error('Video processor not available');
+        }
+        
+        // Create a progress callback
+        const onProgress = (progress: number) => {
+          // Ensure progress is between 0 and 100
+          const safeProgress = Math.max(0, Math.min(100, Math.round(progress)));
+          setTrimProgress(safeProgress);
+        };
+        
+        // Load the video processor dynamically
+        const { trimVideo } = await videoProcessor;
+        
+        // Trim the video
+        const trimmedFile = await trimVideo(originalFile, startTime, endTime, onProgress);
+        
+        // Create a URL for the trimmed video
+        const trimmedUrl = URL.createObjectURL(trimmedFile);
+        
+        // Call the onTrimAction callback with the selected range
+        onTrimAction(startTime, endTime);
+        
+        // Show completion notification
+        if (Notification.permission === 'granted') {
+          new Notification('Video Processing Complete', {
+            body: 'Your video has been processed and is ready to download.',
+            icon: '/favicon.ico'
+          });
+        }
+        
+        // Auto-download the file
+        const a = document.createElement('a');
+        a.href = trimmedUrl;
+        a.download = trimmedFile.name;
+        document.body.appendChild(a);
+        a.click();
+        
+        // Clean up
+        setTimeout(() => {
+          URL.revokeObjectURL(trimmedUrl);
+          document.body.removeChild(a);
+        }, 100);
+        
+      } catch (error) {
+        console.error('Error creating short:', error);
+        // Show error notification
+        if (Notification.permission === 'granted') {
+          new Notification('Processing Error', {
+            body: 'There was an error processing your video.',
+            icon: '/favicon.ico'
+          });
+        }
+      } finally {
+        setIsProcessing(false);
+        setIsTrimming(false);
+      }
+    }, 100); // Small delay to ensure UI updates
+  };
+  
+  // Calculate the current short duration (starts at 0 when start is set, counts up until end is set)
+  const [shortDuration, setShortDuration] = useState(0);
+  
+  // Handle time updates for the counter
+  const handleTimeUpdate = () => {
+    if (videoRef.current && startTime > 0) {
+      const currentTime = videoRef.current.currentTime;
+      if (endTime > 0) {
+        // If end is set, show the fixed duration
+        setShortDuration(endTime - startTime);
+      } else {
+        // Otherwise, show time since start was clicked
+        setShortDuration(Math.max(0, currentTime - startTime));
+      }
+    }
+  };
+
+  // Update counter when start/end times change
+  useEffect(() => {
+    if (startTime > 0) {
+      if (endTime > 0) {
+        setShortDuration(endTime - startTime);
+      } else {
+        setShortDuration(0);
+      }
+    } else {
+      setShortDuration(0);
+    }
+  }, [startTime, endTime]);
+
+  const formatTime = (time: number) => {
+    const isNegative = time < 0;
+    const absTime = Math.abs(time);
+    const minutes = Math.floor(absTime / 60);
+    const seconds = Math.floor(absTime % 60);
+    const milliseconds = Math.floor((absTime % 1) * 1000);
+    return `${isNegative ? '-' : ''}${minutes}:${seconds < 10 ? '0' : ''}${seconds}.${Math.floor(milliseconds / 100)}`;
+  };
+
+  // Calculate aspect ratio for the video container
+
+  return (
+    <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100 p-4">
+      <div className="w-full max-w-4xl bg-white rounded-xl shadow-lg overflow-hidden" {...getRootProps()}>
+        <input {...getInputProps()} />
+        {videoUrl ? (
+          <div className="relative w-full aspect-video bg-black">
+            <video
+              ref={videoRef}
+              src={videoUrl}
+              className="w-full h-full object-contain"
+              onTimeUpdate={handleTimeUpdate}
+              onLoadedMetadata={handleLoadedMetadata}
+              onPlay={() => setIsPlaying(true)}
+              onPause={() => setIsPlaying(false)}
+              onClick={togglePlayPause}
+            >
+              Your browser does not support the video tag.
+            </video>
+          {isPlaying ? (
+            <div 
+              className="absolute inset-0 flex items-center justify-center cursor-pointer"
+              onClick={togglePlayPause}
+            >
+              <div className="bg-black/50 rounded-full p-3">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-12 w-12 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 9v6m4-6v6m7-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              </div>
+            </div>
+          ) : (
+            <div 
+              className="absolute inset-0 flex items-center justify-center cursor-pointer"
+              onClick={togglePlayPause}
+            >
+              <div className="bg-black/50 rounded-full p-3">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-12 w-12 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              </div>
+            </div>
+          )}
+        </div>
+      ) : (
+        <div className="flex flex-col items-center justify-center p-12 text-center">
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-16 w-16 text-gray-400 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M7 4v16M17 4v16M3 8h4m10 0h4M3 12h18M3 16h4m10 0h4M4 20h16a1 1 0 001-1V5a1 1 0 00-1-1H4a1 1 0 00-1 1v14a1 1 0 001 1z" />
+          </svg>
+          <h3 className="text-lg font-medium text-gray-900 mb-1">No video selected</h3>
+          <p className="text-gray-500 mb-4">Drag and drop a video file here, or click to select</p>
+          <input
+            {...getInputProps()}
+            className="hidden"
+            ref={fileInputRef}
+            onChange={handleFileChange}
+            type="file"
+            accept="video/*"
+            className="hidden"
+          />
+          <div className="space-y-2">
+            <div className="text-4xl">📁</div>
+            <p className="text-lg font-medium text-gray-700">
+              {isDragActive ? 'Drop the video here' : 'Drag & drop a video file here, or click to select'}
+            </p>
+            <p className="text-sm text-gray-500">Supports MP4, MOV, WebM, AVI (max 100MB)</p>
+          </div>
+        </div>
+      ) : (
+        <div className="space-y-4">
+          <div className="relative w-full bg-black rounded-lg overflow-hidden">
+            <video
+              ref={videoRef}
+              src={videoUrl}
+              className="w-full h-full object-contain bg-black"
+              onTimeUpdate={handleTimeUpdate}
+              onLoadedMetadata={handleLoadedMetadata}
+              onPlay={() => setIsPlaying(true)}
+              onPause={() => setIsPlaying(false)}
+              playsInline
+            />
+            
+            {/* Custom controls overlay */}
+            <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-4">
+              <div className="flex items-center justify-between mb-2">
+                <div className="text-white font-mono text-sm space-y-1">
+                  <div>Current: {formatTime(currentTime)} / {formatTime(videoDuration)}</div>
+                  {startTime > 0 && (
+                    <div className="text-sm text-white font-semibold mt-2 bg-black/50 px-2 py-1 rounded">
+                      Short duration: {formatTime(shortDuration)}
+                      {endTime === 0 && ' (recording...)'}
+                    </div>
+                  )}
+                </div>
+                <div className="flex space-x-2">
+                  <button
+                    onClick={handlePlayPause}
+                    className="p-2 bg-white/20 text-white rounded-full hover:bg-white/30 transition-colors"
+                    disabled={!videoUrl}
+                    aria-label={isPlaying ? 'Pause' : 'Play'}
+                  >
+                    {isPlaying ? '❚❚' : '▶'}
+                  </button>
+                </div>
+              </div>
+              <input
+                type="range"
+                min="0"
+                max={videoDuration || 0}
+                value={currentTime}
+                onChange={handleSeek}
+                step="0.1"
+                className="w-full h-2 bg-gray-600 rounded-full appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-white"
+              />
+            </div>
+          </div>
+          
+          <div className="flex flex-col items-center space-y-4 bg-gray-50 p-4 rounded-lg">
+            <div className="w-full flex flex-wrap justify-center gap-3">
+              <div className="flex flex-wrap justify-center gap-3 w-full">
+                <button
+                  onClick={handleSetStart}
+                  className="px-4 py-2.5 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors flex items-center gap-2 shadow-sm"
+                  disabled={!videoUrl}
+                >
+                  <span className="text-sm font-medium">Set Start</span>
+                  <span className="text-xs bg-white/20 px-2 py-0.5 rounded">{formatTime(startTime)}</span>
+                </button>
+                
+                <button
+                  onClick={handleSetEnd}
+                  className="px-4 py-2.5 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors flex items-center gap-2 shadow-sm"
+                  disabled={!videoUrl}
+                >
+                  <span className="text-sm font-medium">Set End</span>
+                  <span className="text-xs bg-white/20 px-2 py-0.5 rounded">{formatTime(endTime)}</span>
+                </button>
+                
+                <div className="relative">
+                  <button
+                    onClick={handleCreateShort}
+                    className={`px-6 py-2.5 rounded-lg transition-colors flex items-center gap-2 shadow-sm ${
+                      startTime >= endTime || isProcessing || !videoUrl
+                        ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                        : 'bg-red-600 hover:bg-red-700 text-white'
+                    }`}
+                    disabled={startTime >= endTime || isProcessing || !videoUrl}
+                  >
+                    {isProcessing ? (
+                      <>
+                        <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                        {isTrimming ? `Processing... ${trimProgress}%` : 'Processing...'}
+                      </>
+                    ) : (
+                      <>
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                          <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clipRule="evenodd" />
+                        </svg>
+                        Create Short
+                      </>
+                    )}
+                  </button>
+                  {isTrimming && (
+                    <div className="absolute bottom-0 left-0 right-0 h-1 bg-gray-200">
+                      <div 
+                        className="h-full bg-green-500 transition-all duration-300"
+                        style={{ width: `${trimProgress}%` }}
+                      />
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <div className="flex flex-col items-center space-y-4 bg-gray-50 p-4 rounded-lg">
+          <div className="w-full flex flex-wrap justify-center gap-3">
+            <div className="flex flex-wrap justify-center gap-3 w-full">
+              <button
+                onClick={handleSetStart}
+                className="px-4 py-2.5 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors flex items-center gap-2 shadow-sm"
+                disabled={!videoUrl}
+              >
+                <span className="text-sm font-medium">Set Start</span>
+                <span className="text-xs bg-white/20 px-2 py-0.5 rounded">{formatTime(startTime)}</span>
+              </button>
+              
+              <button
+                onClick={handleSetEnd}
+                className="px-4 py-2.5 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors flex items-center gap-2 shadow-sm"
+                disabled={!videoUrl}
+              >
+                <span className="text-sm font-medium">Set End</span>
+                <span className="text-xs bg-white/20 px-2 py-0.5 rounded">{formatTime(endTime)}</span>
+              </button>
+              
+              <div className="relative">
+                <button
+                  onClick={handleCreateShort}
+                  className={`px-6 py-2.5 rounded-lg transition-colors flex items-center gap-2 shadow-sm ${
+                    startTime >= endTime || isProcessing || !videoUrl
+                      ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                      : 'bg-red-600 hover:bg-red-700 text-white'
+                  }`}
+                  disabled={startTime >= endTime || isProcessing || !videoUrl}
+                >
+                  {isProcessing ? (
+                    <>
+                      <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                      </svg>
+                      {isTrimming ? `Processing... ${trimProgress}%` : 'Processing...'}
+                    </>
+                  ) : (
+                    <>
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clipRule="evenodd" />
+                      </svg>
+                      Create Short
+                    </>
+                  )}
+                </button>
+                {isTrimming && (
+                  <div className="absolute bottom-0 left-0 right-0 h-1 bg-gray-200">
+                    <div 
+                      className="h-full bg-green-500 transition-all duration-300"
+                      style={{ width: `${trimProgress}%` }}
+                    />
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    )}
+  </div>
+);
+
+export default VideoEditor;
