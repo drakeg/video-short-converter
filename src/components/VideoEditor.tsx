@@ -76,6 +76,40 @@ export const VideoEditorContent = () => {
     setIsPlaying(!isPlaying);
   }, [isPlaying, startTime, endTime]);
 
+  // Seek to a specific time
+  const seekToTime = useCallback((time: number) => {
+    if (!videoRef.current) return;
+    
+    // Ensure time is within video bounds
+    time = Math.max(0, Math.min(time, videoDuration || 0));
+    videoRef.current.currentTime = time;
+    setCurrentTime(time);
+    
+    // If we're in trim mode, update the trim duration
+    if (startTime !== null && endTime === null) {
+      setTrimDuration(time - startTime);
+    }
+  }, [videoDuration, startTime]);
+
+  // Seek forward/backward by a number of frames
+  const seekByFrames = useCallback((frameCount: number) => {
+    if (!videoRef.current) return;
+    
+    // Assuming 30fps, calculate frame duration
+    const frameDuration = 1 / 30; // 30fps
+    const currentTime = videoRef.current.currentTime;
+    const newTime = Math.max(0, Math.min(currentTime + (frameCount * frameDuration), videoDuration || 0));
+    
+    seekToTime(newTime);
+  }, [videoDuration, seekToTime]);
+  
+  // Quick jump buttons
+  const quickJump = useCallback((seconds: number) => {
+    if (!videoRef.current) return;
+    const newTime = Math.max(0, Math.min(currentTime + seconds, videoDuration || 0));
+    seekToTime(newTime);
+  }, [currentTime, videoDuration, seekToTime]);
+
   // Handle mark start
   const handleMarkStart = useCallback(() => {
     if (!videoRef.current) return;
@@ -273,22 +307,9 @@ export const VideoEditorContent = () => {
                     transition: 'opacity 0.2s',
                     background: 'rgba(0,0,0,0.3)'
                   }}
-                  onMouseOver={e => (e.currentTarget.style.opacity = '1')}
+                  onMouseOver={e => (e.currentTarget.style.opacity = '0')}
                   onMouseOut={e => (e.currentTarget.style.opacity = '0')}
-                >
-                  <button
-                    onClick={togglePlayPause}
-                    className={`px-4 py-2 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 ${
-                      !videoUrl || isTrimming
-                        ? 'bg-gray-400 cursor-not-allowed'
-                        : 'bg-blue-600 hover:bg-blue-700 focus:ring-blue-500 text-white'
-                    }`}
-                    disabled={!videoUrl || isTrimming}
-                    aria-label={isPlaying ? 'Pause' : 'Play'}
-                  >
-                    {isPlaying ? 'Pause' : 'Play'}
-                  </button>
-                </div>
+                ></div>
                 
                 {/* Timer overlay */}
                 <div 
@@ -299,40 +320,149 @@ export const VideoEditorContent = () => {
                     right: 0,
                     zIndex: 10,
                     display: 'flex',
-                    justifyContent: 'center',
-                    gap: '1rem'
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    gap: '0.5rem',
+                    padding: '0 1rem'
                   }}
                 >
+                  {/* Progress bar */}
                   <div 
                     style={{
-                      background: 'rgba(0,0,0,0.7)',
-                      color: 'white',
-                      padding: '0.25rem 0.75rem',
-                      borderRadius: '9999px',
-                      fontSize: '0.875rem'
+                      width: '100%',
+                      height: '4px',
+                      background: 'rgba(255,255,255,0.2)',
+                      borderRadius: '2px',
+                      cursor: 'pointer',
+                      position: 'relative',
+                      marginBottom: '0.5rem'
+                    }}
+                    onClick={(e) => {
+                      if (!videoRef.current) return;
+                      const rect = e.currentTarget.getBoundingClientRect();
+                      const percent = (e.clientX - rect.left) / rect.width;
+                      const newTime = percent * videoDuration;
+                      seekToTime(newTime);
                     }}
                   >
-                    {formatTime(currentTime)} / {formatTime(videoDuration)}
-                  </div>
-                  {startTime !== null && endTime !== null && (
                     <div 
                       style={{
-                        background: '#2563eb',
+                        width: `${(currentTime / videoDuration) * 100}%`,
+                        height: '100%',
+                        background: '#3b82f6',
+                        borderRadius: '2px',
+                        position: 'relative'
+                      }}
+                    >
+                      <div 
+                        style={{
+                          position: 'absolute',
+                          right: '-6px',
+                          top: '50%',
+                          transform: 'translateY(-50%)',
+                          width: '12px',
+                          height: '12px',
+                          borderRadius: '50%',
+                          background: 'white',
+                          boxShadow: '0 0 0 2px rgba(59, 130, 246, 1)'
+                        }}
+                      />
+                    </div>
+                    {startTime !== null && (
+                      <div 
+                        style={{
+                          position: 'absolute',
+                          left: `${(startTime / videoDuration) * 100}%`,
+                          width: `${((endTime || videoDuration) - startTime) / videoDuration * 100}%`,
+                          height: '100%',
+                          background: 'rgba(59, 130, 246, 0.5)',
+                          pointerEvents: 'none'
+                        }}
+                      />
+                    )}
+                  </div>
+                  
+                  <div style={{ display: 'flex', gap: '1rem' }}>
+                    <div 
+                      style={{
+                        background: 'rgba(0,0,0,0.7)',
                         color: 'white',
                         padding: '0.25rem 0.75rem',
                         borderRadius: '9999px',
-                        fontSize: '0.875rem'
+                        fontSize: '0.875rem',
+                        fontFamily: 'monospace',
+                        minWidth: '120px',
+                        textAlign: 'center'
                       }}
                     >
-                      Trim: {formatTime(trimDuration)}
+                      {formatTime(currentTime)} / {formatTime(videoDuration)}
                     </div>
-                  )}
+                    {startTime !== null && endTime !== null && (
+                      <div 
+                        style={{
+                          background: '#2563eb',
+                          color: 'white',
+                          padding: '0.25rem 0.75rem',
+                          borderRadius: '9999px',
+                          fontSize: '0.875rem',
+                          fontFamily: 'monospace'
+                        }}
+                      >
+                        Trim: {formatTime(trimDuration)}
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
             </div>
             
-            {/* Control buttons */}
-            <div className="grid grid-cols-2 gap-4">
+            {/* Navigation Controls */}
+            <div className="grid grid-cols-5 gap-2 mb-4">
+              <button
+                onClick={() => quickJump(-5)}
+                disabled={!videoUrl}
+                className="py-2 px-3 bg-gray-200 hover:bg-gray-300 rounded-lg font-medium transition-colors disabled:opacity-50"
+                title="Jump back 5 seconds"
+              >
+                -5s
+              </button>
+              <button
+                onClick={() => seekByFrames(-1)}
+                disabled={!videoUrl}
+                className="py-2 px-3 bg-gray-200 hover:bg-gray-300 rounded-lg font-medium transition-colors disabled:opacity-50"
+                title="Previous frame"
+              >
+                ← Frame
+              </button>
+              <button
+                onClick={togglePlayPause}
+                disabled={!videoUrl}
+                className={`py-2 px-3 rounded-lg font-medium text-white transition-colors ${
+                  !videoUrl ? 'bg-gray-400' : 'bg-blue-600 hover:bg-blue-700'
+                }`}
+              >
+                {isPlaying ? 'Pause' : 'Play'}
+              </button>
+              <button
+                onClick={() => seekByFrames(1)}
+                disabled={!videoUrl}
+                className="py-2 px-3 bg-gray-200 hover:bg-gray-300 rounded-lg font-medium transition-colors disabled:opacity-50"
+                title="Next frame"
+              >
+                Frame →
+              </button>
+              <button
+                onClick={() => quickJump(5)}
+                disabled={!videoUrl}
+                className="py-2 px-3 bg-gray-200 hover:bg-gray-300 rounded-lg font-medium transition-colors disabled:opacity-50"
+                title="Jump forward 5 seconds"
+              >
+                +5s
+              </button>
+            </div>
+            
+            {/* Trim Control Buttons */}
+            <div className="grid grid-cols-2 gap-4 mt-2">
               <button
                 onClick={handleMarkStart}
                 disabled={startTime !== null && endTime === null}
