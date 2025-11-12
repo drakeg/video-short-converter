@@ -55,8 +55,26 @@ export const VideoEditorContent = () => {
   // Handle time update
   const handleTimeUpdate = useCallback(() => {
     if (!videoRef.current) return;
-    setCurrentTime(videoRef.current.currentTime);
-  }, []);
+    
+    const currentTime = videoRef.current.currentTime;
+    setCurrentTime(currentTime);
+    
+    // Check if we've reached the end of the video
+    if (videoDuration > 0 && currentTime >= videoDuration - 0.1) { // Small threshold to account for precision
+      // If we have a start time but no end time, set end time to video duration
+      if (startTime !== null && endTime === null) {
+        setEndTime(videoDuration);
+        
+        // Stop the duration timer
+        if (durationInterval.current) {
+          clearInterval(durationInterval.current);
+          durationInterval.current = null;
+        }
+        
+        setTrimDuration(videoDuration - (startTime || 0));
+      }
+    }
+  }, [videoDuration, startTime, endTime]);
 
   // Toggle play/pause
   const togglePlayPause = useCallback(() => {
@@ -114,7 +132,17 @@ export const VideoEditorContent = () => {
   const handleMarkStart = useCallback(() => {
     if (!videoRef.current) return;
     const time = videoRef.current.currentTime;
-    setStartTime(time);
+    const isAtStart = time < 0.5; // Consider it the start if less than 0.5 seconds in
+    
+    if (isAtStart) {
+      setStartTime(0);
+      // Start playing the video
+      videoRef.current.play().catch(e => console.error('Error playing video:', e));
+      setIsPlaying(true);
+    } else {
+      setStartTime(time);
+    }
+    
     setEndTime(null);
     
     // Start the duration timer
@@ -125,7 +153,7 @@ export const VideoEditorContent = () => {
     durationInterval.current = setInterval(() => {
       if (videoRef.current) {
         const current = videoRef.current.currentTime;
-        setTrimDuration(current - time);
+        setTrimDuration(current - (isAtStart ? 0 : time));
       }
     }, 100);
   }, []);
