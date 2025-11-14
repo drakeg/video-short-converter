@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
+import ThemeToggle from "./ThemeToggle";
 
 export const metadata: Metadata = {
   title: "YouTube to Shorts Converter | Trim & Resize Videos",
@@ -29,6 +30,9 @@ export default function RootLayout({
         <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
       </head>
       <body className="font-sans">
+        <div className="fixed right-4 top-4 z-50">
+          <ThemeToggle />
+        </div>
         {children}
       </body>
     </html>

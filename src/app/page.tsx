@@ -46,14 +46,14 @@ export default function Home() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-purple-50">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-purple-50 text-gray-900 dark:from-slate-950 dark:to-slate-900 dark:text-gray-100">
 
       <main className="container mx-auto px-4 py-8">
         <div className="text-center mb-8">
-          <h1 className="text-3xl md:text-4xl font-bold text-gray-800 mb-2">
+          <h1 className="text-3xl md:text-4xl font-bold text-gray-800 mb-2 dark:text-gray-100">
             YouTube to Shorts Converter
           </h1>
-          <p className="text-gray-600 max-w-2xl mx-auto mb-4">
+          <p className="text-gray-600 max-w-2xl mx-auto mb-4 dark:text-gray-300">
             Trim any section of a YouTube video and convert it to portrait format for social media
           </p>
           <button
@@ -65,13 +65,13 @@ export default function Home() {
           </button>
         </div>
         
-        <div className="bg-white rounded-lg shadow-lg p-6">
+        <div className="bg-white rounded-lg shadow-lg p-6 dark:bg-slate-900 dark:border dark:border-slate-700">
           <VideoEditor />
         </div>
 
         {isProcessing && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-            <div className="bg-white p-6 rounded-lg shadow-xl">
+            <div className="bg-white p-6 rounded-lg shadow-xl dark:bg-slate-900 dark:text-gray-100">
               <div className="flex items-center space-x-4">
                 <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-blue-500"></div>
                 <span className="text-gray-700">Processing video...</span>
