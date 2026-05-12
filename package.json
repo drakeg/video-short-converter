@@ -20,7 +20,7 @@
     "@ffmpeg/ffmpeg": "^0.11.6",
     "@heroicons/react": "^2.2.0",
     "framer-motion": "^12.23.24",
-    "next": "16.1.5",
+    "next": "16.2.6",
     "react": "19.2.0",
     "react-dom": "19.2.0",
     "react-dropzone": "^14.3.8"
