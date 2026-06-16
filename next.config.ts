@@ -4,7 +4,7 @@ const nextConfig: NextConfig = {
   output: "export",
   trailingSlash: true,
   reactCompiler: true,
-  productionBrowserSourceMaps: false,
+  productionBrowserSourceMaps: true,
   images: {
     unoptimized: true,
   },
