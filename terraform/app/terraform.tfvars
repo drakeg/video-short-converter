@@ -12,3 +12,6 @@ create_github_oidc_provider = true
 enable_cost_budget = true
 budget_alert_email = "greg@madmallards.com"
 monthly_budget_usd = 5
+
+domain_names        = ["shorts.madmallards.com"]
+acm_certificate_arn = "arn:aws:acm:us-east-1:495872157039:certificate/cefb7196-2a42-4292-8cf7-3280471f3e09"

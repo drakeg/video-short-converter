@@ -99,3 +99,34 @@ variable "site_enabled" {
   type        = bool
   default     = true
 }
+
+variable "enable_budget_kill_switch" {
+  description = "Disable CloudFront automatically when actual budget threshold is exceeded."
+  type        = bool
+  default     = true
+}
+
+variable "budget_kill_switch_threshold_percent" {
+  description = "Actual budget percentage that triggers CloudFront disable."
+  type        = number
+  default     = 100
+}
+
+variable "domain_names" {
+  type    = list(string)
+  default = []
+}
+
+variable "acm_certificate_arn" {
+  type    = string
+  default = ""
+
+  validation {
+    condition = (
+      length(var.domain_names) == 0 ||
+      can(regex("^arn:aws:acm:us-east-1:", var.acm_certificate_arn))
+    )
+    error_message = "acm_certificate_arn must be a valid ACM certificate ARN in us-east-1 when domain_names is set."
+
+  }
+}

@@ -236,8 +236,13 @@ resource "aws_cloudfront_distribution" "site" {
     }
   }
 
+  aliases = var.domain_names
   viewer_certificate {
-    cloudfront_default_certificate = true
+    cloudfront_default_certificate = length(var.domain_names) == 0
+    acm_certificate_arn            = length(var.domain_names) > 0 ? var.acm_certificate_arn : null
+    ssl_support_method             = length(var.domain_names) > 0 ? "sni-only" : null
+
+    minimum_protocol_version = length(var.domain_names) > 0 ? "TLSv1.2_2021" : null
   }
 }
 
@@ -322,7 +327,7 @@ resource "aws_iam_role_policy" "github_actions_deploy" {
         Resource = "${aws_s3_bucket.site.arn}/*"
       },
       {
-        Sid = "InvalidateCloudFront"
+        Sid    = "InvalidateCloudFront"
         Effect = "Allow"
         Action = [
           "cloudfront:CreateInvalidation",
@@ -374,10 +379,11 @@ resource "aws_budgets_budget" "monthly_cost" {
 
   notification {
     comparison_operator        = "GREATER_THAN"
-    threshold                  = 100
+    threshold                  = var.budget_kill_switch_threshold_percent
     threshold_type             = "PERCENTAGE"
     notification_type          = "ACTUAL"
     subscriber_email_addresses = [var.budget_alert_email]
+    subscriber_sns_topic_arns  = [aws_sns_topic.budget_kill_switch[0].arn]
   }
 
   lifecycle {
