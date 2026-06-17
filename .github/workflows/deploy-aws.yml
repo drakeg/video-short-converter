@@ -34,6 +34,12 @@ jobs:
 
       - name: Build static site
         run: npm run build
+        env:
+          NEXT_PUBLIC_COGNITO_DOMAIN: ${{ vars.NEXT_PUBLIC_COGNITO_DOMAIN }}
+          NEXT_PUBLIC_COGNITO_CLIENT_ID: ${{ vars.NEXT_PUBLIC_COGNITO_CLIENT_ID }}
+          NEXT_PUBLIC_COGNITO_REDIRECT_URI: ${{ vars.NEXT_PUBLIC_COGNITO_REDIRECT_URI }}
+          NEXT_PUBLIC_COGNITO_LOGOUT_URI: ${{ vars.NEXT_PUBLIC_COGNITO_LOGOUT_URI }}
+          NEXT_PUBLIC_PROFILE_API_BASE_URL: ${{ vars.NEXT_PUBLIC_PROFILE_API_BASE_URL }}
 
       - name: Validate required variables
         run: |

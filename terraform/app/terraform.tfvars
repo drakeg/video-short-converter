@@ -15,3 +15,19 @@ monthly_budget_usd = 5
 
 domain_names        = ["shorts.madmallards.com"]
 acm_certificate_arn = "arn:aws:acm:us-east-1:495872157039:certificate/cefb7196-2a42-4292-8cf7-3280471f3e09"
+
+cognito_domain_prefix = "video-short-converter-greg-prod"
+
+auth_callback_urls = [
+  "https://shorts.madmallards.com/auth/callback/",
+  "https://dje507jgadsgo.cloudfront.net/auth/callback/",
+  "http://localhost:3000/auth/callback/"
+]
+
+auth_logout_urls = [
+  "https://shorts.madmallards.com/login/",
+  "https://dje507jgadsgo.cloudfront.net/login/",
+  "http://localhost:3000/login/"
+]
+
+auth_cors_allow_origin = "https://shorts.madmallards.com"
