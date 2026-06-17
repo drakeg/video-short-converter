@@ -1,4 +1,0 @@
-"video-short-converter-prod-495872157039"
-"E308ZDZ0IQZGVO"
-"arn:aws:iam::495872157039:role/video-short-converter-prod-github-actions-deploy"
-"https://dje507jgadsgo.cloudfront.net"

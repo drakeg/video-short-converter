@@ -8,3 +8,7 @@ github_branch = "main"
 # If your AWS account already has token.actions.githubusercontent.com as an IAM OIDC provider,
 # set this to false before terraform apply.
 create_github_oidc_provider = true
+
+enable_cost_budget = true
+budget_alert_email = "greg@madmallards.com"
+monthly_budget_usd = 5

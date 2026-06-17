@@ -1,28 +1,40 @@
-# AWS Deployment Guide — Video Short Converter
+# AWS Static Hosting Deployment
 
-This project is currently a browser-only/static Next.js app. AWS hosting is:
+This deploys the current browser-only Next.js video short converter to AWS using:
 
-- S3 private bucket for exported static files
-- CloudFront for HTTPS/public access
-- CloudFront Origin Access Control so the S3 bucket remains private
-- GitHub Actions deploys `out/` to S3 and invalidates CloudFront
-- Terraform state stored remotely in AWS using S3 + DynamoDB
-- GitHub Actions uses OIDC/IAM role assumption, not long-lived AWS access keys
+- S3 private bucket for static files
+- CloudFront for HTTPS/public delivery
+- CloudFront Origin Access Control for private S3 access
+- CloudFront response headers required by FFmpeg.wasm
+- GitHub Actions OIDC for deploys without long-lived AWS keys
+- S3/DynamoDB Terraform remote state
+- Cost guardrails: AWS Budget, tags, lifecycle cleanup, low-cost CloudFront price class, optional logging disabled by default
 
-## Current repository layout
+## Repository layout
 
 ```text
 terraform/
-  backend/        # one-time Terraform state bucket + DynamoDB lock table
-  app/            # S3 site bucket, CloudFront, IAM/OIDC deploy role
+  backend/
+    main.tf
+    variables.tf
+    outputs.tf
+    versions.tf
+    terraform.tfvars.example
+  app/
+    backend.tf.example
+    main.tf
+    variables.tf
+    outputs.tf
+    versions.tf
+    terraform.tfvars.example
 .github/
   workflows/
     deploy-aws.yml
 ```
 
-## 1. Local build requirements
+## 1. Confirm Next.js static export
 
-`next.config.ts` should include static export settings:
+`next.config.ts` should include:
 
 ```ts
 output: "export",
@@ -32,18 +44,16 @@ images: {
 },
 ```
 
-Because this app currently uses the older `@ffmpeg/ffmpeg` API, keep the package pinned unless/until the code is migrated to the newer API:
+Because this app currently uses the older `@ffmpeg/ffmpeg` API, keep the dependency pinned unless you migrate the code:
 
 ```bash
 npm install @ffmpeg/ffmpeg@0.11.6
 ```
 
-For Next.js 16 with the current Webpack config, `package.json` should force Webpack:
+Your build script should force Webpack for now:
 
 ```json
-"scripts": {
-  "build": "next build --webpack"
-}
+"build": "next build --webpack"
 ```
 
 Test locally:
@@ -51,248 +61,194 @@ Test locally:
 ```bash
 npm ci
 npm run build
-ls -la out
 ```
+
+You should see an `out/` directory.
 
 ## 2. Bootstrap Terraform remote state
 
-Terraform cannot use an S3 backend until the state bucket/table already exist. Run this once:
+Terraform cannot use an S3 backend until the state bucket and lock table already exist. Run this once:
 
 ```bash
 cd terraform/backend
+cp terraform.tfvars.example terraform.tfvars
 terraform init
+terraform plan
 terraform apply
 ```
 
-This creates the S3 state bucket and DynamoDB lock table.
+Save the output:
 
-## 3. Deploy app infrastructure
+```bash
+terraform output backend_config_example
+```
 
-Then deploy the app infrastructure:
+## 3. Configure app Terraform backend
+
+Create `terraform/app/backend.tf` from the example:
 
 ```bash
 cd ../app
+cp backend.tf.example backend.tf
+```
+
+Edit `backend.tf` using the values from `terraform/backend` output.
+
+Example:
+
+```hcl
+terraform {
+  backend "s3" {
+    bucket         = "video-short-converter-prod-terraform-state-123456789012"
+    key            = "video-short-converter/app/terraform.tfstate"
+    region         = "us-east-1"
+    dynamodb_table = "video-short-converter-terraform-locks"
+    encrypt        = true
+  }
+}
+```
+
+## 4. Configure app variables
+
+```bash
+cp terraform.tfvars.example terraform.tfvars
+```
+
+Edit at least this value:
+
+```hcl
+budget_alert_email = "your-email@example.com"
+```
+
+Cost-related defaults:
+
+```hcl
+enable_cost_budget       = true
+monthly_budget_limit_usd = "5"
+cloudfront_price_class   = "PriceClass_100"
+
+enable_cloudfront_logging     = false
+cloudfront_log_retention_days = 14
+```
+
+Notes:
+
+- `PriceClass_100` keeps CloudFront to the lower-cost edge footprint.
+- CloudFront logging is disabled by default because logs add S3 storage and request costs.
+- AWS Budget alerts fire at 50% actual, 80% forecasted, and 100% actual.
+- Site and Terraform buckets include lifecycle rules to prevent stale versions/incomplete uploads from growing forever.
+
+## 5. Create AWS infrastructure
+
+```bash
 terraform init
+terraform plan
 terraform apply
 ```
 
-Collect these outputs:
+Save these outputs:
 
 ```bash
 terraform output site_bucket_name
 terraform output cloudfront_distribution_id
-terraform output cloudfront_domain_name
 terraform output github_actions_role_arn
+terraform output cloudfront_domain_name
 ```
 
-## 4. GitHub Actions repository variables
+## 6. Add GitHub Actions variables
 
-The workflow uses **repository variables**, not secrets, for these values:
+In GitHub, go to:
 
-| Variable name | Value |
+```text
+Settings -> Secrets and variables -> Actions -> Variables
+```
+
+Create these repository variables:
+
+| Variable | Value |
 |---|---|
-| `AWS_REGION` | Example: `us-east-1` |
+| `AWS_REGION` | `us-east-1` |
 | `AWS_ROLE_TO_ASSUME` | Terraform output `github_actions_role_arn` |
 | `S3_BUCKET` | Terraform output `site_bucket_name` |
 | `CLOUDFRONT_DISTRIBUTION_ID` | Terraform output `cloudfront_distribution_id` |
 
-Add them in GitHub:
+These are variables, not secrets, because the workflow uses GitHub OIDC and does not store long-lived AWS keys.
 
-```text
-Repository → Settings → Secrets and variables → Actions → Variables
-```
+## 7. Deploy
 
-Important: use **Variables**, not **Secrets**, unless you also change the workflow from `vars.X` to `secrets.X`.
+Push to `main`, or run the workflow manually from the GitHub Actions tab.
 
-The role ARN, bucket name, distribution ID, and region are not credentials by themselves. The actual AWS access is controlled by the GitHub OIDC trust policy and IAM role permissions.
-
-## 5. GitHub Actions workflow
-
-Create this file:
-
-```text
-.github/workflows/deploy-aws.yml
-```
-
-```yaml
-name: Deploy to AWS
-
-on:
-  push:
-    branches:
-      - main
-  workflow_dispatch:
-
-permissions:
-  id-token: write
-  contents: read
-
-concurrency:
-  group: deploy-aws-static-site
-  cancel-in-progress: true
-
-jobs:
-  deploy:
-    name: Build and deploy static site
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Checkout repo
-        uses: actions/checkout@v4
-
-      - name: Setup Node
-        uses: actions/setup-node@v4
-        with:
-          node-version: 22
-          cache: npm
-
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Build static site
-        run: npm run build
-
-      - name: Validate required variables
-        run: |
-          test -n "${{ vars.AWS_REGION }}" || (echo "Missing repository variable: AWS_REGION" && exit 1)
-          test -n "${{ vars.AWS_ROLE_TO_ASSUME }}" || (echo "Missing repository variable: AWS_ROLE_TO_ASSUME" && exit 1)
-          test -n "${{ vars.S3_BUCKET }}" || (echo "Missing repository variable: S3_BUCKET" && exit 1)
-          test -n "${{ vars.CLOUDFRONT_DISTRIBUTION_ID }}" || (echo "Missing repository variable: CLOUDFRONT_DISTRIBUTION_ID" && exit 1)
-
-      - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v4
-        with:
-          role-to-assume: ${{ vars.AWS_ROLE_TO_ASSUME }}
-          aws-region: ${{ vars.AWS_REGION }}
-
-      - name: Deploy immutable assets to S3
-        run: |
-          aws s3 sync out/ "s3://${{ vars.S3_BUCKET }}" \
-            --delete \
-            --cache-control "public,max-age=31536000,immutable" \
-            --exclude "*.html" \
-            --exclude "*.json"
-
-      - name: Deploy HTML and JSON to S3
-        run: |
-          aws s3 sync out/ "s3://${{ vars.S3_BUCKET }}" \
-            --delete \
-            --cache-control "public,max-age=0,must-revalidate" \
-            --exclude "*" \
-            --include "*.html" \
-            --include "*.json"
-
-      - name: Invalidate CloudFront
-        run: |
-          aws cloudfront create-invalidation \
-            --distribution-id "${{ vars.CLOUDFRONT_DISTRIBUTION_ID }}" \
-            --paths "/*"
-```
-
-## 6. Trigger deploy
-
-Commit and push:
+The site URL is:
 
 ```bash
-git add .github/workflows/deploy-aws.yml AWS_DEPLOYMENT.md package.json package-lock.json next.config.ts
-git commit -m "Add AWS static site deployment"
-git push
+terraform output cloudfront_domain_name
 ```
 
-Or manually run:
+## 8. Cost control checklist
+
+### Already implemented in Terraform
+
+- AWS monthly budget with email alerts.
+- Low-cost CloudFront price class: `PriceClass_100`.
+- Private S3 bucket behind CloudFront only.
+- S3 lifecycle cleanup for incomplete uploads and old noncurrent versions.
+- Optional CloudFront logging disabled by default.
+- Default resource tags for cost allocation:
+  - `Project`
+  - `Environment`
+  - `Owner`
+  - `ManagedBy`
+  - `CostCenter`
+
+### Recommended in AWS Console
+
+Enable the `Project`, `Environment`, and `CostCenter` tags as cost allocation tags:
 
 ```text
-GitHub → Actions → Deploy to AWS → Run workflow
+AWS Billing and Cost Management -> Cost Allocation Tags
 ```
 
-## 7. Verify S3 upload
+This makes it easier to filter costs for this project.
 
-If CloudFront returns AccessDenied, first confirm the bucket has files:
+## 9. If Terraform fails on the GitHub OIDC provider
+
+If your AWS account already has the GitHub OIDC provider, edit `terraform/app/terraform.tfvars`:
+
+```hcl
+create_github_oidc_provider = false
+```
+
+Then rerun:
 
 ```bash
-aws s3 ls s3://YOUR_SITE_BUCKET/
+terraform plan
+terraform apply
+```
+
+## 10. If the site shows AccessDenied
+
+If you see XML like this:
+
+```xml
+<Error>
+  <Code>AccessDenied</Code>
+  <Message>Access Denied</Message>
+</Error>
+```
+
+Check these:
+
+1. Use the CloudFront URL, not the S3 bucket URL.
+2. Make sure files were uploaded:
+
+```bash
 aws s3 ls s3://YOUR_SITE_BUCKET/index.html
 ```
 
-If empty, the workflow did not deploy or is missing variables.
-
-Manually deploy once if needed:
+3. Rerun the GitHub Action or deploy manually:
 
 ```bash
 npm run build
 aws s3 sync out/ s3://YOUR_SITE_BUCKET --delete
 aws cloudfront create-invalidation --distribution-id YOUR_DISTRIBUTION_ID --paths "/*"
 ```
-
-Then open the CloudFront URL:
-
-```text
-https://YOUR_CLOUDFRONT_DOMAIN.cloudfront.net/
-```
-
-Do not use the S3 bucket URL. The S3 bucket is intentionally private.
-
-## 8. Troubleshooting
-
-### `aws-region` missing
-
-The workflow could not read `vars.AWS_REGION`.
-
-Fix: create repository variable:
-
-```text
-AWS_REGION=us-east-1
-```
-
-### `Could not load credentials from any providers`
-
-Usually means `AWS_ROLE_TO_ASSUME` is missing or empty.
-
-Fix: create repository variable:
-
-```text
-AWS_ROLE_TO_ASSUME=arn:aws:iam::ACCOUNT_ID:role/ROLE_NAME
-```
-
-### `aws s3 sync out/ s3:// --delete`
-
-This means `S3_BUCKET` is missing or empty.
-
-Fix: create repository variable:
-
-```text
-S3_BUCKET=<terraform output site_bucket_name>
-```
-
-### CloudFront invalidation fails
-
-Usually means `CLOUDFRONT_DISTRIBUTION_ID` is missing or is set to the domain name instead of the ID.
-
-Correct value looks like:
-
-```text
-E123ABC456XYZ
-```
-
-Incorrect value looks like:
-
-```text
-dje507jgadsgo.cloudfront.net
-```
-
-### GitHub push rejected for large Terraform files
-
-Never commit `.terraform/` directories. Use this `.gitignore` entry:
-
-```gitignore
-**/.terraform/
-*.tfstate
-*.tfstate.*
-```
-
-If accidentally staged:
-
-```bash
-git rm -r --cached terraform/app/.terraform terraform/backend/.terraform
-```
-

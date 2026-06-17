@@ -1,5 +1,9 @@
 provider "aws" {
   region = var.aws_region
+
+  default_tags {
+    tags = local.common_tags
+  }
 }
 
 data "aws_caller_identity" "current" {}
@@ -9,22 +13,24 @@ data "tls_certificate" "github_actions" {
 }
 
 locals {
-  name_prefix       = "${var.project_name}-${var.environment}"
-  s3_origin_id      = "${local.name_prefix}-s3-origin"
-  github_repo_ref   = "repo:${var.github_owner}/${var.github_repo}:ref:refs/heads/${var.github_branch}"
-  github_oidc_url   = "https://token.actions.githubusercontent.com"
-  github_oidc_host  = "token.actions.githubusercontent.com"
-  github_oidc_arn   = var.create_github_oidc_provider ? aws_iam_openid_connect_provider.github_actions[0].arn : "arn:aws:iam::${data.aws_caller_identity.current.account_id}:oidc-provider/${local.github_oidc_host}"
+  name_prefix      = "${var.project_name}-${var.environment}"
+  s3_origin_id     = "${local.name_prefix}-s3-origin"
+  github_repo_ref  = "repo:${var.github_owner}/${var.github_repo}:ref:refs/heads/${var.github_branch}"
+  github_oidc_url  = "https://token.actions.githubusercontent.com"
+  github_oidc_host = "token.actions.githubusercontent.com"
+  github_oidc_arn  = var.create_github_oidc_provider ? aws_iam_openid_connect_provider.github_actions[0].arn : "arn:aws:iam::${data.aws_caller_identity.current.account_id}:oidc-provider/${local.github_oidc_host}"
+
+  common_tags = {
+    Project     = var.project_name
+    Environment = var.environment
+    Owner       = var.owner
+    ManagedBy   = "terraform"
+    CostCenter  = var.project_name
+  }
 }
 
 resource "aws_s3_bucket" "site" {
   bucket = "${local.name_prefix}-${data.aws_caller_identity.current.account_id}"
-
-  tags = {
-    Project     = var.project_name
-    Environment = var.environment
-    ManagedBy   = "terraform"
-  }
 }
 
 resource "aws_s3_bucket_public_access_block" "site" {
@@ -41,6 +47,74 @@ resource "aws_s3_bucket_ownership_controls" "site" {
 
   rule {
     object_ownership = "BucketOwnerEnforced"
+  }
+}
+
+resource "aws_s3_bucket_server_side_encryption_configuration" "site" {
+  bucket = aws_s3_bucket.site.id
+
+  rule {
+    apply_server_side_encryption_by_default {
+      sse_algorithm = "AES256"
+    }
+  }
+}
+
+resource "aws_s3_bucket_lifecycle_configuration" "site" {
+  bucket = aws_s3_bucket.site.id
+
+  rule {
+    id     = "control-static-site-storage-growth"
+    status = "Enabled"
+
+    filter {
+      prefix = ""
+    }
+
+    abort_incomplete_multipart_upload {
+      days_after_initiation = 7
+    }
+
+    noncurrent_version_expiration {
+      noncurrent_days = var.site_noncurrent_version_expiration_days
+    }
+  }
+}
+
+resource "aws_s3_bucket" "cloudfront_logs" {
+  count  = var.enable_cloudfront_logging ? 1 : 0
+  bucket = "${local.name_prefix}-cf-logs-${data.aws_caller_identity.current.account_id}"
+}
+
+resource "aws_s3_bucket_public_access_block" "cloudfront_logs" {
+  count  = var.enable_cloudfront_logging ? 1 : 0
+  bucket = aws_s3_bucket.cloudfront_logs[0].id
+
+  block_public_acls       = true
+  block_public_policy     = true
+  ignore_public_acls      = true
+  restrict_public_buckets = true
+}
+
+resource "aws_s3_bucket_lifecycle_configuration" "cloudfront_logs" {
+  count  = var.enable_cloudfront_logging ? 1 : 0
+  bucket = aws_s3_bucket.cloudfront_logs[0].id
+
+  rule {
+    id     = "expire-cloudfront-logs"
+    status = "Enabled"
+
+    filter {
+      prefix = ""
+    }
+
+    expiration {
+      days = var.cloudfront_log_retention_days
+    }
+
+    abort_incomplete_multipart_upload {
+      days_after_initiation = 7
+    }
   }
 }
 
@@ -101,11 +175,12 @@ resource "aws_cloudfront_response_headers_policy" "ffmpeg_wasm" {
 }
 
 resource "aws_cloudfront_distribution" "site" {
-  enabled             = true
+  enabled             = var.site_enabled
   comment             = "${local.name_prefix} static site"
   default_root_object = "index.html"
-  price_class         = "PriceClass_100"
+  price_class         = var.cloudfront_price_class
   wait_for_deployment = false
+  is_ipv6_enabled     = true
 
   origin {
     domain_name              = aws_s3_bucket.site.bucket_regional_domain_name
@@ -120,6 +195,9 @@ resource "aws_cloudfront_distribution" "site" {
     cached_methods             = ["GET", "HEAD"]
     compress                   = true
     response_headers_policy_id = aws_cloudfront_response_headers_policy.ffmpeg_wasm.id
+    min_ttl                    = 0
+    default_ttl                = 3600
+    max_ttl                    = 86400
 
     forwarded_values {
       query_string = false
@@ -128,6 +206,28 @@ resource "aws_cloudfront_distribution" "site" {
         forward = "none"
       }
     }
+  }
+
+  dynamic "logging_config" {
+    for_each = var.enable_cloudfront_logging ? [1] : []
+
+    content {
+      bucket          = aws_s3_bucket.cloudfront_logs[0].bucket_domain_name
+      prefix          = "cloudfront/"
+      include_cookies = false
+    }
+  }
+
+  custom_error_response {
+    error_code         = 403
+    response_code      = 200
+    response_page_path = "/index.html"
+  }
+
+  custom_error_response {
+    error_code         = 404
+    response_code      = 200
+    response_page_path = "/index.html"
   }
 
   restrictions {
@@ -206,15 +306,13 @@ resource "aws_iam_role_policy" "github_actions_deploy" {
     Version = "2012-10-17"
     Statement = [
       {
-        Sid = "DeployToSiteBucket"
-        Effect = "Allow"
-        Action = [
-          "s3:ListBucket"
-        ]
+        Sid      = "DeployToSiteBucket"
+        Effect   = "Allow"
+        Action   = ["s3:ListBucket"]
         Resource = aws_s3_bucket.site.arn
       },
       {
-        Sid = "DeploySiteObjects"
+        Sid    = "DeploySiteObjects"
         Effect = "Allow"
         Action = [
           "s3:PutObject",
@@ -234,4 +332,58 @@ resource "aws_iam_role_policy" "github_actions_deploy" {
       }
     ]
   })
+}
+
+resource "aws_budgets_budget" "monthly_cost" {
+  count = var.enable_cost_budget ? 1 : 0
+
+  name         = "${local.name_prefix}-monthly-cost-budget"
+  budget_type  = "COST"
+  limit_amount = var.monthly_budget_limit_usd
+  limit_unit   = "USD"
+  time_unit    = "MONTHLY"
+
+  cost_types {
+    include_credit             = true
+    include_discount           = true
+    include_other_subscription = true
+    include_recurring          = true
+    include_refund             = true
+    include_subscription       = true
+    include_support            = true
+    include_tax                = true
+    include_upfront            = true
+    use_blended                = false
+  }
+
+  notification {
+    comparison_operator        = "GREATER_THAN"
+    threshold                  = 50
+    threshold_type             = "PERCENTAGE"
+    notification_type          = "ACTUAL"
+    subscriber_email_addresses = [var.budget_alert_email]
+  }
+
+  notification {
+    comparison_operator        = "GREATER_THAN"
+    threshold                  = 80
+    threshold_type             = "PERCENTAGE"
+    notification_type          = "FORECASTED"
+    subscriber_email_addresses = [var.budget_alert_email]
+  }
+
+  notification {
+    comparison_operator        = "GREATER_THAN"
+    threshold                  = 100
+    threshold_type             = "PERCENTAGE"
+    notification_type          = "ACTUAL"
+    subscriber_email_addresses = [var.budget_alert_email]
+  }
+
+  lifecycle {
+    precondition {
+      condition     = !var.enable_cost_budget || length(trimspace(var.budget_alert_email)) > 0
+      error_message = "budget_alert_email must be set when enable_cost_budget is true."
+    }
+  }
 }
