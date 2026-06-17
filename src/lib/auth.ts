@@ -12,8 +12,7 @@ const STORAGE = {
   refreshToken: "vsc_refresh_token",
 };
 
-function requireEnv(name: string): string {
-  const value = process.env[name];
+function getRequiredEnv(value: string | undefined, name: string): string {
   if (!value) {
     throw new Error(`Missing required environment variable: ${name}`);
   }
@@ -22,11 +21,28 @@ function requireEnv(name: string): string {
 
 export function getAuthConfig() {
   return {
-    cognitoDomain: requireEnv("NEXT_PUBLIC_COGNITO_DOMAIN").replace(/\/$/, ""),
-    clientId: requireEnv("NEXT_PUBLIC_COGNITO_CLIENT_ID"),
-    redirectUri: requireEnv("NEXT_PUBLIC_COGNITO_REDIRECT_URI"),
-    logoutUri: requireEnv("NEXT_PUBLIC_COGNITO_LOGOUT_URI"),
-    profileApiBaseUrl: process.env.NEXT_PUBLIC_PROFILE_API_BASE_URL?.replace(/\/$/, "") || "",
+    cognitoDomain: getRequiredEnv(
+      process.env.NEXT_PUBLIC_COGNITO_DOMAIN,
+      "NEXT_PUBLIC_COGNITO_DOMAIN"
+    ).replace(/\/$/, ""),
+
+    clientId: getRequiredEnv(
+      process.env.NEXT_PUBLIC_COGNITO_CLIENT_ID,
+      "NEXT_PUBLIC_COGNITO_CLIENT_ID"
+    ),
+
+    redirectUri: getRequiredEnv(
+      process.env.NEXT_PUBLIC_COGNITO_REDIRECT_URI,
+      "NEXT_PUBLIC_COGNITO_REDIRECT_URI"
+    ),
+
+    logoutUri: getRequiredEnv(
+      process.env.NEXT_PUBLIC_COGNITO_LOGOUT_URI,
+      "NEXT_PUBLIC_COGNITO_LOGOUT_URI"
+    ),
+
+    profileApiBaseUrl:
+      process.env.NEXT_PUBLIC_PROFILE_API_BASE_URL?.replace(/\/$/, "") || "",
   };
 }
 
