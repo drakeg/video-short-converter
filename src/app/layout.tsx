@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import ThemeToggle from "./ThemeToggle";
+import AuthNav from "@/components/AuthNav";
 
 export const metadata: Metadata = {
   title: "YouTube to Shorts Converter | Trim & Resize Videos",
@@ -33,6 +34,7 @@ export default function RootLayout({
         <div className="fixed right-4 top-4 z-50">
           <ThemeToggle />
         </div>
+        <AuthNav />
         {children}
       </body>
     </html>
