@@ -1,0 +1,26 @@
+aws_region    = "us-east-1"
+project_name  = "video-short-converter"
+environment   = "prod"
+owner         = "greg"
+github_owner  = "drakeg"
+github_repo   = "video-short-converter"
+github_branch = "main"
+
+# If your AWS account already has token.actions.githubusercontent.com as an IAM OIDC provider,
+# set this to false before terraform apply.
+create_github_oidc_provider = true
+
+# Cost controls
+cloudfront_price_class = "PriceClass_100"
+
+# Set this to your email before applying, or set enable_cost_budget = false.
+enable_cost_budget       = true
+monthly_budget_limit_usd = "5"
+budget_alert_email       = "greg@example.com"
+
+# Disabled by default because logs add S3 storage and request costs.
+enable_cloudfront_logging    = false
+cloudfront_log_retention_days = 14
+
+# Storage guardrails
+site_noncurrent_version_expiration_days = 30
