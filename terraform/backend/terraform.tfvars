@@ -1,0 +1,11 @@
+aws_region   = "us-east-1"
+project_name = "video-short-converter"
+environment  = "prod"
+owner        = "greg"
+
+# Optional. Leave null to generate: video-short-converter-prod-terraform-state-ACCOUNT_ID
+state_bucket_name = "video-short-converter-terraform-state"
+lock_table_name   = "video-short-converter-terraform-locks"
+
+# Keep enough history to recover, but prevent indefinite state-version growth.
+noncurrent_state_version_expiration_days = 90
