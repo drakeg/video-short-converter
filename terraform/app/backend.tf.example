@@ -1,0 +1,11 @@
+# Rename this file to backend.tf after running terraform/backend once.
+# Use the values from: cd terraform/backend && terraform output backend_config_example
+terraform {
+  backend "s3" {
+    bucket         = "REPLACE_WITH_TERRAFORM_STATE_BUCKET"
+    key            = "video-short-converter/app/terraform.tfstate"
+    region         = "us-east-1"
+    dynamodb_table = "video-short-converter-terraform-locks"
+    encrypt        = true
+  }
+}

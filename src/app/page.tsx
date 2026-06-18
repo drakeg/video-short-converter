@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from 'react';
 import dynamic from 'next/dynamic';
 import { XMarkIcon, QuestionMarkCircleIcon } from '@heroicons/react/24/outline';
+import RequireAuth from "@/components/RequireAuth";
 
 // Dynamically import the VideoEditor component with SSR disabled
 const VideoEditor = dynamic(
@@ -64,10 +65,12 @@ export default function Home() {
             View Detailed Instructions
           </button>
         </div>
-        
+
+        <RequireAuth>
         <div className="bg-white rounded-lg shadow-lg p-6 dark:bg-slate-900 dark:border dark:border-slate-700">
           <VideoEditor />
         </div>
+        </RequireAuth>
 
         {isProcessing && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
