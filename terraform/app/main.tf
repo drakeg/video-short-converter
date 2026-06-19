@@ -206,6 +206,11 @@ resource "aws_cloudfront_distribution" "site" {
         forward = "none"
       }
     }
+
+    function_association {
+      event_type   = "viewer-request"
+      function_arn = aws_cloudfront_function.static_route_rewrite.arn
+    }
   }
 
   dynamic "logging_config" {
@@ -392,4 +397,35 @@ resource "aws_budgets_budget" "monthly_cost" {
       error_message = "budget_alert_email must be set when enable_cost_budget is true."
     }
   }
+}
+
+resource "aws_cloudfront_function" "static_route_rewrite" {
+  name    = "${local.name_prefix}-static-route-rewrite"
+  runtime = "cloudfront-js-2.0"
+  comment = "Rewrite static Next.js routes to index.html"
+  publish = true
+
+  code = <<EOF
+function handler(event) {
+  var request = event.request;
+  var uri = request.uri;
+
+  if (uri === "/") {
+    request.uri = "/index.html";
+    return request;
+  }
+
+  if (uri.endsWith("/")) {
+    request.uri = uri + "index.html";
+    return request;
+  }
+
+  if (!uri.includes(".")) {
+    request.uri = uri + "/index.html";
+    return request;
+  }
+
+  return request;
+}
+EOF
 }

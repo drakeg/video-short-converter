@@ -42,6 +42,12 @@ resource "aws_cognito_user_pool" "users" {
     required            = false
     mutable             = true
   }
+
+  lifecycle {
+    ignore_changes = [
+      schema
+    ]
+  }
 }
 
 resource "aws_cognito_user_pool_client" "web" {

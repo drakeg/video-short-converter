@@ -19,9 +19,9 @@ acm_certificate_arn = "arn:aws:acm:us-east-1:495872157039:certificate/cefb7196-2
 cognito_domain_prefix = "video-short-converter-greg-prod"
 
 auth_callback_urls = [
-  "https://shorts.madmallards.com/auth/callback/",
-  "https://dje507jgadsgo.cloudfront.net/auth/callback/",
-  "http://localhost:3000/auth/callback/"
+  "https://shorts.madmallards.com/auth/callback",
+  "https://dje507jgadsgo.cloudfront.net/auth/callback",
+  "http://localhost:3000/auth/callback"
 ]
 
 auth_logout_urls = [
