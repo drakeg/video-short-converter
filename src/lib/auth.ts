@@ -132,7 +132,9 @@ export function logout() {
 
   const url = new URL(`${config.cognitoDomain}/logout`);
   url.searchParams.set("client_id", config.clientId);
-  url.searchParams.set("logout_uri", config.logoutUri);
+  url.searchParams.set("response_type", "code");
+  url.searchParams.set("redirect_uri", config.logoutUri);
+
   window.location.assign(url.toString());
 }
 
