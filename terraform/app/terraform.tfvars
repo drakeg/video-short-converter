@@ -21,13 +21,15 @@ cognito_domain_prefix = "video-short-converter-greg-prod"
 auth_callback_urls = [
   "https://shorts.madmallards.com/auth/callback",
   "https://dje507jgadsgo.cloudfront.net/auth/callback",
-  "http://localhost:3000/auth/callback"
+  "http://localhost:3000/auth/callback",
+  "https://video-short-converter.vercel.app/auth/callback"
 ]
 
 auth_logout_urls = [
   "https://shorts.madmallards.com/login/",
   "https://dje507jgadsgo.cloudfront.net/login/",
-  "http://localhost:3000/login/"
+  "http://localhost:3000/login/",
+  "https://video-short-converter.vercel.app/login/"
 ]
 
 auth_cors_allow_origin = "https://shorts.madmallards.com"
