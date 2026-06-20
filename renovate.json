@@ -35,11 +35,6 @@
       "dependencyDashboardApproval": true
     },
     {
-      "description": "Do not upgrade ffmpeg packages automatically",
-      "matchPackageNames": ["@ffmpeg/ffmpeg", "@ffmpeg/core", "@ffmpeg/util"],
-      "enabled": false
-    },
-    {
       "description": "Do not automerge Next.js/React major framework packages",
       "matchPackageNames": ["next", "react", "react-dom", "eslint-config-next"],
       "matchUpdateTypes": ["major"],
