@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import ThemeToggle from "./ThemeToggle";
 import AuthNav from "@/components/AuthNav";
+import { Analytics } from "@vercel/analytics/next"
 
 export const metadata: Metadata = {
   title: "YouTube to Shorts Converter | Trim & Resize Videos",
