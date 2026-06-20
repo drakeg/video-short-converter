@@ -26,10 +26,10 @@ auth_callback_urls = [
 ]
 
 auth_logout_urls = [
-  "https://shorts.madmallards.com/login/",
-  "https://dje507jgadsgo.cloudfront.net/login/",
-  "http://localhost:3000/login/",
-  "https://video-short-converter.vercel.app/login/"
+  "https://shorts.madmallards.com",
+  "https://dje507jgadsgo.cloudfront.net",
+  "http://localhost:3000",
+  "https://video-short-converter.vercel.app"
 ]
 
 auth_cors_allow_origin = "https://shorts.madmallards.com"
