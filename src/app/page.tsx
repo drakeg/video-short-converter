@@ -94,7 +94,7 @@ export default function Home() {
                     <div>
                       <h3 className="font-semibold text-lg text-gray-800 mb-2">Upload Your Video</h3>
                       <div className="prose text-gray-700 space-y-2">
-                        <p>• Click "Select Video" to upload a video file from your device</p>
+                        <p>• Click &quot;Select Video&quot; to upload a video file from your device</p>
                         <p>• Supported formats: MP4, WebM, MOV (up to 100MB)</p>
                         <p className="text-sm text-gray-500">Note: Ensure your video has good lighting and clear audio for best results</p>
                       </div>
@@ -171,7 +171,7 @@ export default function Home() {
                   onClick={() => setShowInstructions(false)}
                   className="px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
                 >
-                  Got it, let's start!
+                  Got it, let&apos;s start!
                 </button>
               </div>
             </div>
