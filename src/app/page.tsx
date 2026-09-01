@@ -8,7 +8,7 @@ import RequireAuth from "@/components/RequireAuth";
 // Dynamically import the VideoEditor component with SSR disabled
 const VideoEditor = dynamic(
   () => import('@/components/VideoEditor'),
-  { 
+  {
     ssr: false,
     loading: () => (
       <div className="flex items-center justify-center min-h-[60vh]">
@@ -19,9 +19,7 @@ const VideoEditor = dynamic(
 );
 
 export default function Home() {
-  const [isProcessing, setIsProcessing] = useState(false);
   const [showInstructions, setShowInstructions] = useState(false);
-  const [downloadUrl, setDownloadUrl] = useState<string | null>(null);
   const modalRef = useRef<HTMLDivElement>(null);
 
   // Close modal when clicking outside
@@ -48,7 +46,6 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-purple-50 text-gray-900 dark:from-slate-950 dark:to-slate-900 dark:text-gray-100">
-
       <main className="container mx-auto px-4 py-8">
         <div className="text-center mb-8">
           <h1 className="text-3xl md:text-4xl font-bold text-gray-800 mb-2 dark:text-gray-100">
@@ -67,26 +64,15 @@ export default function Home() {
         </div>
 
         <RequireAuth>
-        <div className="bg-white rounded-lg shadow-lg p-6 dark:bg-slate-900 dark:border dark:border-slate-700">
-          <VideoEditor />
-        </div>
-        </RequireAuth>
-
-        {isProcessing && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-            <div className="bg-white p-6 rounded-lg shadow-xl dark:bg-slate-900 dark:text-gray-100">
-              <div className="flex items-center space-x-4">
-                <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-blue-500"></div>
-                <span className="text-gray-700">Processing video...</span>
-              </div>
-            </div>
+          <div className="bg-white rounded-lg shadow-lg p-6 dark:bg-slate-900 dark:border dark:border-slate-700">
+            <VideoEditor />
           </div>
-        )}
+        </RequireAuth>
 
         {/* Instructions Modal */}
         {showInstructions && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-            <div 
+            <div
               ref={modalRef}
               className="bg-white rounded-xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto"
             >
@@ -100,7 +86,7 @@ export default function Home() {
                   <XMarkIcon className="h-6 w-6" />
                 </button>
               </div>
-              
+
               <div className="p-6 space-y-8">
                 <div className="space-y-6">
                   <div className="flex items-start">
@@ -134,7 +120,7 @@ export default function Home() {
                       <h3 className="font-semibold text-lg text-gray-800 mb-2">Convert to Portrait</h3>
                       <div className="prose text-gray-700 space-y-2">
                         <p>• The video will automatically be converted to 9:16 aspect ratio (1080x1920)</p>
-                        <p>• The system will detect and focus on the main content area</p>
+                        <p>• The current export uses a centered portrait crop</p>
                         <p>• For best results, ensure important content is centered in the frame</p>
                       </div>
                     </div>
@@ -173,7 +159,7 @@ export default function Home() {
                   </div>
                 </div>
               </div>
-              
+
               <div className="bg-gray-50 px-6 py-4 flex justify-end space-x-3 border-t border-gray-200">
                 <button
                   onClick={() => setShowInstructions(false)}
