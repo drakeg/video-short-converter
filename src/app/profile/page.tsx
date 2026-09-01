@@ -13,6 +13,8 @@ export default function ProfilePage() {
 
   useEffect(() => {
     const user = getCurrentUser();
+    // Email comes from browser-backed auth state and is hydrated after mount.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setEmail(String(user?.email || ""));
     fetchProfile()
       .then((profile) => {
