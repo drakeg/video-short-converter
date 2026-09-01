@@ -8,6 +8,8 @@ export default function AuthNav() {
   const [user, setUser] = useState<JwtPayload | null>(null);
 
   useEffect(() => {
+    // Authentication is read from browser storage after mount to keep SSR deterministic.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setUser(getCurrentUser());
   }, []);
 

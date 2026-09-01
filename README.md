@@ -1,93 +1,93 @@
 # Video Shorts Editor
 
-A modern web application for trimming and converting videos to portrait format, perfect for creating Shorts, Reels, and TikTok content.
+A browser-based video editor for trimming local video files and converting selected clips to portrait video for Shorts, Reels, and TikTok.
 
 ## Features
 
-- **Simple Video Upload**: Easily upload your videos directly from your device
-- **Precise Trimming**: Set exact start and end points for your video clips
-- **Portrait Format**: Automatically converts videos to 9:16 aspect ratio (1080x1920)
-- **User-Friendly Interface**: Intuitive controls and real-time preview
-- **Fast Processing**: Quick trimming and conversion with progress tracking
-- **Responsive Design**: Works on both desktop and mobile devices
+- Upload MP4, WebM, and MOV video files from your device.
+- Mark precise trim start and end points.
+- Convert selected clips to 9:16 portrait video at 1080x1920.
+- Preview and scrub video before export.
+- Track browser-side FFmpeg processing progress.
+- Use the application on desktop or mobile layouts.
 
-## Supported Formats
+> Current framing behavior uses a fixed portrait crop. Interactive crop positioning and platform-specific export presets are planned; see [the improvement roadmap](docs/IMPROVEMENT_ROADMAP.md).
 
-- MP4
-- WebM
-- MOV
+## Prerequisites
 
-## Getting Started
+- Node.js 20 or later
+- npm
+- A modern browser with JavaScript and WebAssembly support
 
-### Prerequisites
-
-- Node.js 16.8 or later
-- npm, yarn, or pnpm
-- Modern web browser with JavaScript enabled
-
-### Installation
+## Local development
 
 1. Clone the repository:
+
    ```bash
-   git clone https://github.com/yourusername/video-shorts-editor.git
-   cd video-shorts-editor
+   git clone https://github.com/drakeg/video-short-converter.git
+   cd video-short-converter
    ```
 
-2. Install dependencies:
+2. Install the locked dependency set:
+
    ```bash
-   npm install
-   # or
-   yarn install
-   # or
-   pnpm install
+   npm ci
    ```
 
-3. Run the development server:
+3. Start the development server:
+
    ```bash
    npm run dev
-   # or
-   yarn dev
-   # or
-   pnpm dev
    ```
 
-4. Open [http://localhost:3000](http://localhost:3000) in your browser
+4. Open `http://localhost:3000`.
 
-## How to Use
+For the default Turbopack development server instead of the webpack development path, run:
 
-1. **Upload Your Video**
-   - Click "Select Video" to choose a video file from your device
-   - Supported formats: MP4, WebM, MOV (up to 100MB)
+```bash
+npm run dev:fast
+```
 
-2. **Trim Your Clip**
-   - Play the video to find the perfect start point
-   - Click "Mark Start" to set the beginning of your short
-   - Click "Mark End" to set the end of your short (max 60 seconds recommended)
-   - Use the timeline to fine-tune your selection
+## Quality checks
 
-3. **Download Your Short**
-   - Click "Download Short" to process your video
-   - The processed video will automatically download in MP4 format
+Run the same checks used by pull-request CI:
 
-## Tips for Best Results
+```bash
+npm run typecheck
+npm run lint
+npm test -- --runInBand
+npm run build
+```
 
-- For best quality, use well-lit videos with clear audio
-- Keep your shorts under 60 seconds for most platforms
-- Center important content in the frame for optimal portrait display
-- Use videos with high resolution (at least 1080x1920 for best quality)
+The production TypeScript configuration intentionally scopes type checking to application/build code. Jest sources use the separate `tsconfig.test.json` configuration so test globals and DOM mocks cannot leak into `next build` type checking.
 
-## Technologies Used
+## How to use
 
-- [Next.js](https://nextjs.org/) - React framework
-- [TypeScript](https://www.typescriptlang.org/) - Type-safe JavaScript
-- [Tailwind CSS](https://tailwindcss.com/) - Utility-first CSS framework
-- [FFmpeg.wasm](https://ffmpegwasm.netlify.app/) - For video processing in the browser
-- [React Icons](https://react-icons.github.io/react-icons/) - For UI icons
+1. Select a supported video file from your device.
+2. Play or scrub to the desired starting position and mark the start.
+3. Move to the desired ending position and mark the end.
+4. Process the selection and download the generated MP4 file.
 
-## Contributing
+Most short-form platforms work best with relatively short clips. Important subjects should currently be kept near the center of the source frame because export uses a fixed portrait crop.
 
-Contributions are welcome! Please feel free to submit a Pull Request.
+## Technology
+
+- Next.js 16
+- React 19
+- TypeScript
+- Tailwind CSS
+- FFmpeg.wasm
+- Jest and Testing Library
+- Playwright
+
+## Development roadmap
+
+The current hardening and product improvement plan is maintained in [docs/IMPROVEMENT_ROADMAP.md](docs/IMPROVEMENT_ROADMAP.md). Work is sequenced from CI and maintainability improvements through editing controls, export workflow improvements, and future assisted clip creation.
+
+## Deployment
+
+AWS deployment guidance is available in [AWS_DEPLOYMENT.md](AWS_DEPLOYMENT.md). Vercel preview deployments are also used for pull-request validation.
 
 ## License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+This project is licensed under the MIT License. See [LICENSE](LICENSE) for details.

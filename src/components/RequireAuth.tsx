@@ -7,6 +7,8 @@ export default function RequireAuth({ children }: { children: React.ReactNode })
   const [user, setUser] = useState<JwtPayload | null | undefined>(undefined);
 
   useEffect(() => {
+    // Authentication is read from browser storage after mount to keep SSR deterministic.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setUser(getCurrentUser());
   }, []);
 
