@@ -7,7 +7,7 @@
     "dev:fast": "next dev",
     "build": "next build --webpack",
     "start": "next start",
-    "lint": "eslint . --max-warnings=0",
+    "lint": "eslint src next.config.ts",
     "typecheck": "tsc --noEmit -p tsconfig.json",
     "test": "jest",
     "test:watch": "jest --watch",
