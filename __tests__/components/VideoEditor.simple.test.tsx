@@ -8,7 +8,9 @@ jest.mock('next/dynamic', () => () => function MockDynamicComponent() {
   return null;
 });
 
-import { VideoEditorContent } from '../../src/components/VideoEditor';
+// Another editor suite mocks this module at the module level. requireActual keeps this
+// smoke suite tied to the real implementation regardless of Jest mock registry state.
+const { VideoEditorContent } = jest.requireActual('../../src/components/VideoEditor') as typeof import('../../src/components/VideoEditor');
 
 const mockCreateObjectURL = jest.fn(() => 'blob:mock-video');
 const mockRevokeObjectURL = jest.fn();
