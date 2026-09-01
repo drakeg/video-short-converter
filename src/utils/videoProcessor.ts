@@ -105,7 +105,9 @@ export async function trimVideo(
       throw new Error('FFmpeg produced an empty output file');
     }
 
-    const blob = new Blob([data], { type: 'video/mp4' });
+    const outputBytes = new Uint8Array(data.length);
+    outputBytes.set(data);
+    const blob = new Blob([outputBytes.buffer], { type: 'video/mp4' });
     onProgress?.(1);
 
     return new File(
