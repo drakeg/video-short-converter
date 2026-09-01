@@ -24,10 +24,13 @@ export default function ThemeToggle() {
 
   useEffect(() => {
     const initial = getInitialTheme();
+    // Theme is browser-backed state; hydrate it after mount to avoid an SSR mismatch.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setTheme(initial);
     if (typeof document !== "undefined") {
       document.documentElement.classList.toggle("dark", initial === "dark");
     }
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setMounted(true);
   }, []);
 
