@@ -1,13 +1,13 @@
 'use client';
 
-import { useState, useRef, useEffect, useCallback } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import dynamic from 'next/dynamic';
+import ExportSettings from './video-editor/ExportSettings';
+import FramingOverlay from './video-editor/FramingOverlay';
+import TimelineControls from './video-editor/TimelineControls';
+import VideoUploader from './video-editor/VideoUploader';
+import { DEFAULT_PRESET, getExportPreset } from './video-editor/editorConfig';
 
-interface VideoProcessor {
-  trimVideo: (file: File, start: number, end: number, onProgress: (progress: number) => void) => Promise<Blob>;
-}
-
-// Format time in seconds to MM:SS.SSS
 const formatTime = (seconds: number): string => {
   const mins = Math.floor(seconds / 60);
   const secs = (seconds % 60).toFixed(1);
@@ -15,7 +15,6 @@ const formatTime = (seconds: number): string => {
 };
 
 export const VideoEditorContent = () => {
-  // State management
   const [videoUrl, setVideoUrl] = useState<string | null>(null);
   const [videoDuration, setVideoDuration] = useState(0);
   const [currentTime, setCurrentTime] = useState(0);
@@ -27,536 +26,334 @@ export const VideoEditorContent = () => {
   const [originalFile, setOriginalFile] = useState<File | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [trimDuration, setTrimDuration] = useState(0);
-  
-  // Refs
-  const videoRef = useRef<HTMLVideoElement>(null);
-  const fileInputRef = useRef<HTMLInputElement>(null);
-  const durationInterval = useRef<NodeJS.Timeout | null>(null);
+  const [presetId, setPresetId] = useState(DEFAULT_PRESET.id);
+  const [cropPosition, setCropPosition] = useState(50);
+  const [frameRate, setFrameRate] = useState(30);
+  const [sourceWidth, setSourceWidth] = useState(0);
+  const [sourceHeight, setSourceHeight] = useState(0);
 
-  // Handle file selection
-  const handleFileChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const durationInterval = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  const preset = getExportPreset(presetId);
+
+  const clearDurationInterval = useCallback(() => {
+    if (durationInterval.current) {
+      clearInterval(durationInterval.current);
+      durationInterval.current = null;
+    }
+  }, []);
+
+  const handleFileSelected = useCallback((file: File) => {
+    setVideoUrl((previousUrl) => {
+      if (previousUrl) URL.revokeObjectURL(previousUrl);
+      return URL.createObjectURL(file);
+    });
     setOriginalFile(file);
-    const url = URL.createObjectURL(file);
-    setVideoUrl(url);
+    setVideoDuration(0);
+    setCurrentTime(0);
+    setStartTime(null);
+    setEndTime(null);
+    setTrimDuration(0);
+    setSourceWidth(0);
+    setSourceHeight(0);
     setError(null);
   }, []);
 
-  // Handle video metadata loaded
   const handleLoadedMetadata = useCallback(() => {
     if (!videoRef.current) return;
     const duration = videoRef.current.duration;
     setVideoDuration(duration);
     setEndTime(duration);
+    setSourceWidth(videoRef.current.videoWidth);
+    setSourceHeight(videoRef.current.videoHeight);
   }, []);
 
-  // Handle time update
   const handleTimeUpdate = useCallback(() => {
     if (!videoRef.current) return;
-    
-    const currentTime = videoRef.current.currentTime;
-    setCurrentTime(currentTime);
-    
-    // Check if we've reached the end of the video
-    if (videoDuration > 0 && currentTime >= videoDuration - 0.1) { // Small threshold to account for precision
-      // If we have a start time but no end time, set end time to video duration
-      if (startTime !== null && endTime === null) {
-        setEndTime(videoDuration);
-        
-        // Stop the duration timer
-        if (durationInterval.current) {
-          clearInterval(durationInterval.current);
-          durationInterval.current = null;
-        }
-        
-        setTrimDuration(videoDuration - (startTime || 0));
-      }
-    }
-  }, [videoDuration, startTime, endTime]);
 
-  // Toggle play/pause
-  const togglePlayPause = useCallback(() => {
-    if (!videoRef.current) return;
-    
-    if (isPlaying) {
-      videoRef.current.pause();
-    } else {
-      // If we're starting playback, reset the trim state
-      if (startTime !== null || endTime !== null) {
-        setStartTime(null);
-        setEndTime(null);
-        setTrimDuration(0);
-      }
-      videoRef.current.play();
-    }
-    setIsPlaying(!isPlaying);
-  }, [isPlaying, startTime, endTime]);
+    const time = videoRef.current.currentTime;
+    setCurrentTime(time);
 
-  // Seek to a specific time
+    if (startTime !== null && endTime === null) {
+      setTrimDuration(Math.max(0, time - startTime));
+    }
+
+    if (videoDuration > 0 && time >= videoDuration - 0.1 && startTime !== null && endTime === null) {
+      setEndTime(videoDuration);
+      setTrimDuration(videoDuration - startTime);
+      clearDurationInterval();
+    }
+  }, [clearDurationInterval, endTime, startTime, videoDuration]);
+
   const seekToTime = useCallback((time: number) => {
     if (!videoRef.current) return;
-    
-    // Ensure time is within video bounds
-    time = Math.max(0, Math.min(time, videoDuration || 0));
-    videoRef.current.currentTime = time;
-    setCurrentTime(time);
-    
-    // If we're in trim mode, update the trim duration
+    const boundedTime = Math.max(0, Math.min(time, videoDuration || 0));
+    videoRef.current.currentTime = boundedTime;
+    setCurrentTime(boundedTime);
+
     if (startTime !== null && endTime === null) {
-      setTrimDuration(time - startTime);
+      setTrimDuration(Math.max(0, boundedTime - startTime));
     }
-  }, [videoDuration, startTime]);
+  }, [endTime, startTime, videoDuration]);
 
-  // Seek forward/backward by a number of frames
-  const seekByFrames = useCallback((frameCount: number) => {
+  const togglePlayPause = useCallback(() => {
     if (!videoRef.current) return;
-    
-    // Assuming 30fps, calculate frame duration
-    const frameDuration = 1 / 30; // 30fps
-    const currentTime = videoRef.current.currentTime;
-    const newTime = Math.max(0, Math.min(currentTime + (frameCount * frameDuration), videoDuration || 0));
-    
-    seekToTime(newTime);
-  }, [videoDuration, seekToTime]);
-  
-  // Quick jump buttons
-  const quickJump = useCallback((seconds: number) => {
-    if (!videoRef.current) return;
-    const newTime = Math.max(0, Math.min(currentTime + seconds, videoDuration || 0));
-    seekToTime(newTime);
-  }, [currentTime, videoDuration, seekToTime]);
 
-  // Handle mark start
-  const handleMarkStart = useCallback(() => {
-    if (!videoRef.current) return;
-    const time = videoRef.current.currentTime;
-    const isAtStart = time < 0.5; // Consider it the start if less than 0.5 seconds in
-    
-    if (isAtStart) {
-      setStartTime(0);
-      // Start playing the video
-      videoRef.current.play().catch(e => console.error('Error playing video:', e));
-      setIsPlaying(true);
+    if (videoRef.current.paused) {
+      videoRef.current.play().catch((playError) => {
+        console.error('Error playing video:', playError);
+      });
     } else {
-      setStartTime(time);
+      videoRef.current.pause();
     }
-    
-    setEndTime(null);
-    
-    // Start the duration timer
-    if (durationInterval.current) {
-      clearInterval(durationInterval.current);
-    }
-    
-    durationInterval.current = setInterval(() => {
-      if (videoRef.current) {
-        const current = videoRef.current.currentTime;
-        setTrimDuration(current - (isAtStart ? 0 : time));
-      }
-    }, 100);
   }, []);
 
-  // Handle mark end
+  const seekByFrames = useCallback((frameCount: number) => {
+    if (!videoRef.current) return;
+    const frameDuration = 1 / frameRate;
+    seekToTime(videoRef.current.currentTime + frameCount * frameDuration);
+  }, [frameRate, seekToTime]);
+
+  const quickJump = useCallback((seconds: number) => {
+    if (!videoRef.current) return;
+    seekToTime(videoRef.current.currentTime + seconds);
+  }, [seekToTime]);
+
+  const handleMarkStart = useCallback(() => {
+    if (!videoRef.current) return;
+    const time = videoRef.current.currentTime < 0.5 ? 0 : videoRef.current.currentTime;
+    setStartTime(time);
+    setEndTime(null);
+    setTrimDuration(0);
+    clearDurationInterval();
+
+    durationInterval.current = setInterval(() => {
+      if (videoRef.current) {
+        setTrimDuration(Math.max(0, videoRef.current.currentTime - time));
+      }
+    }, 100);
+  }, [clearDurationInterval]);
+
   const handleMarkEnd = useCallback(() => {
     if (!videoRef.current) return;
-    
-    // If start time isn't set, use current time as start time
-    if (startTime === null) {
-      setStartTime(0);
-    }
-    
-    const time = videoRef.current.currentTime;
+    const effectiveStart = startTime ?? 0;
+    const time = Math.max(effectiveStart, videoRef.current.currentTime);
+    setStartTime(effectiveStart);
     setEndTime(time);
-    
-    // Stop video playback
-    if (isPlaying) {
-      videoRef.current.pause();
-      setIsPlaying(false);
-    }
-    
-    // Stop the duration timer
-    if (durationInterval.current) {
-      clearInterval(durationInterval.current);
-      durationInterval.current = null;
-    }
-    
-    setTrimDuration(time - (startTime || 0));
-  }, [startTime, isPlaying]);
+    setTrimDuration(time - effectiveStart);
+    clearDurationInterval();
 
-  // Handle trim and download
+    if (!videoRef.current.paused) {
+      videoRef.current.pause();
+    }
+  }, [clearDurationInterval, startTime]);
+
+  const handleTimelineStartChange = useCallback((time: number) => {
+    const bounded = Math.max(0, Math.min(time, endTime ?? videoDuration));
+    setStartTime(bounded);
+    if (endTime !== null) setTrimDuration(Math.max(0, endTime - bounded));
+  }, [endTime, videoDuration]);
+
+  const handleTimelineEndChange = useCallback((time: number) => {
+    const effectiveStart = startTime ?? 0;
+    const bounded = Math.max(effectiveStart, Math.min(time, videoDuration));
+    setStartTime(effectiveStart);
+    setEndTime(bounded);
+    setTrimDuration(bounded - effectiveStart);
+  }, [startTime, videoDuration]);
+
   const handleTrimAndDownload = useCallback(async () => {
-    if (!originalFile || isTrimming || startTime === null || endTime === null) return;
-    
+    if (!originalFile || isTrimming || startTime === null || endTime === null || endTime <= startTime) return;
+
     try {
       setIsTrimming(true);
       setError(null);
-      
-      // Reset progress at start
       setTrimProgress(0);
-      
-      // Import video processor dynamically to avoid SSR issues
+
       const { trimVideo } = await import('@/utils/videoProcessor');
-      
-      // Split progress into two phases: processing (0-90%) and finalizing (90-100%)
-      const processingProgress = (progress: number) => {
-        // First 90% is for processing, last 10% is for finalizing
-        const processingPhase = Math.min(1, progress * 1.1); // Scale to 90%
-        setTrimProgress(processingPhase);
-      };
-      
       const trimmedBlob = await trimVideo(
         originalFile,
         startTime,
         endTime,
-        processingProgress
+        (progress) => {
+          const normalized = progress > 1 ? progress / 100 : progress;
+          setTrimProgress(Math.min(0.95, Math.max(0, normalized)));
+        },
+        { presetId, cropPosition },
       );
-      
-      // Update to finalizing state
-      setTrimProgress(0.95); // 95% - preparing download
-      
-      // Small delay to ensure UI updates
-      await new Promise(resolve => setTimeout(resolve, 100));
-      
-      // Create download link
+
+      setTrimProgress(0.98);
       const url = URL.createObjectURL(trimmedBlob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `short-${new Date().getTime()}.mp4`;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
+      const anchor = document.createElement('a');
+      anchor.href = url;
+      anchor.download = trimmedBlob.name || `short-${Date.now()}.mp4`;
+      document.body.appendChild(anchor);
+      anchor.click();
+      document.body.removeChild(anchor);
       URL.revokeObjectURL(url);
-      
-      // Complete the progress
       setTrimProgress(1);
-      
-      // Show success notification
+
       if (window.Notification && Notification.permission === 'granted') {
         new Notification('Video Processing Complete', {
           body: 'Your video has been trimmed and downloaded!',
-          icon: '/favicon.ico'
+          icon: '/favicon.ico',
         });
       }
-      
-    } catch (err) {
-      console.error('Error trimming video:', err);
+    } catch (trimError) {
+      console.error('Error trimming video:', trimError);
       setError('Failed to trim video. Please try again.');
     } finally {
       setIsTrimming(false);
     }
-  }, [originalFile, isTrimming, startTime, endTime]);
-  
-  // Clean up interval on unmount
+  }, [cropPosition, endTime, isTrimming, originalFile, presetId, startTime]);
+
   useEffect(() => {
-    return () => {
-      if (durationInterval.current) {
-        clearInterval(durationInterval.current);
+    const handleKeyboard = (event: KeyboardEvent) => {
+      const target = event.target as HTMLElement | null;
+      if (target?.isContentEditable || ['INPUT', 'SELECT', 'TEXTAREA'].includes(target?.tagName ?? '')) return;
+      if (!videoUrl) return;
+
+      if (event.code === 'Space') {
+        event.preventDefault();
+        togglePlayPause();
+      } else if (event.key === 'ArrowLeft') {
+        event.preventDefault();
+        seekByFrames(-1);
+      } else if (event.key === 'ArrowRight') {
+        event.preventDefault();
+        seekByFrames(1);
+      } else if (event.key.toLowerCase() === 'i') {
+        handleMarkStart();
+      } else if (event.key.toLowerCase() === 'o') {
+        handleMarkEnd();
       }
     };
-  }, []);
 
-  // Clean up
+    window.addEventListener('keydown', handleKeyboard);
+    return () => window.removeEventListener('keydown', handleKeyboard);
+  }, [handleMarkEnd, handleMarkStart, seekByFrames, togglePlayPause, videoUrl]);
+
+  useEffect(() => () => clearDurationInterval(), [clearDurationInterval]);
+
   useEffect(() => {
     return () => {
-      if (videoUrl) {
-        URL.revokeObjectURL(videoUrl);
-      }
+      if (videoUrl) URL.revokeObjectURL(videoUrl);
     };
   }, [videoUrl]);
 
-  // Request notification permission on mount
-  useEffect(() => {
-    if (typeof window !== 'undefined' && 'Notification' in window) {
-      Notification.requestPermission();
-    }
-  }, []);
-
   return (
-    <div className="max-w-4xl mx-auto p-4">
-      <h1 className="text-2xl font-bold mb-6">Video Trimmer</h1>
-      
+    <div className="mx-auto max-w-5xl p-4">
+      <div className="mb-6 flex flex-wrap items-end justify-between gap-3">
+        <div>
+          <h1 className="text-2xl font-bold">Video Trimmer</h1>
+          <p className="mt-1 text-sm text-gray-500">Trim, frame, and export a social-ready clip.</p>
+        </div>
+        {videoUrl && (
+          <div className="text-xs text-gray-500">
+            Shortcuts: Space play/pause · I mark in · O mark out · ←/→ one frame
+          </div>
+        )}
+      </div>
+
       {error && (
-        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
+        <div className="mb-4 rounded border border-red-400 bg-red-100 px-4 py-3 text-red-700">
           {error}
         </div>
       )}
-      
-      <div className="bg-white rounded-lg shadow-md p-4 mb-6">
+
+      <div className="rounded-lg bg-white p-4 shadow-md">
         {!videoUrl ? (
-          <div 
-            className="border-2 border-dashed border-gray-300 rounded-lg p-12 text-center cursor-pointer hover:border-blue-500 transition-colors"
-            onClick={() => fileInputRef.current?.click()}
-          >
-            <input
-              ref={fileInputRef}
-              type="file"
-              className="hidden"
-              accept="video/*"
-              onChange={handleFileChange}
-            />
-            <p className="text-gray-600">Click or drop a video file here</p>
-            <p className="text-sm text-gray-400 mt-2">Supported formats: MP4, WebM, OGG</p>
-          </div>
+          <VideoUploader onFileSelected={handleFileSelected} />
         ) : (
-          <div className="space-y-4">
-            <div className="bg-black rounded-lg overflow-hidden" style={{ maxHeight: '60vh' }}>
-              <div style={{ position: 'relative', paddingTop: '56.25%' }}>
+          <div className="space-y-5">
+            <div className="relative overflow-hidden rounded-lg bg-black">
+              <div className="relative aspect-video">
                 <video
                   ref={videoRef}
                   src={videoUrl}
-                  style={{
-                    position: 'absolute',
-                    top: 0,
-                    left: 0,
-                    width: '100%',
-                    height: '100%',
-                    objectFit: 'contain'
-                  }}
+                  className="absolute inset-0 h-full w-full object-contain"
                   controls={false}
                   onLoadedMetadata={handleLoadedMetadata}
                   onTimeUpdate={handleTimeUpdate}
-                  onClick={togglePlayPause}
+                  onPlay={() => setIsPlaying(true)}
+                  onPause={() => setIsPlaying(false)}
                   aria-label="Video player"
                 />
-                
-                <div 
-                  style={{
-                    position: 'absolute',
-                    top: 0,
-                    left: 0,
-                    right: 0,
-                    bottom: 0,
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    opacity: 0,
-                    transition: 'opacity 0.2s',
-                    background: 'rgba(0,0,0,0.3)'
-                  }}
-                  onMouseOver={e => (e.currentTarget.style.opacity = '0')}
-                  onMouseOut={e => (e.currentTarget.style.opacity = '0')}
-                ></div>
-                
-                {/* Timer overlay */}
-                <div 
-                  style={{
-                    position: 'absolute',
-                    bottom: '1rem',
-                    left: 0,
-                    right: 0,
-                    zIndex: 10,
-                    display: 'flex',
-                    flexDirection: 'column',
-                    alignItems: 'center',
-                    gap: '0.5rem',
-                    padding: '0 1rem'
-                  }}
-                >
-                  {/* Progress bar */}
-                  <div 
-                    style={{
-                      width: '100%',
-                      height: '4px',
-                      background: 'rgba(255,255,255,0.2)',
-                      borderRadius: '2px',
-                      cursor: 'pointer',
-                      position: 'relative',
-                      marginBottom: '0.5rem'
-                    }}
-                    onClick={(e) => {
-                      if (!videoRef.current) return;
-                      const rect = e.currentTarget.getBoundingClientRect();
-                      const percent = (e.clientX - rect.left) / rect.width;
-                      const newTime = percent * videoDuration;
-                      seekToTime(newTime);
-                    }}
-                  >
-                    <div 
-                      style={{
-                        width: `${(currentTime / videoDuration) * 100}%`,
-                        height: '100%',
-                        background: '#3b82f6',
-                        borderRadius: '2px',
-                        position: 'relative'
-                      }}
-                    >
-                      <div 
-                        style={{
-                          position: 'absolute',
-                          right: '-6px',
-                          top: '50%',
-                          transform: 'translateY(-50%)',
-                          width: '12px',
-                          height: '12px',
-                          borderRadius: '50%',
-                          background: 'white',
-                          boxShadow: '0 0 0 2px rgba(59, 130, 246, 1)'
-                        }}
-                      />
-                    </div>
-                    {startTime !== null && (
-                      <div 
-                        style={{
-                          position: 'absolute',
-                          left: `${(startTime / videoDuration) * 100}%`,
-                          width: `${((endTime || videoDuration) - startTime) / videoDuration * 100}%`,
-                          height: '100%',
-                          background: 'rgba(59, 130, 246, 0.5)',
-                          pointerEvents: 'none'
-                        }}
-                      />
-                    )}
-                  </div>
-                  
-                  <div style={{ display: 'flex', gap: '1rem' }}>
-                    <div 
-                      style={{
-                        background: 'rgba(0,0,0,0.7)',
-                        color: 'white',
-                        padding: '0.25rem 0.75rem',
-                        borderRadius: '9999px',
-                        fontSize: '0.875rem',
-                        fontFamily: 'monospace',
-                        minWidth: '120px',
-                        textAlign: 'center'
-                      }}
-                    >
-                      {formatTime(currentTime)} / {formatTime(videoDuration)}
-                    </div>
-                    {startTime !== null && endTime !== null && (
-                      <div 
-                        style={{
-                          background: '#2563eb',
-                          color: 'white',
-                          padding: '0.25rem 0.75rem',
-                          borderRadius: '9999px',
-                          fontSize: '0.875rem',
-                          fontFamily: 'monospace'
-                        }}
-                      >
-                        Trim: {formatTime(trimDuration)}
-                      </div>
-                    )}
-                  </div>
-                </div>
+                <FramingOverlay
+                  sourceWidth={sourceWidth}
+                  sourceHeight={sourceHeight}
+                  preset={preset}
+                  cropPosition={cropPosition}
+                  onCropPositionChange={setCropPosition}
+                />
               </div>
             </div>
-            
-            {/* Navigation Controls */}
-            <div className="grid grid-cols-5 gap-2 mb-4">
-              <button
-                onClick={() => quickJump(-5)}
-                disabled={!videoUrl}
-                className="py-2 px-3 bg-gray-200 hover:bg-gray-300 rounded-lg font-medium transition-colors disabled:opacity-50"
-                title="Jump back 5 seconds"
-              >
-                -5s
-              </button>
-              <button
-                onClick={() => seekByFrames(-1)}
-                disabled={!videoUrl}
-                className="py-2 px-3 bg-gray-200 hover:bg-gray-300 rounded-lg font-medium transition-colors disabled:opacity-50"
-                title="Previous frame"
-              >
-                ← Frame
-              </button>
-              <button
-                onClick={togglePlayPause}
-                disabled={!videoUrl}
-                className={`py-2 px-3 rounded-lg font-medium text-white transition-colors ${
-                  !videoUrl ? 'bg-gray-400' : 'bg-blue-600 hover:bg-blue-700'
-                }`}
-              >
-                {isPlaying ? 'Pause' : 'Play'}
-              </button>
-              <button
-                onClick={() => seekByFrames(1)}
-                disabled={!videoUrl}
-                className="py-2 px-3 bg-gray-200 hover:bg-gray-300 rounded-lg font-medium transition-colors disabled:opacity-50"
-                title="Next frame"
-              >
-                Frame →
-              </button>
-              <button
-                onClick={() => quickJump(5)}
-                disabled={!videoUrl}
-                className="py-2 px-3 bg-gray-200 hover:bg-gray-300 rounded-lg font-medium transition-colors disabled:opacity-50"
-                title="Jump forward 5 seconds"
-              >
-                +5s
-              </button>
+
+            <ExportSettings
+              presetId={presetId}
+              frameRate={frameRate}
+              cropPosition={cropPosition}
+              onPresetChange={setPresetId}
+              onFrameRateChange={setFrameRate}
+              onCropPositionChange={setCropPosition}
+            />
+
+            <TimelineControls
+              duration={videoDuration}
+              currentTime={currentTime}
+              startTime={startTime}
+              endTime={endTime}
+              onSeek={seekToTime}
+              onStartChange={handleTimelineStartChange}
+              onEndChange={handleTimelineEndChange}
+            />
+
+            <div className="grid grid-cols-5 gap-2">
+              <button onClick={() => quickJump(-5)} className="rounded-lg bg-gray-200 px-3 py-2 font-medium hover:bg-gray-300" title="Jump back 5 seconds">-5s</button>
+              <button onClick={() => seekByFrames(-1)} className="rounded-lg bg-gray-200 px-3 py-2 font-medium hover:bg-gray-300" title="Previous frame">← Frame</button>
+              <button onClick={togglePlayPause} className="rounded-lg bg-blue-600 px-3 py-2 font-medium text-white hover:bg-blue-700">{isPlaying ? 'Pause' : 'Play'}</button>
+              <button onClick={() => seekByFrames(1)} className="rounded-lg bg-gray-200 px-3 py-2 font-medium hover:bg-gray-300" title="Next frame">Frame →</button>
+              <button onClick={() => quickJump(5)} className="rounded-lg bg-gray-200 px-3 py-2 font-medium hover:bg-gray-300" title="Jump forward 5 seconds">+5s</button>
             </div>
-            
-            {/* Trim Control Buttons */}
-            <div className="grid grid-cols-2 gap-4 mt-2">
+
+            <div className="grid gap-3 md:grid-cols-2">
               <button
                 onClick={handleMarkStart}
-                disabled={startTime !== null && endTime === null}
-                className={`py-3 px-4 rounded-lg font-medium transition-colors ${
-                  startTime === null 
-                    ? 'bg-blue-600 text-white hover:bg-blue-700' 
-                    : 'bg-gray-200 text-gray-700'
-                }`}
+                className="rounded-lg bg-blue-600 px-4 py-3 font-medium text-white hover:bg-blue-700"
               >
                 {startTime === null ? 'Mark Start' : `Start: ${formatTime(startTime)}`}
               </button>
-              
               <button
                 onClick={handleMarkEnd}
-                disabled={startTime === null || endTime !== null}
-                className={`py-3 px-4 rounded-lg font-medium transition-colors ${
-                  startTime !== null && endTime === null
-                    ? 'bg-red-600 text-white hover:bg-red-700'
-                    : 'bg-gray-200 text-gray-700'
-                }`}
+                className="rounded-lg bg-red-600 px-4 py-3 font-medium text-white hover:bg-red-700"
               >
-                {endTime === null ? 'Mark End' : `End: ${formatTime(endTime || 0)}`}
+                {endTime === null ? 'Mark End' : `End: ${formatTime(endTime)}`}
               </button>
             </div>
-            
-            {/* Trim and download button */}
+
             <button
               onClick={handleTrimAndDownload}
-              disabled={isTrimming || startTime === null || endTime === null}
-              className={`w-full py-3 px-4 rounded-lg font-medium text-white transition-colors ${
-                startTime !== null && endTime !== null && !isTrimming
+              disabled={isTrimming || startTime === null || endTime === null || endTime <= startTime}
+              className={`w-full rounded-lg px-4 py-3 font-medium text-white transition-colors ${
+                startTime !== null && endTime !== null && endTime > startTime && !isTrimming
                   ? 'bg-green-600 hover:bg-green-700'
-                  : 'bg-gray-400 cursor-not-allowed'
+                  : 'cursor-not-allowed bg-gray-400'
               }`}
             >
-              {isTrimming 
-                ? `Processing... ${Math.round(trimProgress * 100)}%` 
-                : `Download ${formatTime(trimDuration)} Short`
-              }
+              {isTrimming
+                ? `Processing... ${Math.round(trimProgress * 100)}%`
+                : `Download ${formatTime(trimDuration)} Short`}
             </button>
-            
-            {/* Progress bar */}
+
             {isTrimming && (
               <div className="w-full">
-                <div className="w-full bg-gray-200 rounded-full h-2.5 overflow-hidden">
-                  <div 
-                    className={`h-2.5 rounded-full transition-all duration-300 ${
-                      trimProgress >= 0.9 ? 'bg-green-500' : 'bg-blue-600'
-                    }`}
-                    style={{ 
-                      width: `${Math.min(100, Math.max(0, trimProgress * 100))}%`,
-                      maxWidth: '100%' 
-                    }}
-                  />
-                </div>
-                <div className="flex justify-between text-sm text-gray-600 mt-1">
-                  <span>
-                    {trimProgress < 0.1 ? 'Starting...' : 
-                     trimProgress < 0.9 ? 'Processing video...' : 
-                     trimProgress < 1 ? 'Finalizing...' : 'Complete!'}
-                  </span>
-                  <span>{Math.round(Math.min(100, trimProgress * 100))}%</span>
+                <div className="h-2.5 w-full overflow-hidden rounded-full bg-gray-200">
+                  <div className="h-2.5 rounded-full bg-blue-600 transition-all duration-300" style={{ width: `${Math.round(trimProgress * 100)}%` }} />
                 </div>
               </div>
             )}
-            
+
             <div className="flex justify-end">
               <button
                 onClick={() => {
@@ -565,6 +362,8 @@ export const VideoEditorContent = () => {
                   setStartTime(null);
                   setEndTime(null);
                   setTrimDuration(0);
+                  setVideoDuration(0);
+                  setCurrentTime(0);
                 }}
                 className="px-4 py-2 text-gray-600 hover:text-gray-800"
               >
@@ -578,15 +377,11 @@ export const VideoEditorContent = () => {
   );
 };
 
-// Client-side only component wrapper
 const VideoEditor = () => {
   if (typeof window === 'undefined') {
-    return <div className="min-h-[400px] flex items-center justify-center">Loading video editor...</div>;
+    return <div className="flex min-h-[400px] items-center justify-center">Loading video editor...</div>;
   }
-  
   return <VideoEditorContent />;
 };
 
-export default dynamic(() => Promise.resolve(VideoEditor), { 
-  ssr: false 
-});
+export default dynamic(() => Promise.resolve(VideoEditor), { ssr: false });
