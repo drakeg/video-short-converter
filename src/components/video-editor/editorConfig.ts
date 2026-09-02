@@ -2,7 +2,7 @@ export type CropMode = 'crop' | 'fit';
 export type ExportQuality = 'standard' | 'high' | 'maximum';
 
 export interface ExportPreset { id: string; label: string; platform: string; width: number; height: number; cropMode: CropMode; }
-export interface VideoExportOptions { presetId: string; cropPosition: number; quality?: ExportQuality; }
+export interface VideoExportOptions { presetId: string; cropPosition: number; cropPositionY?: number; quality?: ExportQuality; }
 
 export const EXPORT_PRESETS: ExportPreset[] = [
   { id: 'youtube-short', label: 'YouTube Short (9:16)', platform: 'YouTube Shorts', width: 1080, height: 1920, cropMode: 'crop' },
@@ -24,5 +24,6 @@ export function buildVideoFilter(options: VideoExportOptions): string {
   if (preset.cropMode === 'fit') return `scale=${preset.width}:${preset.height}:force_original_aspect_ratio=decrease,pad=${preset.width}:${preset.height}:(ow-iw)/2:(oh-ih)/2`;
   const ratio = Number((preset.width / preset.height).toFixed(6));
   const horizontalPosition = Number((clampCropPosition(options.cropPosition) / 100).toFixed(4));
-  return [`crop='if(gt(iw/ih,${ratio}),ih*${ratio},iw)'`, `'if(gt(iw/ih,${ratio}),ih,iw/${ratio})'`, `'if(gt(iw/ih,${ratio}),(iw-ow)*${horizontalPosition},0)'`, `'if(gt(iw/ih,${ratio}),0,(ih-oh)/2)'`, `scale=${preset.width}:${preset.height}`].join(':').replace(':scale=', ',scale=');
+  const verticalPosition = Number((clampCropPosition(options.cropPositionY ?? 50) / 100).toFixed(4));
+  return [`crop='if(gt(iw/ih,${ratio}),ih*${ratio},iw)'`, `'if(gt(iw/ih,${ratio}),ih,iw/${ratio})'`, `'if(gt(iw/ih,${ratio}),(iw-ow)*${horizontalPosition},0)'`, `'if(gt(iw/ih,${ratio}),0,(ih-oh)*${verticalPosition})'`, `scale=${preset.width}:${preset.height}`].join(':').replace(':scale=', ',scale=');
 }
