@@ -1,0 +1,15 @@
+node_modules
+.next
+out
+coverage
+playwright-report
+test-results
+.git
+.github
+.env
+.env.local
+*.log
+Dockerfile*
+docker-compose*.yml
+README.md
+docs

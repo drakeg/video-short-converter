@@ -9,10 +9,12 @@ pnpm-debug.log*
 .next/
 out/
 
-# Build artifacts
+# Build/test artifacts
 dist/
 build/
 coverage/
+playwright-report/
+test-results/
 
 # Logs
 *.log
@@ -35,7 +37,6 @@ Thumbs.db
 # Terraform
 .terraform/
 .terraform.lock.hcl
-
 *.tfstate
 *.tfstate.*
 crash.log

@@ -1,0 +1,42 @@
+name: Docker Smoke
+
+on:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - Dockerfile
+      - docker/**
+      - docker-compose.yml
+      - .dockerignore
+      - .env.local.example
+      - src/components/RequireAuth.tsx
+  workflow_dispatch:
+
+concurrency:
+  group: docker-smoke-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v5
+      - name: Build image
+        run: docker build -t video-short-converter:test .
+      - name: Start container
+        run: docker run -d --name video-short-converter -p 8080:80 video-short-converter:test
+      - name: Wait for health
+        run: |
+          for attempt in {1..20}; do
+            if curl --fail --silent http://127.0.0.1:8080/ >/dev/null; then
+              exit 0
+            fi
+            sleep 1
+          done
+          docker logs video-short-converter
+          exit 1
