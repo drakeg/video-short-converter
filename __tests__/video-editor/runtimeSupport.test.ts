@@ -19,7 +19,10 @@ describe('video runtime support', () => {
     expect(validateVideoFile(file).warning).toMatch(/large video/i);
   });
 
-  it('reports no runtime problem in the jsdom test environment', () => {
+  it('reports no runtime problem when required browser capabilities exist', () => {
+    const originalWorker = global.Worker;
+    Object.defineProperty(global, 'Worker', { value: class MockWorker {}, configurable: true });
     expect(getRuntimeSupportError()).toBeNull();
+    Object.defineProperty(global, 'Worker', { value: originalWorker, configurable: true });
   });
 });
