@@ -2,7 +2,7 @@
 
 ## Purpose
 
-This roadmap captures the agreed improvement plan for the Video Short Converter. Work is intentionally sequenced so repository reliability and maintainability improve before larger editing and assisted-creation features are introduced.
+This roadmap captures the improvement plan for the Video Short Converter. Work is intentionally sequenced so reliability and maintainability improve before larger editing and assisted-creation features are introduced.
 
 ## Guiding principles
 
@@ -10,7 +10,7 @@ This roadmap captures the agreed improvement plan for the Video Short Converter.
 - Preserve existing user-facing behavior unless a sprint explicitly targets product behavior.
 - Prefer typed, testable modules over large multi-responsibility components.
 - Keep browser-side video processing reliable and observable without excessive debug noise.
-- Avoid mixing infrastructure hardening with unrelated feature work.
+- Keep normal PR validation fast; expensive/specialized checks should be path-scoped or separate.
 
 ## Sprint 1 - Repository and architecture hardening
 
@@ -32,23 +32,59 @@ Delivered:
 
 ## Sprint 3 - Export experience and productivity
 
-Status: **Implemented - awaiting merge**
+Status: **Complete**
 
 Delivered:
 - Processed-video preview before download.
 - Return-to-editor workflow that retains the uploaded source and trim/framing state.
 - Local persistence of non-sensitive preset, quality, and crop-position preferences.
-- Standard, High, and Maximum export-quality choices mapped to H.264 CRF values.
-- Cleaner FFmpeg lifecycle behavior, bounded progress reporting, best-effort silent temporary-file cleanup, and clearer user-facing processing errors.
-- Reduced routine console noise while retaining actionable UI errors.
+- Standard, High, and Maximum H.264 export-quality choices.
+- Cleaner FFmpeg lifecycle behavior, bounded progress reporting, temporary-file cleanup, and clearer processing errors.
 
-Exit criteria:
-- A processed clip is reviewed before download and can be discarded or edited without re-uploading.
-- Export preferences survive page reloads using browser-local storage only.
-- Existing editor functionality remains covered by the repository CI gate.
-- TypeScript, ESLint, Jest, and production build pass in PR CI.
+## Sprint 4 - Local Docker testing and consistency cleanup
 
-## Future - Assisted short creation
+Status: **Implemented - awaiting merge**
+
+Delivered:
+- Multi-stage Docker image: Node 20 production build followed by nginx static serving.
+- Docker Compose local workflow with configurable `APP_PORT`.
+- Explicit `NEXT_PUBLIC_AUTH_REQUIRED=false` local mode so the editor can be tested without Cognito while production remains authenticated by default.
+- Path-scoped Docker image/container smoke workflow so normal CI stays fast.
+- Updated landing-page instructions and README to match current framing, presets, preview, and download workflow.
+- Removed automatic notification-permission prompting on page load.
+- Removed committed generated Playwright report and ignored future Playwright/test output.
+
+## Sprint 5 - Runtime/dependency hardening
+
+Recommended next work from the repository audit:
+- Modernize the FFmpeg packages as one compatible version set; the current project mixes the older `@ffmpeg/ffmpeg` 0.11 API with newer supporting packages.
+- Self-host the FFmpeg core assets instead of relying on a runtime CDN so local/offline behavior is predictable and third-party availability is not required for processing.
+- Review the dependency audit findings currently reported during `npm ci` and update vulnerable/transitively deprecated packages without using an uncontrolled force upgrade.
+- Resolve the remaining ESLint suppression/warning debt and remove obsolete generated/setup files where safe.
+- Reconcile the `npm start` script with `output: "export"`; the app is a static export, so `next start` is not the correct production serving model.
+- Add browser capability checks and clearer guidance for unsupported WebAssembly/media combinations and memory-constrained devices.
+- Add input validation for unsupported/empty files and helpful large-file warnings before FFmpeg initialization.
+
+## Sprint 6 - Authentication reliability
+
+Recommended:
+- Implement access-token refresh using the refresh token already stored by the PKCE flow, or deliberately remove refresh-token handling if sessions are intended to require re-login.
+- Centralize auth/session state so navigation, profile, and protected editor views update consistently after token expiry/login/logout.
+- Improve user-facing Cognito configuration errors instead of surfacing missing environment variables only after a sign-in click.
+- Reassess browser local-storage token persistence before broader/public deployment; a backend-for-frontend/session-cookie model would provide stronger XSS isolation if the architecture expands beyond a static SPA.
+
+## Sprint 7 - Editing/productivity features
+
+Useful additions that fit the current product before AI-assisted creation:
+- Vertical crop positioning for tall/narrow source material; current crop interaction primarily solves horizontal framing of wide sources.
+- Audio controls: mute, gain/normalization, and simple fade-in/fade-out.
+- Multiple clips from one uploaded source so several Shorts/Reels can be prepared without reloading the original file.
+- Named export jobs and predictable filenames.
+- Recent local project/session recovery using browser metadata only (never persisting source video without explicit user consent).
+- Optional exact numeric in/out time fields alongside sliders for precision editing.
+- Source metadata display: dimensions, duration, detected/selected frame rate, and estimated output settings.
+
+## Sprint 8 - Assisted short creation
 
 Candidate capabilities:
 - Local or service-backed transcription.
@@ -57,4 +93,4 @@ Candidate capabilities:
 - Multiple candidate clips from one long-form source.
 - Human review/editing before any suggested clip is exported.
 
-These features should be designed as optional assistance. The user should remain in control of clip selection, framing, timing, and export.
+These features should remain optional assistance. The user should remain in control of clip selection, framing, timing, captions, and export.
