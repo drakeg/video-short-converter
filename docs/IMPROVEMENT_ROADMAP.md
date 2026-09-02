@@ -35,7 +35,7 @@ Status: **Complete**
 Delivered: Cognito refresh-token exchange, deduplicated refresh attempts, automatic expired-session restoration, same-tab/cross-tab auth synchronization, refreshed profile API access, stale-session cleanup, actionable auth errors, and focused session-refresh tests.
 
 ## Sprint 7 - Editing/productivity features
-Status: **Implemented - awaiting merge**
+Status: **Complete**
 Delivered:
 - Two-dimensional crop positioning, including vertical framing for tall/narrow source material.
 - Audio export controls for mute, gain, loudness normalization, and fade-in/fade-out.
@@ -44,14 +44,21 @@ Delivered:
 - Persisted vertical framing preference alongside existing non-sensitive export preferences.
 - Deterministic FFmpeg vertical crop positioning with focused unit coverage.
 
-Deferred to a follow-on productivity sprint to keep this change reviewable: multiple clips from one source, named export jobs/predictable filenames, and recent local project/session recovery.
+Deferred productivity work remains: multiple clips from one source, named export jobs/predictable filenames, and recent local project/session recovery.
 
 ## Sprint 8 - Assisted short creation
-Candidate capabilities:
-- Local or service-backed transcription.
-- Caption generation and styling.
-- Suggested 30-60 second segments based on transcript/content signals.
-- Multiple candidate clips from one long-form source.
-- Human review/editing before any suggested clip is exported.
+Status: **Implemented - awaiting merge**
+Delivered:
+- Local SRT and WebVTT transcript import without uploading transcript contents.
+- Deterministic timed-caption parsing with support for SRT comma timestamps and WebVTT decimal timestamps.
+- Local 30–60 second candidate-clip discovery ranked by speech density, sentence completion, and proximity to a 45-second target.
+- Non-overlapping candidate selection so the assistant offers distinct portions of the long-form source.
+- Human-in-the-loop candidate review: selecting a suggestion only updates editor in/out points and seeks to the proposed start; it never auto-exports.
+- Focused unit coverage for transcript parsing and bounded candidate selection.
 
-These features should remain optional assistance. The user should remain in control of clip selection, framing, timing, captions, and export.
+Recommended next assisted-creation increments:
+- Caption burn-in/export styling using imported timed cues.
+- Optional local transcription when browser/runtime support is practical, with service-backed transcription remaining opt-in.
+- Better semantic/topic-boundary ranking once a transcription/analysis provider is deliberately selected.
+
+These features remain optional assistance. The user remains in control of clip selection, framing, timing, captions, audio, and export.
