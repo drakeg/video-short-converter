@@ -43,7 +43,7 @@ Delivered:
 
 ## Sprint 4 - Local Docker testing and consistency cleanup
 
-Status: **Implemented - awaiting merge**
+Status: **Complete**
 
 Delivered:
 - Multi-stage Docker image: Node 20 production build followed by nginx static serving.
@@ -56,12 +56,14 @@ Delivered:
 
 ## Sprint 5 - Runtime/dependency hardening
 
-Recommended next work from the repository audit:
-- Modernize the FFmpeg packages as one compatible version set; the current project mixes the older `@ffmpeg/ffmpeg` 0.11 API with newer supporting packages.
-- Self-host the FFmpeg core assets instead of relying on a runtime CDN so local/offline behavior is predictable and third-party availability is not required for processing.
-- Review the dependency audit findings currently reported during `npm ci` and update vulnerable/transitively deprecated packages without using an uncontrolled force upgrade.
-- Resolve the remaining ESLint suppression/warning debt and remove obsolete generated/setup files where safe.
-- Reconcile the `npm start` script with `output: "export"`; the app is a static export, so `next start` is not the correct production serving model.
+Status: **In progress**
+
+Goals:
+- Modernize the FFmpeg packages as one compatible version set rather than mixing the older 0.11 API with 0.12 support packages.
+- Self-host FFmpeg core assets so video processing does not depend on a third-party runtime CDN and remains predictable in Docker/local use.
+- Review dependency audit findings and update vulnerable/transitively deprecated packages without uncontrolled force upgrades.
+- Resolve remaining ESLint suppression/warning debt and remove obsolete generated/setup files where safe.
+- Reconcile package scripts with the static-export/nginx production model.
 - Add browser capability checks and clearer guidance for unsupported WebAssembly/media combinations and memory-constrained devices.
 - Add input validation for unsupported/empty files and helpful large-file warnings before FFmpeg initialization.
 
