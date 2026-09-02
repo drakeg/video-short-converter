@@ -1,11 +1,9 @@
 # Video Short Converter Improvement Roadmap
 
 ## Purpose
-
 This roadmap captures the improvement plan for the Video Short Converter. Work is intentionally sequenced so reliability and maintainability improve before larger editing and assisted-creation features are introduced.
 
 ## Guiding principles
-
 - Keep changes incremental, reviewable, and protected by CI.
 - Preserve existing user-facing behavior unless a sprint explicitly targets product behavior.
 - Prefer typed, testable modules over large multi-responsibility components.
@@ -30,40 +28,23 @@ Delivered: multi-stage Docker/nginx image, configurable Compose port, explicit l
 
 ## Sprint 5 - Runtime/dependency hardening
 Status: **Complete**
-Delivered:
-- Self-hosted locked FFmpeg core assets instead of a runtime CDN dependency.
-- Static-export-compatible Node serving and Docker/nginx consistency.
-- Browser runtime capability checks and actionable processing errors.
-- Empty/unsupported input rejection and large browser-file warnings.
-- Real drag/drop upload behavior and focused runtime/file validation tests.
-- Path-scoped Docker build/start/health smoke validation.
-- Remaining known ESLint suppression cleanup.
-
-The FFmpeg 0.12 API migration remains isolated as a future dependency-modernization task rather than being coupled to runtime hardening.
+Delivered: self-hosted FFmpeg assets, static-export-compatible serving, runtime capability checks, input validation, real drag/drop upload, focused tests, Docker smoke validation, and lint cleanup.
 
 ## Sprint 6 - Authentication reliability
-Status: **Implemented - awaiting merge**
-Delivered:
-- Refresh-token exchange for expired Cognito access/ID tokens.
-- Deduplicated concurrent refresh attempts and retained refresh tokens when Cognito rotates only access/ID tokens.
-- Automatic expired-session restoration in protected views and navigation.
-- Auth-change events so navigation state updates after token changes in the current tab, plus storage-event synchronization across tabs.
-- Profile API calls now request a valid access token and provide a clear expired-session message when refresh is unavailable.
-- Rejected refresh tokens clear stale browser session state.
-- Missing Cognito configuration and sign-in failures surface actionable user-facing messages.
-- Focused tests for valid, refreshed, and rejected sessions.
-
-Architecture note: this remains a static SPA using browser storage. A backend-for-frontend with secure session cookies remains the preferred future direction if the application grows to handle more sensitive server-side capabilities.
+Status: **Complete**
+Delivered: Cognito refresh-token exchange, deduplicated refresh attempts, automatic expired-session restoration, same-tab/cross-tab auth synchronization, refreshed profile API access, stale-session cleanup, actionable auth errors, and focused session-refresh tests.
 
 ## Sprint 7 - Editing/productivity features
-Recommended:
-- Vertical crop positioning for tall/narrow source material.
-- Audio controls: mute, gain/normalization, and simple fade-in/fade-out.
-- Multiple clips from one uploaded source.
-- Named export jobs and predictable filenames.
-- Recent local project/session recovery using browser metadata only.
-- Optional exact numeric in/out time fields alongside sliders.
-- Source metadata display: dimensions, duration, detected/selected frame rate, and estimated output settings.
+Status: **Implemented - awaiting merge**
+Delivered:
+- Two-dimensional crop positioning, including vertical framing for tall/narrow source material.
+- Audio export controls for mute, gain, loudness normalization, and fade-in/fade-out.
+- Optional exact numeric in/out fields alongside the timeline controls.
+- Source/output metadata display for dimensions, duration, selected frame rate, and target resolution.
+- Persisted vertical framing preference alongside existing non-sensitive export preferences.
+- Deterministic FFmpeg vertical crop positioning with focused unit coverage.
+
+Deferred to a follow-on productivity sprint to keep this change reviewable: multiple clips from one source, named export jobs/predictable filenames, and recent local project/session recovery.
 
 ## Sprint 8 - Assisted short creation
 Candidate capabilities:
