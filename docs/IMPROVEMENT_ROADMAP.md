@@ -36,29 +36,34 @@ Delivered: Cognito refresh-token exchange, deduplicated refresh attempts, automa
 
 ## Sprint 7 - Editing/productivity features
 Status: **Complete**
-Delivered:
-- Two-dimensional crop positioning, including vertical framing for tall/narrow source material.
-- Audio export controls for mute, gain, loudness normalization, and fade-in/fade-out.
-- Optional exact numeric in/out fields alongside the timeline controls.
-- Source/output metadata display for dimensions, duration, selected frame rate, and target resolution.
-- Persisted vertical framing preference alongside existing non-sensitive export preferences.
-- Deterministic FFmpeg vertical crop positioning with focused unit coverage.
+Delivered: two-dimensional crop positioning, audio export controls, exact numeric trim fields, source/output metadata, persisted vertical framing, and deterministic crop tests.
 
 Deferred productivity work remains: multiple clips from one source, named export jobs/predictable filenames, and recent local project/session recovery.
 
 ## Sprint 8 - Assisted short creation
-Status: **Implemented - awaiting merge**
+Status: **Complete**
 Delivered:
 - Local SRT and WebVTT transcript import without uploading transcript contents.
-- Deterministic timed-caption parsing with support for SRT comma timestamps and WebVTT decimal timestamps.
+- Deterministic timed-caption parsing with SRT and WebVTT timestamp support.
 - Local 30–60 second candidate-clip discovery ranked by speech density, sentence completion, and proximity to a 45-second target.
-- Non-overlapping candidate selection so the assistant offers distinct portions of the long-form source.
-- Human-in-the-loop candidate review: selecting a suggestion only updates editor in/out points and seeks to the proposed start; it never auto-exports.
+- Non-overlapping candidate selection for distinct source regions.
+- Human-in-the-loop candidate review that updates editor in/out points without auto-exporting.
 - Focused unit coverage for transcript parsing and bounded candidate selection.
 
-Recommended next assisted-creation increments:
-- Caption burn-in/export styling using imported timed cues.
-- Optional local transcription when browser/runtime support is practical, with service-backed transcription remaining opt-in.
+## Sprint 9 - Caption workflow
+Status: **Implemented - awaiting merge**
+Delivered:
+- Live caption preview over the source video using imported transcript timing.
+- Caption presentation controls for size, top/middle/bottom placement, and optional dark backdrop.
+- Selected-clip caption trimming/rebasing so sidecar timestamps begin at zero for the exported short.
+- Local SRT sidecar download for the current selected clip.
+- Deterministic active-cue lookup, clip rebasing, and SRT serialization with focused unit coverage.
+- Caption data remains browser-local; no transcript or video upload is introduced.
+
+Recommended next increments:
+- Validate whether the locked FFmpeg.wasm core can reliably burn captions into output across supported browsers before enabling burned-in captions.
+- Optional local transcription when browser/runtime support is practical, with service-backed transcription remaining explicitly opt-in.
+- Multiple clips from one source, named export jobs, and local project/session recovery.
 - Better semantic/topic-boundary ranking once a transcription/analysis provider is deliberately selected.
 
-These features remain optional assistance. The user remains in control of clip selection, framing, timing, captions, audio, and export.
+Assisted features remain optional. The user remains in control of clip selection, framing, timing, captions, audio, and export.
