@@ -59,3 +59,30 @@ export function suggestClips(cues: TranscriptCue[], videoDuration: number, minSe
   }
   return chosen.sort((a, b) => a.start - b.start);
 }
+
+export function getActiveCue(cues: TranscriptCue[], currentTime: number): TranscriptCue | null {
+  return cues.find((cue) => currentTime >= cue.start && currentTime < cue.end) ?? null;
+}
+
+export function clipTranscript(cues: TranscriptCue[], clipStart: number, clipEnd: number): TranscriptCue[] {
+  if (!Number.isFinite(clipStart) || !Number.isFinite(clipEnd) || clipEnd <= clipStart) return [];
+  return cues.filter((cue) => cue.end > clipStart && cue.start < clipEnd).map((cue) => ({
+    start: Math.max(0, cue.start - clipStart),
+    end: Math.min(clipEnd, cue.end) - clipStart,
+    text: cue.text,
+  })).filter((cue) => cue.end > cue.start);
+}
+
+const formatSrtTime = (seconds: number): string => {
+  const safe = Math.max(0, seconds);
+  const milliseconds = Math.round((safe % 1) * 1000);
+  const totalSeconds = Math.floor(safe);
+  const hours = Math.floor(totalSeconds / 3600);
+  const minutes = Math.floor((totalSeconds % 3600) / 60);
+  const secs = totalSeconds % 60;
+  return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')},${milliseconds.toString().padStart(3, '0')}`;
+};
+
+export function serializeSrt(cues: TranscriptCue[]): string {
+  return cues.map((cue, index) => `${index + 1}\n${formatSrtTime(cue.start)} --> ${formatSrtTime(cue.end)}\n${cue.text}`).join('\n\n');
+}
