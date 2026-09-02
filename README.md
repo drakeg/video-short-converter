@@ -11,13 +11,15 @@ A browser-based video editor for trimming local video files, reframing them for 
 - Export presets for YouTube Shorts, Instagram Reels/feed, TikTok, square, and landscape video.
 - Adjust exported audio with mute, gain, normalization, and fade controls.
 - Import local SRT or WebVTT transcripts and get deterministic 30–60 second candidate clips for human review.
+- Preview imported timed captions directly over the source video with size, placement, and backdrop controls.
+- Download an SRT sidecar rebased to the currently selected short, with timestamps starting at zero.
 - Standard, High, and Maximum H.264 export-quality choices.
 - Preview a processed clip before downloading and return to editing without re-uploading.
 - Remember non-sensitive export preferences locally in the browser.
 - Validate browser capabilities and video files before expensive processing begins.
 - Optional Cognito authentication for deployed environments.
 
-Video processing and transcript-assisted clip discovery are performed in the browser. Source videos and imported transcript contents are not uploaded by these workflows.
+Video processing and transcript/caption workflows are performed in the browser. Source videos and imported transcript contents are not uploaded by these workflows.
 
 ## Prerequisites
 
@@ -100,10 +102,13 @@ The production TypeScript configuration scopes type checking to application/buil
 1. Upload or drop a local video.
 2. Choose the clip manually using the playhead, mark buttons, keyboard shortcuts, timeline handles, or exact numeric in/out fields.
 3. Optionally import an `.srt` or `.vtt` transcript. Candidate clips are ranked locally from timed caption density and complete-thought punctuation; choosing a candidate only updates the editor's in/out points for review.
-4. Select a platform/output preset and adjust horizontal or vertical framing.
-5. Choose audio and export settings, then process the clip.
-6. Preview the generated result.
-7. Download it or return to the editor for another adjustment without re-uploading the source.
+4. Preview captions over the source video and adjust caption size, placement, or backdrop. Download the selected clip's rebased SRT sidecar if desired.
+5. Select a platform/output preset and adjust horizontal or vertical framing.
+6. Choose audio and export settings, then process the clip.
+7. Preview the generated result.
+8. Download it or return to the editor for another adjustment without re-uploading the source.
+
+The caption overlay is currently a browser preview and the SRT is exported as a sidecar. Burned-in caption rendering is intentionally deferred until the locked FFmpeg.wasm core is validated for reliable subtitle rendering across supported browsers.
 
 Files that are empty or unsupported are rejected before FFmpeg initializes. Files around 500 MB or larger trigger a browser-memory warning instead of being silently processed as though they were small clips.
 
