@@ -5,17 +5,19 @@ A browser-based video editor for trimming local video files, reframing them for 
 ## Features
 
 - Upload or drag/drop MP4, WebM, MOV, and OGG video files from your device.
-- Mark or drag precise trim start/end points.
+- Mark or drag precise trim start/end points, including exact numeric in/out values.
 - Use keyboard shortcuts and configurable frame-rate stepping for fine edits.
-- Reframe video interactively with a draggable crop overlay.
+- Reframe video interactively in either horizontal or vertical crop direction.
 - Export presets for YouTube Shorts, Instagram Reels/feed, TikTok, square, and landscape video.
+- Adjust exported audio with mute, gain, normalization, and fade controls.
+- Import local SRT or WebVTT transcripts and get deterministic 30–60 second candidate clips for human review.
 - Standard, High, and Maximum H.264 export-quality choices.
 - Preview a processed clip before downloading and return to editing without re-uploading.
 - Remember non-sensitive export preferences locally in the browser.
 - Validate browser capabilities and video files before expensive processing begins.
 - Optional Cognito authentication for deployed environments.
 
-Video processing is performed in the browser. Source videos are not uploaded by the trimming/export workflow.
+Video processing and transcript-assisted clip discovery are performed in the browser. Source videos and imported transcript contents are not uploaded by these workflows.
 
 ## Prerequisites
 
@@ -96,11 +98,12 @@ The production TypeScript configuration scopes type checking to application/buil
 ## How to use
 
 1. Upload or drop a local video.
-2. Choose the clip using the playhead, mark buttons, keyboard shortcuts, or timeline handles.
-3. Select a platform/output preset and adjust framing.
-4. Choose export quality and process the clip.
-5. Preview the generated result.
-6. Download it or return to the editor for another adjustment without re-uploading the source.
+2. Choose the clip manually using the playhead, mark buttons, keyboard shortcuts, timeline handles, or exact numeric in/out fields.
+3. Optionally import an `.srt` or `.vtt` transcript. Candidate clips are ranked locally from timed caption density and complete-thought punctuation; choosing a candidate only updates the editor's in/out points for review.
+4. Select a platform/output preset and adjust horizontal or vertical framing.
+5. Choose audio and export settings, then process the clip.
+6. Preview the generated result.
+7. Download it or return to the editor for another adjustment without re-uploading the source.
 
 Files that are empty or unsupported are rejected before FFmpeg initializes. Files around 500 MB or larger trigger a browser-memory warning instead of being silently processed as though they were small clips.
 
