@@ -22,7 +22,7 @@ ENV NEXT_PUBLIC_AUTH_REQUIRED=$NEXT_PUBLIC_AUTH_REQUIRED \
 
 RUN npm run build
 
-FROM nginx:1.29-alpine AS runtime
+FROM nginx:1.31-alpine AS runtime
 COPY docker/nginx.conf /etc/nginx/conf.d/default.conf
 COPY --from=builder /app/out /usr/share/nginx/html
 EXPOSE 80
