@@ -5,8 +5,9 @@
   "scripts": {
     "dev": "next dev --webpack",
     "dev:fast": "next dev",
+    "prebuild": "node scripts/copy-ffmpeg-core.mjs",
     "build": "next build --webpack",
-    "start": "next start",
+    "start": "node scripts/serve-static.mjs",
     "lint": "eslint src next.config.ts",
     "typecheck": "tsc --noEmit -p tsconfig.json",
     "test": "jest",

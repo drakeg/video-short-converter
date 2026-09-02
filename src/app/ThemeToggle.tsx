@@ -30,7 +30,6 @@ export default function ThemeToggle() {
     if (typeof document !== "undefined") {
       document.documentElement.classList.toggle("dark", initial === "dark");
     }
-    // eslint-disable-next-line react-hooks/set-state-in-effect
     setMounted(true);
   }, []);
 

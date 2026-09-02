@@ -4,7 +4,7 @@ A browser-based video editor for trimming local video files, reframing them for 
 
 ## Features
 
-- Upload MP4, WebM, MOV, and OGG video files from your device.
+- Upload or drag/drop MP4, WebM, MOV, and OGG video files from your device.
 - Mark or drag precise trim start/end points.
 - Use keyboard shortcuts and configurable frame-rate stepping for fine edits.
 - Reframe video interactively with a draggable crop overlay.
@@ -12,6 +12,7 @@ A browser-based video editor for trimming local video files, reframing them for 
 - Standard, High, and Maximum H.264 export-quality choices.
 - Preview a processed clip before downloading and return to editing without re-uploading.
 - Remember non-sensitive export preferences locally in the browser.
+- Validate browser capabilities and video files before expensive processing begins.
 - Optional Cognito authentication for deployed environments.
 
 Video processing is performed in the browser. Source videos are not uploaded by the trimming/export workflow.
@@ -25,7 +26,7 @@ For Node development:
 For container testing:
 - Docker with Docker Compose
 
-A modern browser with JavaScript and WebAssembly support is required in either case. FFmpeg's browser core is currently loaded from a CDN, so first-time processing requires internet access.
+A modern browser with JavaScript, WebAssembly, Web Workers, and local object-URL support is required. FFmpeg core assets are copied from the locked npm dependency into the static build and served by the application itself; video processing does not depend on a third-party runtime CDN.
 
 ## Local development with Node
 
@@ -40,6 +41,17 @@ npm run dev
 Open `http://localhost:3000`.
 
 `NEXT_PUBLIC_AUTH_REQUIRED=false` in the local example lets the editor be tested without Cognito. Set it to `true` and provide the Cognito values when testing authentication.
+
+## Local production-style testing with Node
+
+Build the static export and serve it with the repository's dependency-free Node static server:
+
+```bash
+npm run build
+npm start
+```
+
+`npm start` serves the generated `out/` directory on port `3000`. Override it with `PORT`, for example `PORT=8080 npm start`.
 
 ## Local testing with Docker
 
@@ -83,18 +95,20 @@ The production TypeScript configuration scopes type checking to application/buil
 
 ## How to use
 
-1. Upload a local video.
+1. Upload or drop a local video.
 2. Choose the clip using the playhead, mark buttons, keyboard shortcuts, or timeline handles.
 3. Select a platform/output preset and adjust framing.
 4. Choose export quality and process the clip.
 5. Preview the generated result.
 6. Download it or return to the editor for another adjustment without re-uploading the source.
 
+Files that are empty or unsupported are rejected before FFmpeg initializes. Files around 500 MB or larger trigger a browser-memory warning instead of being silently processed as though they were small clips.
+
 ## Technology
 
 - Next.js 16 / React 19 / TypeScript
 - Tailwind CSS
-- FFmpeg.wasm
+- FFmpeg.wasm with self-hosted core assets
 - Jest and Testing Library
 - Playwright
 - Docker / nginx for local production-style testing
