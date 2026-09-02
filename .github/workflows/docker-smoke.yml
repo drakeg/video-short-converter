@@ -10,6 +10,10 @@ on:
       - docker-compose.yml
       - .dockerignore
       - .env.local.example
+      - package.json
+      - package-lock.json
+      - next.config.ts
+      - scripts/**
       - src/components/RequireAuth.tsx
   workflow_dispatch:
 
