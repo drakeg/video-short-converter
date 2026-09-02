@@ -13,81 +13,59 @@ This roadmap captures the improvement plan for the Video Short Converter. Work i
 - Keep normal PR validation fast; expensive/specialized checks should be path-scoped or separate.
 
 ## Sprint 1 - Repository and architecture hardening
-
 Status: **Complete**
-
 Delivered: fast PR CI, direct ESLint execution, separate production/test TypeScript boundaries, stale-file cleanup, current setup documentation, and corrected product wording.
 
 ## Sprint 2 - Editing workflow and framing controls
-
 Status: **Complete**
-
-Delivered:
-- Focused uploader, framing, export-settings, and timeline controls.
-- Interactive horizontal crop/framing overlay.
-- YouTube Shorts, Instagram Reels/feed, TikTok, square, and landscape presets.
-- Draggable timeline in/out handles and keyboard editing shortcuts.
-- Configurable source frame rate for frame stepping.
-- Deterministic FFmpeg crop/filter generation with direct unit coverage.
+Delivered: focused editor controls, interactive framing, social presets, draggable timeline handles, keyboard shortcuts, frame stepping, and deterministic FFmpeg filters with unit coverage.
 
 ## Sprint 3 - Export experience and productivity
-
 Status: **Complete**
-
-Delivered:
-- Processed-video preview before download.
-- Return-to-editor workflow that retains the uploaded source and trim/framing state.
-- Local persistence of non-sensitive preset, quality, and crop-position preferences.
-- Standard, High, and Maximum H.264 export-quality choices.
-- Cleaner FFmpeg lifecycle behavior, bounded progress reporting, temporary-file cleanup, and clearer processing errors.
+Delivered: processed-video preview, return-to-editor workflow, local export preferences, quality choices, bounded progress, temporary-file cleanup, and clearer processing errors.
 
 ## Sprint 4 - Local Docker testing and consistency cleanup
-
 Status: **Complete**
-
-Delivered:
-- Multi-stage Docker image: Node 20 production build followed by nginx static serving.
-- Docker Compose local workflow with configurable `APP_PORT`.
-- Explicit `NEXT_PUBLIC_AUTH_REQUIRED=false` local mode so the editor can be tested without Cognito while production remains authenticated by default.
-- Path-scoped Docker image/container smoke workflow so normal CI stays fast.
-- Updated landing-page instructions and README to match current framing, presets, preview, and download workflow.
-- Removed automatic notification-permission prompting on page load.
-- Removed committed generated Playwright report and ignored future Playwright/test output.
+Delivered: multi-stage Docker/nginx image, configurable Compose port, explicit local auth bypass, path-scoped Docker smoke validation, current product documentation, and generated-output cleanup.
 
 ## Sprint 5 - Runtime/dependency hardening
+Status: **Complete**
+Delivered:
+- Self-hosted locked FFmpeg core assets instead of a runtime CDN dependency.
+- Static-export-compatible Node serving and Docker/nginx consistency.
+- Browser runtime capability checks and actionable processing errors.
+- Empty/unsupported input rejection and large browser-file warnings.
+- Real drag/drop upload behavior and focused runtime/file validation tests.
+- Path-scoped Docker build/start/health smoke validation.
+- Remaining known ESLint suppression cleanup.
 
-Status: **In progress**
-
-Goals:
-- Modernize the FFmpeg packages as one compatible version set rather than mixing the older 0.11 API with 0.12 support packages.
-- Self-host FFmpeg core assets so video processing does not depend on a third-party runtime CDN and remains predictable in Docker/local use.
-- Review dependency audit findings and update vulnerable/transitively deprecated packages without uncontrolled force upgrades.
-- Resolve remaining ESLint suppression/warning debt and remove obsolete generated/setup files where safe.
-- Reconcile package scripts with the static-export/nginx production model.
-- Add browser capability checks and clearer guidance for unsupported WebAssembly/media combinations and memory-constrained devices.
-- Add input validation for unsupported/empty files and helpful large-file warnings before FFmpeg initialization.
+The FFmpeg 0.12 API migration remains isolated as a future dependency-modernization task rather than being coupled to runtime hardening.
 
 ## Sprint 6 - Authentication reliability
+Status: **Implemented - awaiting merge**
+Delivered:
+- Refresh-token exchange for expired Cognito access/ID tokens.
+- Deduplicated concurrent refresh attempts and retained refresh tokens when Cognito rotates only access/ID tokens.
+- Automatic expired-session restoration in protected views and navigation.
+- Auth-change events so navigation state updates after token changes in the current tab, plus storage-event synchronization across tabs.
+- Profile API calls now request a valid access token and provide a clear expired-session message when refresh is unavailable.
+- Rejected refresh tokens clear stale browser session state.
+- Missing Cognito configuration and sign-in failures surface actionable user-facing messages.
+- Focused tests for valid, refreshed, and rejected sessions.
 
-Recommended:
-- Implement access-token refresh using the refresh token already stored by the PKCE flow, or deliberately remove refresh-token handling if sessions are intended to require re-login.
-- Centralize auth/session state so navigation, profile, and protected editor views update consistently after token expiry/login/logout.
-- Improve user-facing Cognito configuration errors instead of surfacing missing environment variables only after a sign-in click.
-- Reassess browser local-storage token persistence before broader/public deployment; a backend-for-frontend/session-cookie model would provide stronger XSS isolation if the architecture expands beyond a static SPA.
+Architecture note: this remains a static SPA using browser storage. A backend-for-frontend with secure session cookies remains the preferred future direction if the application grows to handle more sensitive server-side capabilities.
 
 ## Sprint 7 - Editing/productivity features
-
-Useful additions that fit the current product before AI-assisted creation:
-- Vertical crop positioning for tall/narrow source material; current crop interaction primarily solves horizontal framing of wide sources.
+Recommended:
+- Vertical crop positioning for tall/narrow source material.
 - Audio controls: mute, gain/normalization, and simple fade-in/fade-out.
-- Multiple clips from one uploaded source so several Shorts/Reels can be prepared without reloading the original file.
+- Multiple clips from one uploaded source.
 - Named export jobs and predictable filenames.
-- Recent local project/session recovery using browser metadata only (never persisting source video without explicit user consent).
-- Optional exact numeric in/out time fields alongside sliders for precision editing.
+- Recent local project/session recovery using browser metadata only.
+- Optional exact numeric in/out time fields alongside sliders.
 - Source metadata display: dimensions, duration, detected/selected frame rate, and estimated output settings.
 
 ## Sprint 8 - Assisted short creation
-
 Candidate capabilities:
 - Local or service-backed transcription.
 - Caption generation and styling.
