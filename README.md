@@ -6,6 +6,8 @@ A browser-based video editor for trimming local video files, reframing them for 
 
 - Upload or drag/drop MP4, WebM, MOV, and OGG video files from your device.
 - Mark or drag precise trim start/end points, including exact numeric in/out values.
+- Queue multiple ranges from one source, rename them, revisit them, and export the queue sequentially.
+- Predictable `<source>-<clip-name>.mp4` filenames for queued exports.
 - Use keyboard shortcuts and configurable frame-rate stepping for fine edits.
 - Reframe video interactively in either horizontal or vertical crop direction.
 - Export presets for YouTube Shorts, Instagram Reels/feed, TikTok, square, and landscape video.
@@ -66,21 +68,7 @@ cp .env.local.example .env
 docker compose up --build
 ```
 
-Open `http://localhost:3000`.
-
-To use another host port, set `APP_PORT` in `.env`, for example:
-
-```env
-APP_PORT=8080
-```
-
-Then open `http://localhost:8080`.
-
-Stop and remove the local container with:
-
-```bash
-docker compose down
-```
+Open `http://localhost:3000`. To use another host port, set `APP_PORT` in `.env`, for example `APP_PORT=8080`. Stop and remove the local container with `docker compose down`.
 
 Authentication is disabled by default for the Docker local-testing path. To test Cognito, set `NEXT_PUBLIC_AUTH_REQUIRED=true` and supply valid Cognito/profile values before rebuilding the image, because `NEXT_PUBLIC_*` values are compiled into the static Next.js build.
 
@@ -100,13 +88,13 @@ The production TypeScript configuration scopes type checking to application/buil
 ## How to use
 
 1. Upload or drop a local video.
-2. Choose the clip manually using the playhead, mark buttons, keyboard shortcuts, timeline handles, or exact numeric in/out fields.
-3. Optionally import an `.srt` or `.vtt` transcript. Candidate clips are ranked locally from timed caption density and complete-thought punctuation; choosing a candidate only updates the editor's in/out points for review.
-4. Preview captions over the source video and adjust caption size, placement, or backdrop. Download the selected clip's rebased SRT sidecar if desired.
-5. Select a platform/output preset and adjust horizontal or vertical framing.
-6. Choose audio and export settings, then process the clip.
-7. Preview the generated result.
-8. Download it or return to the editor for another adjustment without re-uploading the source.
+2. Choose a clip using the playhead, mark buttons, keyboard shortcuts, timeline handles, exact numeric fields, or a transcript suggestion.
+3. Use **Add current range** to save that range to the clip queue. Rename it if desired, then choose another range and repeat.
+4. Optionally import an `.srt` or `.vtt` transcript, preview captions, adjust caption presentation, or download the selected clip's rebased SRT sidecar.
+5. Select framing, audio, quality, and other export settings.
+6. Process the active range for the existing preview-first workflow, or use **Export all** to process every queued range sequentially with predictable filenames.
+
+Queued clips share the active export/framing/audio settings. Sequential processing deliberately avoids running several FFmpeg encodes concurrently, which would create unnecessary browser-memory pressure.
 
 The caption overlay is currently a browser preview and the SRT is exported as a sidecar. Burned-in caption rendering is intentionally deferred until the locked FFmpeg.wasm core is validated for reliable subtitle rendering across supported browsers.
 
