@@ -1,9 +1,8 @@
 name: Deploy to AWS
 
+# AWS deployment is intentionally manual-only. The project is currently developed and
+# tested without paid AWS hosting, so pushes/merges must not trigger AWS resources.
 on:
-  push:
-    branches:
-      - main
   workflow_dispatch:
 
 permissions:

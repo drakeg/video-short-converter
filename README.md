@@ -8,6 +8,7 @@ A browser-based video editor for trimming local video files, reframing them for 
 - Mark or drag precise trim start/end points, including exact numeric in/out values.
 - Queue multiple ranges from one source, rename them, revisit them, and export the queue sequentially.
 - Predictable `<source>-<clip-name>.mp4` filenames for queued exports.
+- Recover browser-local edit metadata after an accidental refresh/navigation by reselecting the same source file.
 - Use keyboard shortcuts and configurable frame-rate stepping for fine edits.
 - Reframe video interactively in either horizontal or vertical crop direction.
 - Export presets for YouTube Shorts, Instagram Reels/feed, TikTok, square, and landscape video.
@@ -21,7 +22,7 @@ A browser-based video editor for trimming local video files, reframing them for 
 - Validate browser capabilities and video files before expensive processing begins.
 - Optional Cognito authentication for deployed environments.
 
-Video processing and transcript/caption workflows are performed in the browser. Source videos and imported transcript contents are not uploaded by these workflows.
+Video processing and transcript/caption workflows are performed in the browser. Source videos and imported transcript contents are not uploaded by these workflows. Session recovery stores only source-file identity metadata and editor settings/clip ranges in browser local storage; the video itself is never persisted there.
 
 ## Prerequisites
 
@@ -94,6 +95,8 @@ The production TypeScript configuration scopes type checking to application/buil
 5. Select framing, audio, quality, and other export settings.
 6. Process the active range for the existing preview-first workflow, or use **Export all** to process every queued range sequentially with predictable filenames.
 
+While a source is open, the editor saves non-sensitive recovery metadata locally. After a browser refresh or accidental navigation, reselect the same local source file to restore trim points, framing, audio controls, caption presentation, and the clip queue. Browser security intentionally prevents the app from reopening the local video automatically.
+
 Queued clips share the active export/framing/audio settings. Sequential processing deliberately avoids running several FFmpeg encodes concurrently, which would create unnecessary browser-memory pressure.
 
 The caption overlay is currently a browser preview and the SRT is exported as a sidecar. Burned-in caption rendering is intentionally deferred until the locked FFmpeg.wasm core is validated for reliable subtitle rendering across supported browsers.
@@ -115,4 +118,4 @@ The current audit and improvement plan is maintained in [docs/IMPROVEMENT_ROADMA
 
 ## Deployment
 
-AWS deployment guidance is available in [AWS_DEPLOYMENT.md](AWS_DEPLOYMENT.md). Vercel preview deployments are also used for pull-request validation.
+AWS deployment guidance is available in [AWS_DEPLOYMENT.md](AWS_DEPLOYMENT.md), but the AWS GitHub Actions workflow is manual-only so ordinary pushes and merges do not attempt paid AWS infrastructure. Vercel preview deployments are used for pull-request validation.

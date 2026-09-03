@@ -9,6 +9,7 @@ This roadmap captures the improvement plan for the Video Short Converter. Work i
 - Prefer typed, testable modules over large multi-responsibility components.
 - Keep browser-side video processing reliable and observable without excessive debug noise.
 - Keep normal PR validation fast; expensive/specialized checks should be path-scoped or separate.
+- Keep AWS deployment opt-in/manual while paid AWS hosting is not desired.
 
 ## Sprint 1 - Repository and architecture hardening
 Status: **Complete**
@@ -47,7 +48,7 @@ Status: **Complete**
 Delivered: live caption preview, caption presentation controls, selected-clip caption rebasing, local SRT sidecar download, deterministic caption helpers, and browser-local caption data.
 
 ## Sprint 10 - Multi-clip productivity
-Status: **Implemented - awaiting merge**
+Status: **Complete**
 Delivered:
 - Queue multiple trim ranges from one source video without re-uploading the source.
 - Rename queued clips before export and sanitize names into portable filenames.
@@ -58,10 +59,22 @@ Delivered:
 - Predictable `<source>-<clip-name>.mp4` filenames for queued exports.
 - Focused tests for range validation and filename sanitization.
 
+## Sprint 11 - Browser-local session recovery
+Status: **Implemented - awaiting merge**
+Delivered:
+- Persist non-sensitive edit metadata locally while a source video is open.
+- Detect a recoverable edit after refresh/navigation and identify the expected source file.
+- Restore trim points, crop/framing, export quality/frame rate, audio controls, caption presentation, and queued clips after the same source is reselected.
+- Match recovery to the source using name, size, and last-modified metadata so unrelated files do not inherit stale edits.
+- Allow the user to explicitly discard the saved recovery state.
+- Keep source video bytes and imported transcript text out of recovery storage.
+- Make the AWS deployment workflow manual-only so pushes/merges do not attempt paid AWS hosting.
+- Add deterministic unit coverage for recovery serialization, source matching, malformed payloads, and bounded values.
+
 Recommended next increments:
-- Local project/session recovery metadata for accidental refresh/navigation.
 - Validate reliable burned-in caption support before enabling subtitle rendering in FFmpeg.wasm.
 - Optional local transcription when browser/runtime support is practical.
 - Better semantic/topic-boundary ranking once an analysis provider is deliberately selected.
+- Continue dependency/security maintenance without blindly forcing major upgrades.
 
 Assisted features remain optional. The user remains in control of clip selection, framing, timing, captions, audio, and export.
