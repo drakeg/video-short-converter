@@ -38,32 +38,30 @@ Delivered: Cognito refresh-token exchange, deduplicated refresh attempts, automa
 Status: **Complete**
 Delivered: two-dimensional crop positioning, audio export controls, exact numeric trim fields, source/output metadata, persisted vertical framing, and deterministic crop tests.
 
-Deferred productivity work remains: multiple clips from one source, named export jobs/predictable filenames, and recent local project/session recovery.
-
 ## Sprint 8 - Assisted short creation
 Status: **Complete**
-Delivered:
-- Local SRT and WebVTT transcript import without uploading transcript contents.
-- Deterministic timed-caption parsing with SRT and WebVTT timestamp support.
-- Local 30–60 second candidate-clip discovery ranked by speech density, sentence completion, and proximity to a 45-second target.
-- Non-overlapping candidate selection for distinct source regions.
-- Human-in-the-loop candidate review that updates editor in/out points without auto-exporting.
-- Focused unit coverage for transcript parsing and bounded candidate selection.
+Delivered: local SRT/WebVTT import, deterministic timed-caption parsing, local 30–60 second candidate discovery, non-overlapping suggestions, human review, and focused unit coverage.
 
 ## Sprint 9 - Caption workflow
+Status: **Complete**
+Delivered: live caption preview, caption presentation controls, selected-clip caption rebasing, local SRT sidecar download, deterministic caption helpers, and browser-local caption data.
+
+## Sprint 10 - Multi-clip productivity
 Status: **Implemented - awaiting merge**
 Delivered:
-- Live caption preview over the source video using imported transcript timing.
-- Caption presentation controls for size, top/middle/bottom placement, and optional dark backdrop.
-- Selected-clip caption trimming/rebasing so sidecar timestamps begin at zero for the exported short.
-- Local SRT sidecar download for the current selected clip.
-- Deterministic active-cue lookup, clip rebasing, and SRT serialization with focused unit coverage.
-- Caption data remains browser-local; no transcript or video upload is introduced.
+- Queue multiple trim ranges from one source video without re-uploading the source.
+- Rename queued clips before export and sanitize names into portable filenames.
+- Jump back to any queued range for further editing.
+- Remove unwanted queued clips without disturbing the active edit.
+- Sequential batch export through the existing FFmpeg instance to avoid parallel browser-memory pressure.
+- Aggregate batch progress and clear export status.
+- Predictable `<source>-<clip-name>.mp4` filenames for queued exports.
+- Focused tests for range validation and filename sanitization.
 
 Recommended next increments:
-- Validate whether the locked FFmpeg.wasm core can reliably burn captions into output across supported browsers before enabling burned-in captions.
-- Optional local transcription when browser/runtime support is practical, with service-backed transcription remaining explicitly opt-in.
-- Multiple clips from one source, named export jobs, and local project/session recovery.
-- Better semantic/topic-boundary ranking once a transcription/analysis provider is deliberately selected.
+- Local project/session recovery metadata for accidental refresh/navigation.
+- Validate reliable burned-in caption support before enabling subtitle rendering in FFmpeg.wasm.
+- Optional local transcription when browser/runtime support is practical.
+- Better semantic/topic-boundary ranking once an analysis provider is deliberately selected.
 
 Assisted features remain optional. The user remains in control of clip selection, framing, timing, captions, audio, and export.
