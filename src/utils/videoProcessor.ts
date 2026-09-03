@@ -1,8 +1,10 @@
 import { createFFmpeg, fetchFile } from '@ffmpeg/ffmpeg';
 import { DEFAULT_PRESET, DEFAULT_QUALITY, QUALITY_CRF, buildVideoFilter, type VideoExportOptions } from '@/components/video-editor/editorConfig';
+import { buildClipFileName } from '@/components/video-editor/clipQueue';
 
 type FFmpegClient = ReturnType<typeof createFFmpeg>;
 export interface AudioExportOptions { muted?: boolean; gainDb?: number; normalize?: boolean; fadeIn?: number; fadeOut?: number; }
+export interface OutputOptions { clipName?: string; }
 let ffmpegInstance: FFmpegClient | null = null;
 let initializationPromise: Promise<FFmpegClient> | null = null;
 
@@ -26,7 +28,7 @@ function buildAudioFilter(duration: number, options: AudioExportOptions): string
   return filters.length ? filters.join(',') : null;
 }
 
-export async function trimVideo(file: File, startTime: number, endTime: number, onProgress?: (progress: number) => void, options: VideoExportOptions = { presetId: DEFAULT_PRESET.id, cropPosition: 50, quality: DEFAULT_QUALITY }, audio: AudioExportOptions = {}): Promise<File> {
+export async function trimVideo(file: File, startTime: number, endTime: number, onProgress?: (progress: number) => void, options: VideoExportOptions = { presetId: DEFAULT_PRESET.id, cropPosition: 50, quality: DEFAULT_QUALITY }, audio: AudioExportOptions = {}, output: OutputOptions = {}): Promise<File> {
   if (typeof window === 'undefined') throw new Error('Video trimming is only available in the browser');
   if (!Number.isFinite(startTime) || !Number.isFinite(endTime) || endTime <= startTime) throw new Error('Choose a valid start and end time before processing.');
   const ffmpeg = await getFFmpegClient(); const suffix = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`; const inputName = `input-${suffix}.mp4`; const outputName = `output-${suffix}.mp4`; const duration = endTime - startTime;
@@ -36,7 +38,8 @@ export async function trimVideo(file: File, startTime: number, endTime: number, 
     if (audio.muted) args.push('-an'); else { const audioFilter = buildAudioFilter(duration, audio); if (audioFilter) args.push('-af', audioFilter); args.push('-c:a', 'aac', '-b:a', '128k'); }
     args.push('-movflags', '+faststart', '-y', outputName); await ffmpeg.run(...args);
     onProgress?.(.97); const data = ffmpeg.FS('readFile', outputName); if (!data?.length) throw new Error('The video processor produced an empty file. Try a different trim range or source video.'); const outputBytes = new Uint8Array(data.length); outputBytes.set(data); onProgress?.(1);
-    return new File([new Blob([outputBytes.buffer], { type: 'video/mp4' })], `short-${file.name.replace(/\.[^/.]+$/, '')}-${Date.now()}.mp4`, { type: 'video/mp4' });
+    const fileName = output.clipName ? buildClipFileName(file.name, output.clipName) : `short-${file.name.replace(/\.[^/.]+$/, '')}-${Date.now()}.mp4`;
+    return new File([new Blob([outputBytes.buffer], { type: 'video/mp4' })], fileName, { type: 'video/mp4' });
   } catch (error) { if (error instanceof Error && (error.message.startsWith('Unable') || error.message.startsWith('The video'))) throw error; throw new Error(`Video processing failed${error instanceof Error && error.message ? `: ${error.message}` : '. Please try again.'}`); }
   finally { safeUnlink(ffmpeg, inputName); safeUnlink(ffmpeg, outputName); ffmpeg.setProgress(() => undefined); }
 }
