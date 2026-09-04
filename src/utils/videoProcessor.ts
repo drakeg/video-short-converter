@@ -1,10 +1,14 @@
 import { createFFmpeg, fetchFile } from '@ffmpeg/ffmpeg';
-import { DEFAULT_PRESET, DEFAULT_QUALITY, QUALITY_CRF, buildVideoFilter, type VideoExportOptions } from '@/components/video-editor/editorConfig';
+import { buildCaptionOverlayFilter, renderCaptionOverlay } from '@/components/video-editor/captionBurnIn';
+import type { CaptionStyle } from '@/components/video-editor/CaptionOverlay';
 import { buildClipFileName } from '@/components/video-editor/clipQueue';
+import { DEFAULT_PRESET, DEFAULT_QUALITY, QUALITY_CRF, buildVideoFilter, getExportPreset, type VideoExportOptions } from '@/components/video-editor/editorConfig';
+import type { TranscriptCue } from '@/components/video-editor/transcript';
 
 type FFmpegClient = ReturnType<typeof createFFmpeg>;
 export interface AudioExportOptions { muted?: boolean; gainDb?: number; normalize?: boolean; fadeIn?: number; fadeOut?: number; }
 export interface OutputOptions { clipName?: string; }
+export interface CaptionBurnInOptions { enabled?: boolean; cues?: TranscriptCue[]; style?: CaptionStyle; }
 let ffmpegInstance: FFmpegClient | null = null;
 let initializationPromise: Promise<FFmpegClient> | null = null;
 
@@ -28,18 +32,32 @@ function buildAudioFilter(duration: number, options: AudioExportOptions): string
   return filters.length ? filters.join(',') : null;
 }
 
-export async function trimVideo(file: File, startTime: number, endTime: number, onProgress?: (progress: number) => void, options: VideoExportOptions = { presetId: DEFAULT_PRESET.id, cropPosition: 50, quality: DEFAULT_QUALITY }, audio: AudioExportOptions = {}, output: OutputOptions = {}): Promise<File> {
+export async function trimVideo(file: File, startTime: number, endTime: number, onProgress?: (progress: number) => void, options: VideoExportOptions = { presetId: DEFAULT_PRESET.id, cropPosition: 50, quality: DEFAULT_QUALITY }, audio: AudioExportOptions = {}, output: OutputOptions = {}, captions: CaptionBurnInOptions = {}): Promise<File> {
   if (typeof window === 'undefined') throw new Error('Video trimming is only available in the browser');
   if (!Number.isFinite(startTime) || !Number.isFinite(endTime) || endTime <= startTime) throw new Error('Choose a valid start and end time before processing.');
-  const ffmpeg = await getFFmpegClient(); const suffix = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`; const inputName = `input-${suffix}.mp4`; const outputName = `output-${suffix}.mp4`; const duration = endTime - startTime;
+  const ffmpeg = await getFFmpegClient(); const suffix = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`; const inputName = `input-${suffix}.mp4`; const outputName = `output-${suffix}.mp4`; const duration = endTime - startTime; const overlayNames: string[] = [];
   try {
-    onProgress?.(.01); ffmpeg.FS('writeFile', inputName, await fetchFile(file)); ffmpeg.setProgress(({ ratio }) => { if (onProgress && Number.isFinite(ratio)) onProgress(Math.min(.94, Math.max(.03, ratio * .94))); });
-    const args = ['-i', inputName, '-ss', startTime.toFixed(3), '-t', duration.toFixed(3), '-vf', buildVideoFilter(options), '-c:v', 'libx264', '-preset', 'medium', '-crf', QUALITY_CRF[options.quality ?? DEFAULT_QUALITY], '-pix_fmt', 'yuv420p'];
-    if (audio.muted) args.push('-an'); else { const audioFilter = buildAudioFilter(duration, audio); if (audioFilter) args.push('-af', audioFilter); args.push('-c:a', 'aac', '-b:a', '128k'); }
+    onProgress?.(.01); ffmpeg.FS('writeFile', inputName, await fetchFile(file));
+    const validCues = captions.enabled ? (captions.cues ?? []).filter((cue) => Number.isFinite(cue.start) && Number.isFinite(cue.end) && cue.end > cue.start && cue.text.trim()) : [];
+    const preset = getExportPreset(options.presetId);
+    if (validCues.length && captions.style) {
+      const overlays = await Promise.all(validCues.map((cue, index) => renderCaptionOverlay(cue, captions.style as CaptionStyle, preset.width, preset.height, index)));
+      overlays.forEach((overlay) => { const name = `${suffix}-${overlay.fileName}`; ffmpeg.FS('writeFile', name, overlay.bytes); overlayNames.push(name); });
+    }
+    ffmpeg.setProgress(({ ratio }) => { if (onProgress && Number.isFinite(ratio)) onProgress(Math.min(.94, Math.max(.03, ratio * .94))); });
+    const args = ['-ss', startTime.toFixed(3), '-i', inputName];
+    overlayNames.forEach((name) => args.push('-i', name));
+    args.push('-t', duration.toFixed(3));
+    if (overlayNames.length) {
+      const plan = buildCaptionOverlayFilter(buildVideoFilter(options), validCues);
+      args.push('-filter_complex', plan.filter, '-map', plan.outputLabel);
+    } else args.push('-vf', buildVideoFilter(options));
+    args.push('-c:v', 'libx264', '-preset', 'medium', '-crf', QUALITY_CRF[options.quality ?? DEFAULT_QUALITY], '-pix_fmt', 'yuv420p');
+    if (audio.muted) args.push('-an'); else { if (overlayNames.length) args.push('-map', '0:a?'); const audioFilter = buildAudioFilter(duration, audio); if (audioFilter) args.push('-af', audioFilter); args.push('-c:a', 'aac', '-b:a', '128k'); }
     args.push('-movflags', '+faststart', '-y', outputName); await ffmpeg.run(...args);
     onProgress?.(.97); const data = ffmpeg.FS('readFile', outputName); if (!data?.length) throw new Error('The video processor produced an empty file. Try a different trim range or source video.'); const outputBytes = new Uint8Array(data.length); outputBytes.set(data); onProgress?.(1);
     const fileName = output.clipName ? buildClipFileName(file.name, output.clipName) : `short-${file.name.replace(/\.[^/.]+$/, '')}-${Date.now()}.mp4`;
     return new File([new Blob([outputBytes.buffer], { type: 'video/mp4' })], fileName, { type: 'video/mp4' });
   } catch (error) { if (error instanceof Error && (error.message.startsWith('Unable') || error.message.startsWith('The video'))) throw error; throw new Error(`Video processing failed${error instanceof Error && error.message ? `: ${error.message}` : '. Please try again.'}`); }
-  finally { safeUnlink(ffmpeg, inputName); safeUnlink(ffmpeg, outputName); ffmpeg.setProgress(() => undefined); }
+  finally { safeUnlink(ffmpeg, inputName); safeUnlink(ffmpeg, outputName); overlayNames.forEach((name) => safeUnlink(ffmpeg, name)); ffmpeg.setProgress(() => undefined); }
 }
