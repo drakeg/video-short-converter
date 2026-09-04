@@ -41,11 +41,15 @@ export async function trimVideo(file: File, startTime: number, endTime: number, 
     const validCues = captions.enabled ? (captions.cues ?? []).filter((cue) => Number.isFinite(cue.start) && Number.isFinite(cue.end) && cue.end > cue.start && cue.text.trim()) : [];
     const preset = getExportPreset(options.presetId);
     if (validCues.length && captions.style) {
-      const overlays = await Promise.all(validCues.map((cue, index) => renderCaptionOverlay(cue, captions.style as CaptionStyle, preset.width, preset.height, index)));
-      overlays.forEach((overlay) => { const name = `${suffix}-${overlay.fileName}`; ffmpeg.FS('writeFile', name, overlay.bytes); overlayNames.push(name); });
+      for (let index = 0; index < validCues.length; index += 1) {
+        const overlay = await renderCaptionOverlay(validCues[index], captions.style, preset.width, preset.height, index);
+        const name = `${suffix}-${overlay.fileName}`;
+        ffmpeg.FS('writeFile', name, overlay.bytes);
+        overlayNames.push(name);
+      }
     }
     ffmpeg.setProgress(({ ratio }) => { if (onProgress && Number.isFinite(ratio)) onProgress(Math.min(.94, Math.max(.03, ratio * .94))); });
-    const args = ['-ss', startTime.toFixed(3), '-i', inputName];
+    const args = overlayNames.length ? ['-ss', startTime.toFixed(3), '-i', inputName] : ['-i', inputName, '-ss', startTime.toFixed(3)];
     overlayNames.forEach((name) => args.push('-i', name));
     args.push('-t', duration.toFixed(3));
     if (overlayNames.length) {
