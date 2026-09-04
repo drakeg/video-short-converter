@@ -2,11 +2,11 @@
 
 ## Decision
 
-The currently locked FFmpeg.wasm 0.11 core is a viable technical base for burned-in captions, but burn-in remains disabled until a browser smoke implementation proves font loading and rendering in the exact self-hosted runtime used by this application.
+The locked FFmpeg.wasm 0.11 core remains suitable for this project, but the production caption path does not rely on libass font discovery. Burned-in captions are rasterized by the browser into transparent PNG overlays and then composited by the existing self-hosted FFmpeg pipeline.
 
-This sprint deliberately avoids replacing the locked FFmpeg runtime or enabling an export option that has not been exercised end-to-end in supported browsers.
+This keeps caption export local, deterministic, and independent of operating-system fonts, a bundled font binary, a runtime font CDN, or a paid service.
 
-## What was validated
+## What Sprint 13 validated
 
 The FFmpeg.wasm 0.11 core build lineage includes the libraries required for ASS subtitle rendering:
 
@@ -14,27 +14,27 @@ The FFmpeg.wasm 0.11 core build lineage includes the libraries required for ASS 
 - FreeType for font rendering
 - FriBidi and HarfBuzz for text direction/shaping support
 
-The upstream 0.11-era core build configuration enables `--enable-libass`, `--enable-libfreetype`, and `--enable-libfribidi`, and links libass/FreeType/HarfBuzz into the WebAssembly core. This means a separate FFmpeg major-version migration is not a prerequisite for caption burn-in.
+The application also has deterministic ASS serialization from clipped/rebased caption cues. That work remains useful reference capability and confirms that a major FFmpeg.wasm migration is not required for caption work.
 
-The application now also has deterministic ASS generation from the same clipped/rebased caption cues already used by SRT sidecar export. The serializer maps the existing caption size, vertical position, and backdrop choices into an ASS style and escapes ASS control characters before rendering.
+## Why Sprint 14 uses rasterized overlays
 
-## Remaining runtime gate
+Direct libass rendering inside WebAssembly still depends on a usable font being available inside FFmpeg's in-memory filesystem. A desktop FFmpeg installation normally has system fonts available, while a browser WebAssembly filesystem does not automatically inherit them.
 
-The remaining uncertainty is font availability inside FFmpeg.wasm's in-memory filesystem. libass can render only when it can resolve a usable font. A desktop FFmpeg installation normally has system fonts available; the browser WebAssembly filesystem does not automatically inherit them.
+Rather than add and maintain a separate font asset only for FFmpeg, the editor now uses the browser's canvas text renderer to create a transparent image for each active caption cue. FFmpeg then overlays those images at the cue's rebased timestamps. The same caption size, vertical position, and backdrop choices used by the live preview drive the rendered export overlays.
 
-Before burn-in is exposed in the editor, the implementation must therefore:
+This approach has several advantages:
 
-1. provide a redistributable application font to the FFmpeg virtual filesystem without depending on a third-party runtime CDN;
-2. write the generated ASS file and font into temporary FFmpeg paths;
-3. render a short representative clip with the `ass` filter using the self-hosted 0.11 core;
-4. verify top/middle/bottom placement, all three caption sizes, backdrop behavior, punctuation, braces/backslashes, and non-ASCII text;
-5. clean the ASS/font temporary files after success or failure;
-6. retain the current sidecar-only path as a fallback if the runtime smoke test fails.
+1. no additional font package or binary asset is required;
+2. no third-party runtime request is introduced;
+3. caption text is rendered before FFmpeg sees it, avoiding libass/fontconfig variability;
+4. active clips and queued clips can reuse the same deterministic cue-rebasing logic;
+5. temporary caption images can be removed from the FFmpeg filesystem after each export;
+6. the existing SRT sidecar path remains available whether burn-in is enabled or not.
 
-## Why this is a separate gate
+## Current acceptance gate
 
-Enabling a caption checkbox based only on compile-time library presence would make export reliability browser-dependent and could produce videos with missing text. The project treats successful rendering with its exact bundled runtime as the acceptance criterion rather than assuming desktop FFmpeg behavior applies to WebAssembly.
+The implementation is considered safe to expose only when normal TypeScript, lint, unit-test, and production-build validation remain green. The next useful hardening slice is a browser-level smoke test using a small generated video fixture so actual caption pixels are exercised end-to-end in CI or Docker where practical.
 
-## Next implementation slice
+## Scope boundary
 
-Add a local redistributable font asset and a narrowly scoped FFmpeg caption-render smoke path. Once that passes local Docker/browser validation, wire ASS burn-in into active and queued exports behind an explicit user control. No external transcription provider or paid service is required for this work.
+Caption burn-in remains entirely browser-local. This work does not require AWS, an external transcription provider, a runtime CDN, or a major FFmpeg.wasm upgrade.
