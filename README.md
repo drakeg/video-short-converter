@@ -118,4 +118,4 @@ The current audit and improvement plan is maintained in [docs/IMPROVEMENT_ROADMA
 
 ## Deployment
 
-AWS deployment guidance is available in [AWS_DEPLOYMENT.md](AWS_DEPLOYMENT.md), but the AWS GitHub Actions workflow is manual-only so ordinary pushes and merges do not attempt paid AWS infrastructure. Vercel preview deployments are used for pull-request validation.
+AWS hosting is intentionally dormant and the repository contains no AWS deployment workflow. The retained Terraform is reference-only and excluded from Renovate while AWS is disabled. See [AWS_DEPLOYMENT.md](AWS_DEPLOYMENT.md) for the current policy. Vercel preview deployments continue to validate pull requests without activating AWS resources.

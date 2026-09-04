@@ -8,15 +8,19 @@
   ],
   "timezone": "America/New_York",
   "labels": ["dependencies"],
-  "prConcurrentLimit": 5,
-  "prHourlyLimit": 2,
+  "schedule": ["before 6am on monday"],
+  "minimumReleaseAge": "3 days",
+  "prConcurrentLimit": 3,
+  "prHourlyLimit": 1,
   "rebaseWhen": "behind-base-branch",
   "rangeStrategy": "bump",
+  "ignorePaths": ["terraform/**"],
   "packageRules": [
     {
-      "description": "Automerge safe npm patch/minor/dev dependency updates",
+      "description": "Group and automerge safe npm non-major updates after CI",
       "matchManagers": ["npm"],
       "matchUpdateTypes": ["minor", "patch", "pin", "digest"],
+      "groupName": "npm non-major dependencies",
       "automerge": true,
       "automergeType": "pr",
       "platformAutomerge": true
@@ -32,7 +36,8 @@
       "description": "Do not automerge ffmpeg packages",
       "matchPackageNames": ["@ffmpeg/ffmpeg", "@ffmpeg/core", "@ffmpeg/util"],
       "automerge": false,
-      "dependencyDashboardApproval": true
+      "dependencyDashboardApproval": true,
+      "groupName": null
     },
     {
       "description": "Do not automerge Next.js/React major framework packages",
@@ -42,17 +47,10 @@
       "dependencyDashboardApproval": true
     },
     {
-      "description": "Automerge GitHub Actions updates",
+      "description": "Group and automerge GitHub Actions non-major updates",
       "matchManagers": ["github-actions"],
       "matchUpdateTypes": ["minor", "patch", "pin", "digest"],
-      "automerge": true,
-      "automergeType": "pr",
-      "platformAutomerge": true
-    },
-    {
-      "description": "Automerge Terraform provider patch/minor updates",
-      "matchManagers": ["terraform"],
-      "matchUpdateTypes": ["minor", "patch"],
+      "groupName": "github actions non-major dependencies",
       "automerge": true,
       "automergeType": "pr",
       "platformAutomerge": true
