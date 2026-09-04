@@ -84,18 +84,28 @@ Delivered:
 - Update deployment and project documentation to reflect the zero-cost operating policy.
 
 ## Sprint 13 - Caption burn-in compatibility validation
-Status: **Implemented - awaiting merge**
+Status: **Complete**
 Delivered:
 - Validate that the locked FFmpeg.wasm 0.11 core lineage includes libass, FreeType, FriBidi, and HarfBuzz support needed for subtitle rendering.
 - Confirm that a major FFmpeg.wasm migration is not a prerequisite for pursuing burned-in captions.
 - Add deterministic ASS serialization from the existing clipped/rebased caption cue model.
 - Map existing caption size, position, and backdrop choices into ASS styling.
 - Escape ASS control characters before rendering and cover the serializer with focused unit tests.
-- Document the remaining browser-runtime gate: supplying and validating a redistributable font inside FFmpeg's virtual filesystem.
-- Keep burned-in captions disabled until an end-to-end browser smoke render succeeds with the exact self-hosted runtime.
+- Identify browser font availability as the remaining reliability risk for direct libass rendering.
+
+## Sprint 14 - Browser-rasterized caption burn-in
+Status: **Implemented - awaiting merge**
+Delivered:
+- Avoid FFmpeg/browser font-discovery differences by rasterizing caption text to transparent PNG overlays in the browser before encoding.
+- Reuse the existing caption size, position, and backdrop controls for both preview and exported burned-in captions.
+- Add an explicit user-controlled **Burn into video** option while retaining SRT sidecar export.
+- Rebase captions independently for the active clip and every queued clip before export.
+- Composite deterministic caption overlays in the existing self-hosted FFmpeg.wasm pipeline without adding a font package, CDN, paid service, or AWS dependency.
+- Clean temporary caption images from the FFmpeg virtual filesystem after every export.
+- Add focused unit coverage for caption sizing and FFmpeg overlay-filter planning.
 
 Recommended next increments:
-- Add a local redistributable font and browser smoke path, then enable burned-in caption export only after the runtime gate passes.
+- Add a browser-level caption burn-in smoke test with a small generated fixture so actual rendered output is exercised in CI where practical.
 - Optional local transcription when browser/runtime support is practical.
 - Better semantic/topic-boundary ranking once an analysis provider is deliberately selected.
 - Continue dependency/security maintenance without blindly forcing major upgrades.
