@@ -9,7 +9,8 @@ This roadmap captures the improvement plan for the Video Short Converter. Work i
 - Prefer typed, testable modules over large multi-responsibility components.
 - Keep browser-side video processing reliable and observable without excessive debug noise.
 - Keep normal PR validation fast; expensive/specialized checks should be path-scoped or separate.
-- Keep AWS deployment opt-in/manual while paid AWS hosting is not desired.
+- Keep AWS deployment disabled while paid AWS hosting is not desired.
+- Avoid dependency automation churn for dormant infrastructure.
 
 ## Sprint 1 - Repository and architecture hardening
 Status: **Complete**
@@ -60,7 +61,7 @@ Delivered:
 - Focused tests for range validation and filename sanitization.
 
 ## Sprint 11 - Browser-local session recovery
-Status: **Implemented - awaiting merge**
+Status: **Complete**
 Delivered:
 - Persist non-sensitive edit metadata locally while a source video is open.
 - Detect a recoverable edit after refresh/navigation and identify the expected source file.
@@ -68,8 +69,19 @@ Delivered:
 - Match recovery to the source using name, size, and last-modified metadata so unrelated files do not inherit stale edits.
 - Allow the user to explicitly discard the saved recovery state.
 - Keep source video bytes and imported transcript text out of recovery storage.
-- Make the AWS deployment workflow manual-only so pushes/merges do not attempt paid AWS hosting.
+- Make AWS deployment manual-only so pushes/merges no longer attempt paid AWS hosting.
 - Add deterministic unit coverage for recovery serialization, source matching, malformed payloads, and bounded values.
+
+## Sprint 12 - Zero-cost maintenance and dependency hygiene
+Status: **Implemented - awaiting merge**
+Delivered:
+- Remove the AWS deployment GitHub Actions workflow entirely so AWS cannot be triggered from repository automation.
+- Retain Terraform only as dormant reference infrastructure rather than an active deployment target.
+- Exclude `terraform/**` from Renovate while AWS hosting is disabled.
+- Batch routine npm and GitHub Actions non-major updates instead of creating avoidable one-package PR churn.
+- Run Renovate on a weekly schedule with a three-day minimum release age and tighter PR concurrency limits.
+- Preserve explicit approval gates for major npm/framework updates and all FFmpeg package changes.
+- Update deployment and project documentation to reflect the zero-cost operating policy.
 
 Recommended next increments:
 - Validate reliable burned-in caption support before enabling subtitle rendering in FFmpeg.wasm.
