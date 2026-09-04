@@ -15,6 +15,7 @@ A browser-based video editor for trimming local video files, reframing them for 
 - Adjust exported audio with mute, gain, normalization, and fade controls.
 - Import local SRT or WebVTT transcripts and get deterministic 30–60 second candidate clips for human review.
 - Preview imported timed captions directly over the source video with size, placement, and backdrop controls.
+- Optionally burn those captions into active or queued MP4 exports using browser-rasterized transparent overlays.
 - Download an SRT sidecar rebased to the currently selected short, with timestamps starting at zero.
 - Standard, High, and Maximum H.264 export-quality choices.
 - Preview a processed clip before downloading and return to editing without re-uploading.
@@ -33,7 +34,7 @@ For Node development:
 For container testing:
 - Docker with Docker Compose
 
-A modern browser with JavaScript, WebAssembly, Web Workers, and local object-URL support is required. FFmpeg core assets are copied from the locked npm dependency into the static build and served by the application itself; video processing does not depend on a third-party runtime CDN.
+A modern browser with JavaScript, WebAssembly, Web Workers, canvas/PNG support, and local object-URL support is required. FFmpeg core assets are copied from the locked npm dependency into the static build and served by the application itself; video processing does not depend on a third-party runtime CDN.
 
 ## Local development with Node
 
@@ -91,15 +92,15 @@ The production TypeScript configuration scopes type checking to application/buil
 1. Upload or drop a local video.
 2. Choose a clip using the playhead, mark buttons, keyboard shortcuts, timeline handles, exact numeric fields, or a transcript suggestion.
 3. Use **Add current range** to save that range to the clip queue. Rename it if desired, then choose another range and repeat.
-4. Optionally import an `.srt` or `.vtt` transcript, preview captions, adjust caption presentation, or download the selected clip's rebased SRT sidecar.
+4. Optionally import an `.srt` or `.vtt` transcript, preview captions, adjust caption presentation, enable **Burn into video**, or download the selected clip's rebased SRT sidecar.
 5. Select framing, audio, quality, and other export settings.
-6. Process the active range for the existing preview-first workflow, or use **Export all** to process every queued range sequentially with predictable filenames.
+6. Process the active range for the preview-first workflow, or use **Export all** to process every queued range sequentially with predictable filenames.
 
 While a source is open, the editor saves non-sensitive recovery metadata locally. After a browser refresh or accidental navigation, reselect the same local source file to restore trim points, framing, audio controls, caption presentation, and the clip queue. Browser security intentionally prevents the app from reopening the local video automatically.
 
-Queued clips share the active export/framing/audio settings. Sequential processing deliberately avoids running several FFmpeg encodes concurrently, which would create unnecessary browser-memory pressure.
+Queued clips share the active export/framing/audio settings. When caption burn-in is enabled, each queued clip receives only the imported caption cues that overlap that clip, rebased to its own zero-based timeline. Sequential processing deliberately avoids running several FFmpeg encodes concurrently, which would create unnecessary browser-memory pressure.
 
-The caption overlay is currently a browser preview and the SRT is exported as a sidecar. Burned-in caption rendering is intentionally deferred until the locked FFmpeg.wasm core is validated for reliable subtitle rendering across supported browsers.
+Burned-in captions are rasterized by the browser to transparent PNG overlays before FFmpeg encoding. This keeps the export path self-contained and avoids depending on operating-system fonts, a bundled font package, or a runtime font CDN. The SRT sidecar workflow remains available independently.
 
 Files that are empty or unsupported are rejected before FFmpeg initializes. Files around 500 MB or larger trigger a browser-memory warning instead of being silently processed as though they were small clips.
 
