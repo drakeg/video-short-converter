@@ -73,7 +73,7 @@ Delivered:
 - Add deterministic unit coverage for recovery serialization, source matching, malformed payloads, and bounded values.
 
 ## Sprint 12 - Zero-cost maintenance and dependency hygiene
-Status: **Implemented - awaiting merge**
+Status: **Complete**
 Delivered:
 - Remove the AWS deployment GitHub Actions workflow entirely so AWS cannot be triggered from repository automation.
 - Retain Terraform only as dormant reference infrastructure rather than an active deployment target.
@@ -83,8 +83,19 @@ Delivered:
 - Preserve explicit approval gates for major npm/framework updates and all FFmpeg package changes.
 - Update deployment and project documentation to reflect the zero-cost operating policy.
 
+## Sprint 13 - Caption burn-in compatibility validation
+Status: **Implemented - awaiting merge**
+Delivered:
+- Validate that the locked FFmpeg.wasm 0.11 core lineage includes libass, FreeType, FriBidi, and HarfBuzz support needed for subtitle rendering.
+- Confirm that a major FFmpeg.wasm migration is not a prerequisite for pursuing burned-in captions.
+- Add deterministic ASS serialization from the existing clipped/rebased caption cue model.
+- Map existing caption size, position, and backdrop choices into ASS styling.
+- Escape ASS control characters before rendering and cover the serializer with focused unit tests.
+- Document the remaining browser-runtime gate: supplying and validating a redistributable font inside FFmpeg's virtual filesystem.
+- Keep burned-in captions disabled until an end-to-end browser smoke render succeeds with the exact self-hosted runtime.
+
 Recommended next increments:
-- Validate reliable burned-in caption support before enabling subtitle rendering in FFmpeg.wasm.
+- Add a local redistributable font and browser smoke path, then enable burned-in caption export only after the runtime gate passes.
 - Optional local transcription when browser/runtime support is practical.
 - Better semantic/topic-boundary ranking once an analysis provider is deliberately selected.
 - Continue dependency/security maintenance without blindly forcing major upgrades.

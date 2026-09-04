@@ -1,5 +1,6 @@
 export interface TranscriptCue { start: number; end: number; text: string; }
 export interface ClipSuggestion { start: number; end: number; duration: number; text: string; score: number; }
+export interface AssCaptionStyle { size: 'small' | 'medium' | 'large'; position: 'top' | 'middle' | 'bottom'; backdrop: boolean; }
 
 const timeToSeconds = (value: string): number => {
   const normalized = value.trim().replace(',', '.');
@@ -85,4 +86,33 @@ const formatSrtTime = (seconds: number): string => {
 
 export function serializeSrt(cues: TranscriptCue[]): string {
   return cues.map((cue, index) => `${index + 1}\n${formatSrtTime(cue.start)} --> ${formatSrtTime(cue.end)}\n${cue.text}`).join('\n\n');
+}
+
+const formatAssTime = (seconds: number): string => {
+  const safe = Math.max(0, seconds);
+  const centiseconds = Math.round(safe * 100);
+  const hours = Math.floor(centiseconds / 360000);
+  const minutes = Math.floor((centiseconds % 360000) / 6000);
+  const secs = Math.floor((centiseconds % 6000) / 100);
+  const cs = centiseconds % 100;
+  return `${hours}:${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}.${cs.toString().padStart(2, '0')}`;
+};
+
+const escapeAssText = (text: string): string => text
+  .replace(/\\/g, '\\\\')
+  .replace(/\{/g, '\\{')
+  .replace(/\}/g, '\\}')
+  .replace(/\r?\n/g, '\\N');
+
+export function serializeAss(cues: TranscriptCue[], style: AssCaptionStyle, width = 1080, height = 1920): string {
+  const fontSize = style.size === 'small' ? 42 : style.size === 'large' ? 72 : 56;
+  const alignment = style.position === 'top' ? 8 : style.position === 'middle' ? 5 : 2;
+  const outline = style.backdrop ? 5 : 3;
+  const shadow = style.backdrop ? 2 : 1;
+  const marginV = style.position === 'middle' ? 0 : Math.max(40, Math.round(height * 0.06));
+  const header = `[Script Info]\nScriptType: v4.00+\nPlayResX: ${Math.max(1, Math.round(width))}\nPlayResY: ${Math.max(1, Math.round(height))}\nWrapStyle: 0\nScaledBorderAndShadow: yes\n\n[V4+ Styles]\nFormat: Name, Fontname, Fontsize, PrimaryColour, SecondaryColour, OutlineColour, BackColour, Bold, Italic, Underline, StrikeOut, ScaleX, ScaleY, Spacing, Angle, BorderStyle, Outline, Shadow, Alignment, MarginL, MarginR, MarginV, Encoding\nStyle: Default,Arial,${fontSize},&H00FFFFFF,&H000000FF,&H00000000,&H${style.backdrop ? 'A0000000' : '00000000'},-1,0,0,0,100,100,0,0,1,${outline},${shadow},${alignment},60,60,${marginV},1\n\n[Events]\nFormat: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text`;
+  const events = cues
+    .filter((cue) => Number.isFinite(cue.start) && Number.isFinite(cue.end) && cue.end > cue.start && cue.text.trim())
+    .map((cue) => `Dialogue: 0,${formatAssTime(cue.start)},${formatAssTime(cue.end)},Default,,0,0,0,,${escapeAssText(cue.text)}`);
+  return events.length ? `${header}\n${events.join('\n')}` : header;
 }
