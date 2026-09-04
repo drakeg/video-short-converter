@@ -37,7 +37,7 @@
       "matchPackageNames": ["@ffmpeg/ffmpeg", "@ffmpeg/core", "@ffmpeg/util"],
       "automerge": false,
       "dependencyDashboardApproval": true,
-      "groupName": null
+      "groupName": "ffmpeg packages"
     },
     {
       "description": "Do not automerge Next.js/React major framework packages",
