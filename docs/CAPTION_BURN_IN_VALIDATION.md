@@ -20,20 +20,28 @@ The application also has deterministic ASS serialization from clipped/rebased ca
 
 Direct libass rendering inside WebAssembly still depends on a usable font being available inside FFmpeg's in-memory filesystem. A desktop FFmpeg installation normally has system fonts available, while a browser WebAssembly filesystem does not automatically inherit them.
 
-Rather than add and maintain a separate font asset only for FFmpeg, the editor now uses the browser's canvas text renderer to create a transparent image for each active caption cue. FFmpeg then overlays those images at the cue's rebased timestamps. The same caption size, vertical position, and backdrop choices used by the live preview drive the rendered export overlays.
+Rather than add and maintain a separate font asset only for FFmpeg, the editor uses the browser's canvas text renderer to create a transparent image for each active caption cue. FFmpeg then overlays those images at the cue's rebased timestamps. The same caption size, vertical position, and backdrop choices used by the live preview drive the rendered export overlays.
 
-This approach has several advantages:
+This approach avoids an additional font package, third-party runtime requests, and libass/fontconfig variability while preserving the independent SRT sidecar workflow.
 
-1. no additional font package or binary asset is required;
-2. no third-party runtime request is introduced;
-3. caption text is rendered before FFmpeg sees it, avoiding libass/fontconfig variability;
-4. active clips and queued clips can reuse the same deterministic cue-rebasing logic;
-5. temporary caption images can be removed from the FFmpeg filesystem after each export;
-6. the existing SRT sidecar path remains available whether burn-in is enabled or not.
+## Sprint 15 runtime gate
 
-## Current acceptance gate
+Before the first burned-in-caption export in each browser session, the application now runs a tiny smoke render through the exact FFmpeg.wasm instance that will process the user's video. The probe:
 
-The implementation is considered safe to expose only when normal TypeScript, lint, unit-test, and production-build validation remain green. The next useful hardening slice is a browser-level smoke test using a small generated video fixture so actual caption pixels are exercised end-to-end in CI or Docker where practical.
+1. rasterizes a representative caption overlay with the same browser renderer used by real exports;
+2. generates a short black video source inside FFmpeg;
+3. composites the caption overlay with the same overlay filter family used by production exports;
+4. encodes a very short H.264 MP4;
+5. verifies that FFmpeg returned non-empty output;
+6. removes the temporary overlay and output from the FFmpeg virtual filesystem.
+
+A successful probe is cached for the browser session, and concurrent probes share the same promise. If the probe fails, the real burned-in-caption export is stopped immediately with a specific compatibility error instead of spending time on a full video encode that cannot complete reliably.
+
+Caption-disabled exports do not run this probe and retain their existing path.
+
+## Remaining automated hardening
+
+The runtime gate exercises actual caption compositing in the user's browser. A future improvement can additionally automate that path in Playwright/Docker with a small generated fixture so the end-to-end probe is continuously exercised in CI where practical.
 
 ## Scope boundary
 
