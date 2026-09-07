@@ -20,13 +20,13 @@ Delivered the repository/architecture hardening, editing and framing workflow, e
 Status: **Complete**
 Delivered:
 - Add a focused Chromium/Playwright test that loads the application's self-hosted FFmpeg.wasm core in a real browser.
-- Rasterize a caption overlay through the production browser caption renderer and feed it to FFmpeg's in-memory filesystem.
+- Rasterize a caption overlay through the production caption renderer and feed it to FFmpeg's in-memory filesystem.
 - Execute the same generated-color, PNG-overlay, H.264 encode shape used by the runtime safety gate and require non-empty MP4 output.
 - Configure cross-origin isolation headers consistently for local static serving, Docker/nginx, and Vercel so FFmpeg.wasm can initialize reliably.
 - Keep the test fixture generated in-browser, avoiding binary fixtures, external downloads, AWS, and paid services.
 
 ## Sprint 17 - Path-scoped caption runtime validation
-Status: **Implemented - awaiting merge**
+Status: **Complete**
 Delivered:
 - Move the expensive Chromium/FFmpeg caption smoke test out of the always-running general CI workflow.
 - Trigger the browser encode gate only when caption rendering, video processing, FFmpeg runtime assets, browser test infrastructure, static serving, or dependency manifests change.
@@ -34,9 +34,20 @@ Delivered:
 - Preserve the real-browser caption safety coverage while avoiding Chromium installation and a second production build for unrelated changes.
 - Retain independent concurrency cancellation for both standard CI and the specialized caption runtime workflow.
 
+## Sprint 18 - Smarter local clip ranking
+Status: **Implemented - awaiting merge**
+Delivered:
+- Improve transcript-assisted short suggestions without adding a cloud analysis provider, API key, paid service, or network dependency.
+- Reward candidates that begin at sentence-like boundaries instead of mid-thought.
+- Reward candidates that finish with strong punctuation so suggested clips are more likely to feel complete.
+- Recognize lightweight hook language such as questions, how/why/what openings, contrast, results, tips, problems, and mistakes.
+- Preserve the existing 30–60 second bounds, non-overlap behavior, and human-in-the-loop selection.
+- Add deterministic tie-breaking so identical transcript input produces stable suggestions.
+- Cover hook/boundary preference and deterministic ranking with focused tests.
+
 Recommended next increments:
 - Optional local transcription when browser/runtime support is practical.
-- Better semantic/topic-boundary ranking once an analysis provider is deliberately selected.
+- Per-clip export-setting snapshots for queued clips so batch exports can retain independently tuned framing/audio/caption choices.
 - Continue dependency/security maintenance without blindly forcing major upgrades.
 
 Assisted features remain optional. The user remains in control of clip selection, framing, timing, captions, audio, and export.
