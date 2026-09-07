@@ -14,6 +14,29 @@ describe('transcript-assisted clip discovery', () => {
     suggestions.forEach((clip) => { expect(clip.duration).toBeGreaterThanOrEqual(30); expect(clip.duration).toBeLessThanOrEqual(60); });
   });
 
+  it('prefers a complete hook-led thought over a similarly dense fragment', () => {
+    const cues = [
+      { start: 0, end: 10, text: 'continuing a thought with several useful words' },
+      { start: 10, end: 20, text: 'more context and useful details for viewers' },
+      { start: 20, end: 30, text: 'the fragment keeps going with useful detail' },
+      { start: 30, end: 40, text: 'and ends without a clean boundary' },
+      { start: 45, end: 55, text: 'Why does this simple trick actually work?' },
+      { start: 55, end: 65, text: 'Because it removes the most common mistake.' },
+      { start: 65, end: 75, text: 'Here is the important result for you.' },
+      { start: 75, end: 85, text: 'That is the whole idea.' },
+    ];
+    const [suggestion] = suggestClips(cues, 90, 30, 45, 1);
+    expect(suggestion.start).toBe(45);
+    expect(suggestion.end).toBe(85);
+  });
+
+  it('uses deterministic tie-breaking for equally scored candidates', () => {
+    const cues = Array.from({ length: 16 }, (_, index) => ({ start: index * 5, end: index * 5 + 5, text: 'same words here' }));
+    const first = suggestClips(cues, 80, 30, 50, 2);
+    const second = suggestClips(cues, 80, 30, 50, 2);
+    expect(second).toEqual(first);
+  });
+
   it('finds the active caption at the current playhead time', () => {
     const cues = [{ start: 1, end: 3, text: 'Hello' }, { start: 3, end: 5, text: 'World' }];
     expect(getActiveCue(cues, 2)?.text).toBe('Hello');
