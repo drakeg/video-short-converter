@@ -105,7 +105,7 @@ Delivered:
 - Add focused unit coverage for caption sizing and FFmpeg overlay-filter planning.
 
 ## Sprint 15 - Caption runtime smoke gate
-Status: **Implemented - awaiting merge**
+Status: **Complete**
 Delivered:
 - Run a tiny generated caption-overlay encode with the exact loaded FFmpeg.wasm runtime before the first burned-in-caption export in a browser session.
 - Verify the smoke render produces non-empty H.264 output before allowing the real caption export path to continue.
@@ -114,8 +114,16 @@ Delivered:
 - Surface a specific burned-in-caption compatibility error instead of failing later in a full export.
 - Preserve the existing caption-disabled export path unchanged.
 
+## Sprint 16 - Automated browser caption-runtime coverage
+Status: **Implemented - awaiting merge**
+Delivered:
+- Add a focused Chromium/Playwright test that loads the application's self-hosted FFmpeg.wasm core in a real browser.
+- Rasterize a caption overlay through the production caption renderer and feed it to FFmpeg's in-memory filesystem.
+- Execute the same generated-color, PNG-overlay, H.264 encode shape used by the runtime safety gate and require non-empty MP4 output.
+- Run the browser smoke test as a separate CI job so the normal TypeScript/lint/unit/build validation remains easy to diagnose.
+- Keep the test fixture generated in-browser, avoiding binary fixtures, external downloads, AWS, and paid services.
+
 Recommended next increments:
-- Add automated browser/Docker coverage for the runtime gate where practical.
 - Optional local transcription when browser/runtime support is practical.
 - Better semantic/topic-boundary ranking once an analysis provider is deliberately selected.
 - Continue dependency/security maintenance without blindly forcing major upgrades.

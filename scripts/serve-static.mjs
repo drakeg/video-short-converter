@@ -14,6 +14,11 @@ const mimeTypes = {
   '.wasm': 'application/wasm',
 };
 
+const isolationHeaders = {
+  'cross-origin-opener-policy': 'same-origin',
+  'cross-origin-embedder-policy': 'require-corp',
+};
+
 const server = createServer((request, response) => {
   const pathname = decodeURIComponent(new URL(request.url || '/', 'http://localhost').pathname);
   const safePath = normalize(pathname).replace(/^(\.\.[/\\])+/, '');
@@ -23,7 +28,7 @@ const server = createServer((request, response) => {
   else if (existsSync(filePath) && statSync(filePath).isDirectory()) filePath = join(filePath, 'index.html');
 
   if (!filePath.startsWith(root) || !existsSync(filePath) || !statSync(filePath).isFile()) {
-    response.writeHead(404, { 'content-type': 'text/plain; charset=utf-8' });
+    response.writeHead(404, { 'content-type': 'text/plain; charset=utf-8', ...isolationHeaders });
     response.end('Not found');
     return;
   }
@@ -31,6 +36,7 @@ const server = createServer((request, response) => {
   response.writeHead(200, {
     'content-type': mimeTypes[extname(filePath)] || 'application/octet-stream',
     'cache-control': extname(filePath) === '.html' ? 'no-cache' : 'public, max-age=3600',
+    ...isolationHeaders,
   });
   createReadStream(filePath).pipe(response);
 });
