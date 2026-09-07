@@ -94,7 +94,7 @@ Delivered:
 - Identify browser font availability as the remaining reliability risk for direct libass rendering.
 
 ## Sprint 14 - Browser-rasterized caption burn-in
-Status: **Implemented - awaiting merge**
+Status: **Complete**
 Delivered:
 - Avoid FFmpeg/browser font-discovery differences by rasterizing caption text to transparent PNG overlays in the browser before encoding.
 - Reuse the existing caption size, position, and backdrop controls for both preview and exported burned-in captions.
@@ -104,8 +104,18 @@ Delivered:
 - Clean temporary caption images from the FFmpeg virtual filesystem after every export.
 - Add focused unit coverage for caption sizing and FFmpeg overlay-filter planning.
 
+## Sprint 15 - Caption runtime smoke gate
+Status: **Implemented - awaiting merge**
+Delivered:
+- Run a tiny generated caption-overlay encode with the exact loaded FFmpeg.wasm runtime before the first burned-in-caption export in a browser session.
+- Verify the smoke render produces non-empty H.264 output before allowing the real caption export path to continue.
+- Cache a successful result for the browser session so repeated active and batch exports do not rerun the probe.
+- Deduplicate concurrent validation attempts and clean all temporary smoke-test files.
+- Surface a specific burned-in-caption compatibility error instead of failing later in a full export.
+- Preserve the existing caption-disabled export path unchanged.
+
 Recommended next increments:
-- Add a browser-level caption burn-in smoke test with a small generated fixture so actual rendered output is exercised in CI where practical.
+- Add automated browser/Docker coverage for the runtime gate where practical.
 - Optional local transcription when browser/runtime support is practical.
 - Better semantic/topic-boundary ranking once an analysis provider is deliberately selected.
 - Continue dependency/security maintenance without blindly forcing major upgrades.

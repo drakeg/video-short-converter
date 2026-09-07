@@ -11,6 +11,8 @@ export interface OutputOptions { clipName?: string; }
 export interface CaptionBurnInOptions { enabled?: boolean; cues?: TranscriptCue[]; style?: CaptionStyle; }
 let ffmpegInstance: FFmpegClient | null = null;
 let initializationPromise: Promise<FFmpegClient> | null = null;
+let captionValidationPromise: Promise<void> | null = null;
+let captionRuntimeValidated = false;
 
 function getCorePath(): string { if (typeof window === 'undefined') return '/ffmpeg/ffmpeg-core.js'; return new URL('/ffmpeg/ffmpeg-core.js', window.location.origin).href; }
 async function getFFmpegClient(): Promise<FFmpegClient> {
@@ -32,9 +34,35 @@ function buildAudioFilter(duration: number, options: AudioExportOptions): string
   return filters.length ? filters.join(',') : null;
 }
 
+export async function validateCaptionBurnInSupport(): Promise<void> {
+  if (captionRuntimeValidated) return;
+  if (captionValidationPromise) return captionValidationPromise;
+  captionValidationPromise = (async () => {
+    const ffmpeg = await getFFmpegClient();
+    const suffix = `caption-smoke-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+    const overlayName = `${suffix}.png`;
+    const outputName = `${suffix}.mp4`;
+    try {
+      const overlay = await renderCaptionOverlay({ start: 0, end: 0.25, text: 'Caption check' }, { size: 'small', position: 'bottom', backdrop: true }, 320, 180, 0);
+      ffmpeg.FS('writeFile', overlayName, overlay.bytes);
+      await ffmpeg.run('-f', 'lavfi', '-i', 'color=c=black:s=320x180:r=10:d=0.25', '-i', overlayName, '-filter_complex', "[0:v]setpts=PTS-STARTPTS[v0];[1:v]format=rgba,setpts=PTS-STARTPTS[cap0];[v0][cap0]overlay=0:0:enable='between(t,0,0.25)'[v1]", '-map', '[v1]', '-an', '-c:v', 'libx264', '-preset', 'ultrafast', '-pix_fmt', 'yuv420p', '-t', '0.25', '-y', outputName);
+      const data = ffmpeg.FS('readFile', outputName);
+      if (!data?.length) throw new Error('Caption smoke render produced an empty file.');
+      captionRuntimeValidated = true;
+    } catch (error) {
+      throw new Error(`Burned-in captions are not supported by this browser/runtime${error instanceof Error && error.message ? `: ${error.message}` : '.'}`);
+    } finally {
+      safeUnlink(ffmpeg, overlayName);
+      safeUnlink(ffmpeg, outputName);
+    }
+  })().finally(() => { captionValidationPromise = null; });
+  return captionValidationPromise;
+}
+
 export async function trimVideo(file: File, startTime: number, endTime: number, onProgress?: (progress: number) => void, options: VideoExportOptions = { presetId: DEFAULT_PRESET.id, cropPosition: 50, quality: DEFAULT_QUALITY }, audio: AudioExportOptions = {}, output: OutputOptions = {}, captions: CaptionBurnInOptions = {}): Promise<File> {
   if (typeof window === 'undefined') throw new Error('Video trimming is only available in the browser');
   if (!Number.isFinite(startTime) || !Number.isFinite(endTime) || endTime <= startTime) throw new Error('Choose a valid start and end time before processing.');
+  if (captions.enabled) await validateCaptionBurnInSupport();
   const ffmpeg = await getFFmpegClient(); const suffix = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`; const inputName = `input-${suffix}.mp4`; const outputName = `output-${suffix}.mp4`; const duration = endTime - startTime; const overlayNames: string[] = [];
   try {
     onProgress?.(.01); ffmpeg.FS('writeFile', inputName, await fetchFile(file));
@@ -62,6 +90,6 @@ export async function trimVideo(file: File, startTime: number, endTime: number, 
     onProgress?.(.97); const data = ffmpeg.FS('readFile', outputName); if (!data?.length) throw new Error('The video processor produced an empty file. Try a different trim range or source video.'); const outputBytes = new Uint8Array(data.length); outputBytes.set(data); onProgress?.(1);
     const fileName = output.clipName ? buildClipFileName(file.name, output.clipName) : `short-${file.name.replace(/\.[^/.]+$/, '')}-${Date.now()}.mp4`;
     return new File([new Blob([outputBytes.buffer], { type: 'video/mp4' })], fileName, { type: 'video/mp4' });
-  } catch (error) { if (error instanceof Error && (error.message.startsWith('Unable') || error.message.startsWith('The video'))) throw error; throw new Error(`Video processing failed${error instanceof Error && error.message ? `: ${error.message}` : '. Please try again.'}`); }
+  } catch (error) { if (error instanceof Error && (error.message.startsWith('Unable') || error.message.startsWith('The video') || error.message.startsWith('Burned-in'))) throw error; throw new Error(`Video processing failed${error instanceof Error && error.message ? `: ${error.message}` : '. Please try again.'}`); }
   finally { safeUnlink(ffmpeg, inputName); safeUnlink(ffmpeg, outputName); overlayNames.forEach((name) => safeUnlink(ffmpeg, name)); ffmpeg.setProgress(() => undefined); }
 }
