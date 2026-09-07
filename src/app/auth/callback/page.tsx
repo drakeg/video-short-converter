@@ -5,13 +5,11 @@ import { AUTH_START_PARAM, handleAuthCallback, login } from "@/lib/auth";
 
 export default function AuthCallbackPage() {
   const [error, setError] = useState<string | null>(null);
-  const [message, setMessage] = useState("Finishing sign-in...");
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const startingOnConfiguredOrigin = params.get(AUTH_START_PARAM) === "1";
     if (startingOnConfiguredOrigin) {
-      setMessage("Starting secure sign-in...");
       login().catch((err) => setError(err instanceof Error ? err.message : String(err)));
       return;
     }
@@ -31,7 +29,7 @@ export default function AuthCallbackPage() {
           </>
         ) : (
           <>
-            <h1 className="mb-3 text-2xl font-bold">{message}</h1>
+            <h1 className="mb-3 text-2xl font-bold">Secure sign-in in progress...</h1>
             <p className="text-gray-600 dark:text-gray-300">You’ll be redirected shortly.</p>
           </>
         )}
