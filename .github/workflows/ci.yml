@@ -73,7 +73,14 @@ jobs:
       - name: Start static app
         run: |
           NEXT_PUBLIC_AUTH_REQUIRED=false npm start > /tmp/video-short-converter.log 2>&1 &
-          npx wait-on http://127.0.0.1:3000
+          for attempt in {1..30}; do
+            if curl --fail --silent http://127.0.0.1:3000 >/dev/null; then
+              exit 0
+            fi
+            sleep 1
+          done
+          cat /tmp/video-short-converter.log
+          exit 1
 
       - name: Exercise caption runtime
         run: npx playwright test e2e/caption-runtime.spec.ts
