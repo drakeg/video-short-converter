@@ -1,0 +1,76 @@
+name: Caption Runtime Smoke
+
+on:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - 'src/components/video-editor/captionBurnIn.ts'
+      - 'src/utils/videoProcessor.ts'
+      - 'public/ffmpeg/**'
+      - 'e2e/caption-runtime.spec.ts'
+      - 'scripts/serve-static.mjs'
+      - 'next.config.ts'
+      - 'package.json'
+      - 'package-lock.json'
+      - '.github/workflows/caption-runtime-smoke.yml'
+  push:
+    branches:
+      - main
+    paths:
+      - 'src/components/video-editor/captionBurnIn.ts'
+      - 'src/utils/videoProcessor.ts'
+      - 'public/ffmpeg/**'
+      - 'e2e/caption-runtime.spec.ts'
+      - 'scripts/serve-static.mjs'
+      - 'next.config.ts'
+      - 'package.json'
+      - 'package-lock.json'
+      - '.github/workflows/caption-runtime-smoke.yml'
+
+concurrency:
+  group: caption-runtime-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  smoke:
+    name: Browser FFmpeg caption encode
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: 20.20.2
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+
+      - name: Build static app
+        run: npm run build
+
+      - name: Start static app
+        run: |
+          NEXT_PUBLIC_AUTH_REQUIRED=false npm start > /tmp/video-short-converter.log 2>&1 &
+          for attempt in {1..30}; do
+            if curl --fail --silent http://127.0.0.1:3000 >/dev/null; then
+              exit 0
+            fi
+            sleep 1
+          done
+          cat /tmp/video-short-converter.log
+          exit 1
+
+      - name: Exercise caption runtime
+        run: npx playwright test e2e/caption-runtime.spec.ts
