@@ -45,3 +45,35 @@ jobs:
 
       - name: Production build
         run: npm run build
+
+  caption-runtime-smoke:
+    name: Caption runtime smoke
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: 20.20.2
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+
+      - name: Build static app
+        run: npm run build
+
+      - name: Start static app
+        run: |
+          NEXT_PUBLIC_AUTH_REQUIRED=false npm start > /tmp/video-short-converter.log 2>&1 &
+          npx wait-on http://127.0.0.1:3000
+
+      - name: Exercise caption runtime
+        run: npx playwright test e2e/caption-runtime.spec.ts
