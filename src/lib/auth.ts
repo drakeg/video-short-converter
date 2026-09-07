@@ -1,8 +1,12 @@
 export type JwtPayload = Record<string, unknown> & { sub?: string; email?: string; name?: string; exp?: number };
 
 type TokenResponse = { id_token?: string; access_token?: string; refresh_token?: string };
+type PkceTransaction = { verifier: string; redirectUri: string; createdAt: number };
 
-const STORAGE = { codeVerifier: "vsc_code_verifier", idToken: "vsc_id_token", accessToken: "vsc_access_token", refreshToken: "vsc_refresh_token" };
+const STORAGE = { idToken: "vsc_id_token", accessToken: "vsc_access_token", refreshToken: "vsc_refresh_token" };
+const PKCE_PREFIX = "vsc_pkce_";
+const PKCE_MAX_AGE_MS = 10 * 60 * 1000;
+export const AUTH_START_PARAM = "auth_start";
 export const AUTH_CHANGED_EVENT = "vsc-auth-changed";
 let refreshPromise: Promise<boolean> | null = null;
 
@@ -27,20 +31,94 @@ function randomString(byteLength = 64): string { const bytes = new Uint8Array(by
 async function sha256(value: string): Promise<ArrayBuffer> { return crypto.subtle.digest("SHA-256", new TextEncoder().encode(value)); }
 function storeTokens(tokens: TokenResponse) { if (tokens.id_token) localStorage.setItem(STORAGE.idToken, tokens.id_token); if (tokens.access_token) localStorage.setItem(STORAGE.accessToken, tokens.access_token); if (tokens.refresh_token) localStorage.setItem(STORAGE.refreshToken, tokens.refresh_token); emitAuthChanged(); }
 function clearSession() { Object.values(STORAGE).forEach((key) => localStorage.removeItem(key)); emitAuthChanged(); }
+function pkceKey(state: string) { return `${PKCE_PREFIX}${state}`; }
+
+function savePkceTransaction(state: string, transaction: PkceTransaction) {
+  localStorage.setItem(pkceKey(state), JSON.stringify(transaction));
+}
+
+function readPkceTransaction(state: string): PkceTransaction | null {
+  const raw = localStorage.getItem(pkceKey(state));
+  if (!raw) return null;
+  try {
+    const value = JSON.parse(raw) as Partial<PkceTransaction>;
+    if (typeof value.verifier !== "string" || !value.verifier || typeof value.redirectUri !== "string" || !value.redirectUri || typeof value.createdAt !== "number" || !Number.isFinite(value.createdAt)) return null;
+    return { verifier: value.verifier, redirectUri: value.redirectUri, createdAt: value.createdAt };
+  } catch {
+    return null;
+  }
+}
+
+function removePkceTransaction(state: string) { localStorage.removeItem(pkceKey(state)); }
+
+export function getAuthOriginHandoffUrl(redirectUri: string, currentOrigin: string): string | null {
+  const redirect = new URL(redirectUri);
+  if (redirect.origin === currentOrigin) return null;
+  redirect.search = "";
+  redirect.hash = "";
+  redirect.searchParams.set(AUTH_START_PARAM, "1");
+  return redirect.toString();
+}
 
 export async function login() {
-  const config = getAuthConfig(); const verifier = randomString(64); const challenge = base64UrlEncode(await sha256(verifier)); localStorage.setItem(STORAGE.codeVerifier, verifier);
-  const url = new URL(`${config.cognitoDomain}/oauth2/authorize`); url.searchParams.set("client_id", config.clientId); url.searchParams.set("response_type", "code"); url.searchParams.set("scope", "openid email profile"); url.searchParams.set("redirect_uri", config.redirectUri); url.searchParams.set("code_challenge_method", "S256"); url.searchParams.set("code_challenge", challenge); window.location.assign(url.toString());
+  const config = getAuthConfig();
+  const handoffUrl = getAuthOriginHandoffUrl(config.redirectUri, window.location.origin);
+  if (handoffUrl) {
+    window.location.assign(handoffUrl);
+    return;
+  }
+
+  const verifier = randomString(64);
+  const state = randomString(32);
+  const challenge = base64UrlEncode(await sha256(verifier));
+  savePkceTransaction(state, { verifier, redirectUri: config.redirectUri, createdAt: Date.now() });
+
+  const url = new URL(`${config.cognitoDomain}/oauth2/authorize`);
+  url.searchParams.set("client_id", config.clientId);
+  url.searchParams.set("response_type", "code");
+  url.searchParams.set("scope", "openid email profile");
+  url.searchParams.set("redirect_uri", config.redirectUri);
+  url.searchParams.set("code_challenge_method", "S256");
+  url.searchParams.set("code_challenge", challenge);
+  url.searchParams.set("state", state);
+  window.location.assign(url.toString());
 }
 
 export async function handleAuthCallback() {
-  const config = getAuthConfig(); const params = new URLSearchParams(window.location.search); const code = params.get("code"); const error = params.get("error");
-  if (error) throw new Error(params.get("error_description") || error); if (!code) throw new Error("Missing authorization code");
-  const verifier = localStorage.getItem(STORAGE.codeVerifier); if (!verifier) throw new Error("Missing PKCE code verifier. Try signing in again.");
-  const body = new URLSearchParams({ grant_type: "authorization_code", client_id: config.clientId, code, redirect_uri: config.redirectUri, code_verifier: verifier });
+  const config = getAuthConfig();
+  const params = new URLSearchParams(window.location.search);
+  const code = params.get("code");
+  const state = params.get("state");
+  const error = params.get("error");
+  if (error) throw new Error(params.get("error_description") || error);
+  if (!code) throw new Error("Missing authorization code");
+  if (!state) throw new Error("Missing OAuth state. Please start sign-in again from this site.");
+
+  const transaction = readPkceTransaction(state);
+  if (!transaction) throw new Error("The PKCE sign-in transaction was not found. Please start sign-in again from this site.");
+  if (Date.now() - transaction.createdAt > PKCE_MAX_AGE_MS) {
+    removePkceTransaction(state);
+    throw new Error("The sign-in request expired. Please sign in again.");
+  }
+
+  const configuredRedirect = new URL(config.redirectUri);
+  const transactionRedirect = new URL(transaction.redirectUri);
+  if (transactionRedirect.toString() !== configuredRedirect.toString()) {
+    removePkceTransaction(state);
+    throw new Error("The sign-in callback configuration changed during login. Please sign in again.");
+  }
+  if (window.location.origin !== configuredRedirect.origin) {
+    throw new Error(`Sign-in returned to ${window.location.origin}, but PKCE was configured for ${configuredRedirect.origin}. Please sign in from the configured site.`);
+  }
+
+  const body = new URLSearchParams({ grant_type: "authorization_code", client_id: config.clientId, code, redirect_uri: transaction.redirectUri, code_verifier: transaction.verifier });
   const response = await fetch(`${config.cognitoDomain}/oauth2/token`, { method: "POST", headers: { "content-type": "application/x-www-form-urlencoded" }, body });
-  if (!response.ok) throw new Error(`Sign-in token exchange failed (${response.status}). Please try signing in again.`);
-  storeTokens(await response.json() as TokenResponse); localStorage.removeItem(STORAGE.codeVerifier);
+  if (!response.ok) {
+    removePkceTransaction(state);
+    throw new Error(`Sign-in token exchange failed (${response.status}). Please try signing in again.`);
+  }
+  storeTokens(await response.json() as TokenResponse);
+  removePkceTransaction(state);
 }
 
 export function logout() { const config = getAuthConfig(); clearSession(); const url = new URL(`${config.cognitoDomain}/logout`); url.searchParams.set("client_id", config.clientId); url.searchParams.set("logout_uri", config.logoutUri); window.location.assign(url.toString()); }
