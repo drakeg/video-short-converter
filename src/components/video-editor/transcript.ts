@@ -28,6 +28,17 @@ export function parseTranscript(text: string): TranscriptCue[] {
   return cues.sort((a, b) => a.start - b.start);
 }
 
+const sentenceStartBonus = (text: string): number => /^[A-Z0-9"“'‘]/.test(text.trim()) ? 4 : 0;
+const strongEndingBonus = (text: string): number => /[.!?]["”'’]?\s*$/.test(text.trim()) ? 10 : 0;
+const hookBonus = (text: string): number => {
+  const normalized = text.trim().toLowerCase();
+  let score = 0;
+  if (/\?$/.test(normalized)) score += 8;
+  if (/^(how|why|what|when|where|who|can|should|did|do|is|are|here(?:'s| is)|the (?:best|worst|biggest|easiest|hardest)|this is)\b/.test(normalized)) score += 7;
+  if (/\b(?:but|however|instead|because|so|surprisingly|actually|important|secret|mistake|tip|problem|result)\b/.test(normalized)) score += 3;
+  return Math.min(score, 12);
+};
+
 export function suggestClips(cues: TranscriptCue[], videoDuration: number, minSeconds = 30, maxSeconds = 60, limit = 5): ClipSuggestion[] {
   if (!cues.length || videoDuration <= 0) return [];
   const candidates: ClipSuggestion[] = [];
@@ -44,16 +55,19 @@ export function suggestClips(cues: TranscriptCue[], videoDuration: number, minSe
       if (duration > maxSeconds) break;
       text.push(cue.text);
       words += cue.text.split(/\s+/).filter(Boolean).length;
-      if (/[.!?]$/.test(cue.text)) punctuation += 1;
+      if (/[.!?]["”'’]?$/.test(cue.text.trim())) punctuation += 1;
       if (duration >= minSeconds) {
         const targetPenalty = Math.abs(45 - duration) * 0.4;
-        const score = words + punctuation * 8 - targetPenalty;
+        const opening = cues[startIndex].text;
+        const closing = cue.text;
+        const boundaryScore = sentenceStartBonus(opening) + strongEndingBonus(closing);
+        const score = words + punctuation * 8 + boundaryScore + hookBonus(opening) - targetPenalty;
         candidates.push({ start, end, duration, text: text.join(' '), score });
       }
     }
   }
   const chosen: ClipSuggestion[] = [];
-  for (const candidate of candidates.sort((a, b) => b.score - a.score)) {
+  for (const candidate of candidates.sort((a, b) => b.score - a.score || Math.abs(45 - a.duration) - Math.abs(45 - b.duration) || a.start - b.start)) {
     const overlaps = chosen.some((selected) => Math.max(selected.start, candidate.start) < Math.min(selected.end, candidate.end));
     if (!overlaps) chosen.push(candidate);
     if (chosen.length >= limit) break;
