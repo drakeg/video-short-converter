@@ -35,7 +35,7 @@ Delivered:
 - Retain independent concurrency cancellation for both standard CI and the specialized caption runtime workflow.
 
 ## Sprint 18 - Smarter local clip ranking
-Status: **Implemented - awaiting merge**
+Status: **Complete**
 Delivered:
 - Improve transcript-assisted short suggestions without adding a cloud analysis provider, API key, paid service, or network dependency.
 - Reward candidates that begin at sentence-like boundaries instead of mid-thought.
@@ -44,6 +44,16 @@ Delivered:
 - Preserve the existing 30–60 second bounds, non-overlap behavior, and human-in-the-loop selection.
 - Add deterministic tie-breaking so identical transcript input produces stable suggestions.
 - Cover hook/boundary preference and deterministic ranking with focused tests.
+
+## Sprint 19 - PKCE login reliability
+Status: **Implemented - awaiting merge**
+Delivered:
+- Bind every PKCE verifier to a cryptographically random OAuth `state` value instead of one global verifier key.
+- Validate callback state, transaction age, redirect URI continuity, and callback origin before exchanging the authorization code.
+- Automatically hand login off to the configured callback origin before generating PKCE when sign-in starts on a preview or alternate hostname, preventing origin-scoped browser storage loss.
+- Re-enter Cognito authorization from that configured origin without carrying the verifier through the URL.
+- Remove completed or invalid PKCE transactions and reject stale callbacks with actionable error messages.
+- Add focused tests for cross-origin handoff, successful state-bound token exchange, missing state, missing transactions, and expired transactions.
 
 Recommended next increments:
 - Optional local transcription when browser/runtime support is practical.
