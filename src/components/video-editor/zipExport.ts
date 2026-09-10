@@ -18,6 +18,12 @@ function setUint32(view: DataView, offset: number, value: number) {
   view.setUint32(offset, value >>> 0, true);
 }
 
+function toArrayBuffer(bytes: Uint8Array): ArrayBuffer {
+  const copy = new Uint8Array(bytes.byteLength);
+  copy.set(bytes);
+  return copy.buffer;
+}
+
 export function sanitizeZipEntryName(value: string): string {
   const cleaned = value.replace(/[\\/]+/g, '-').replace(/[\u0000-\u001f\u007f]/g, '').trim();
   return cleaned || 'clip.mp4';
@@ -157,7 +163,7 @@ export async function createBatchZip(files: File[], archiveName: string): Promis
   if (centralOffset + centralSize > ZIP32_MAX) throw new Error('The batch is too large for the browser ZIP exporter. Export fewer clips at a time.');
 
   const parts: BlobPart[] = [];
-  for (const entry of entries) parts.push(localHeader(entry), entry.file);
-  parts.push(...centralHeaders, endOfCentralDirectory(entries.length, centralSize, centralOffset));
+  for (const entry of entries) parts.push(toArrayBuffer(localHeader(entry)), entry.file);
+  parts.push(...centralHeaders.map(toArrayBuffer), toArrayBuffer(endOfCentralDirectory(entries.length, centralSize, centralOffset)));
   return new File(parts, archiveName, { type: 'application/zip' });
 }
