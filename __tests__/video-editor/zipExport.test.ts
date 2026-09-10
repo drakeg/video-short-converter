@@ -1,4 +1,10 @@
+import { TextDecoder as NodeTextDecoder, TextEncoder as NodeTextEncoder } from 'node:util';
 import { buildBatchZipFileName, createBatchZip, crc32, sanitizeZipEntryName, uniqueZipEntryNames } from '@/components/video-editor/zipExport';
+
+beforeAll(() => {
+  globalThis.TextEncoder = NodeTextEncoder as typeof TextEncoder;
+  globalThis.TextDecoder = NodeTextDecoder as typeof TextDecoder;
+});
 
 describe('batch ZIP export', () => {
   it('calculates the standard CRC-32 value', () => {
