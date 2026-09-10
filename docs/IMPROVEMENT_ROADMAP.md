@@ -56,7 +56,7 @@ Delivered:
 - Add focused tests for cross-origin handoff, successful state-bound token exchange, missing state, missing transactions, and expired transactions.
 
 ## Sprint 20 - Per-clip export-setting snapshots
-Status: **Implemented - awaiting merge**
+Status: **Complete**
 Delivered:
 - Snapshot framing, quality, frame rate, audio, caption style, and caption burn-in choices when a clip is added to the queue.
 - Restore a queued clip's saved settings when it is selected for further editing.
@@ -66,9 +66,18 @@ Delivered:
 - Carry the selected frame rate into FFmpeg output so the existing frame-rate control now affects generated files.
 - Add focused queue/recovery tests for snapshots and legacy compatibility.
 
+## Sprint 21 - Production dependency security gate
+Status: **Implemented - awaiting merge**
+Delivered:
+- Keep reproducible `npm ci` installs while skipping npm's broad install-time audit of development-only packages.
+- Add an explicit high-severity production dependency audit to normal CI with `npm audit --omit=dev --audit-level=high`.
+- Fail pull requests if a high or critical vulnerability enters the dependencies shipped with the application.
+- Keep existing Snyk coverage and avoid duplicate noisy failures from development-only test/coverage tooling.
+- Preserve the fast CI shape and avoid lockfile surgery, forced major upgrades, AWS activation, or paid services.
+
 Recommended next increments:
 - Optional local transcription when browser/runtime support is practical.
-- Continue dependency/security maintenance without blindly forcing major upgrades.
 - Consider packaging multi-clip exports to avoid browser automatic-download limits.
+- Continue maintenance upgrades through Renovate within the existing zero-cost/approval policy.
 
 Assisted features remain optional. The user remains in control of clip selection, framing, timing, captions, audio, and export.
