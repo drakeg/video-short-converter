@@ -85,6 +85,7 @@ export async function trimVideo(file: File, startTime: number, endTime: number, 
       args.push('-filter_complex', plan.filter, '-map', plan.outputLabel);
     } else args.push('-vf', buildVideoFilter(options));
     args.push('-c:v', 'libx264', '-preset', 'medium', '-crf', QUALITY_CRF[options.quality ?? DEFAULT_QUALITY], '-pix_fmt', 'yuv420p');
+    if (options.frameRate && Number.isFinite(options.frameRate) && options.frameRate > 0) args.push('-r', String(options.frameRate));
     if (audio.muted) args.push('-an'); else { if (overlayNames.length) args.push('-map', '0:a?'); const audioFilter = buildAudioFilter(duration, audio); if (audioFilter) args.push('-af', audioFilter); args.push('-c:a', 'aac', '-b:a', '128k'); }
     args.push('-movflags', '+faststart', '-y', outputName); await ffmpeg.run(...args);
     onProgress?.(.97); const data = ffmpeg.FS('readFile', outputName); if (!data?.length) throw new Error('The video processor produced an empty file. Try a different trim range or source video.'); const outputBytes = new Uint8Array(data.length); outputBytes.set(data); onProgress?.(1);
