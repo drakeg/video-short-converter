@@ -61,13 +61,5 @@
     "postcss": "^8.5.28",
     "tailwindcss": "^4.3.3",
     "typescript": "^5.9.3"
-  },
-  "overrides": {
-    "minimatch@3": {
-      "brace-expansion": "1.1.18"
-    },
-    "nyc": {
-      "brace-expansion": "5.0.9"
-    }
   }
 }
