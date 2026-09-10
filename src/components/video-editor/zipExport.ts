@@ -24,6 +24,19 @@ function toArrayBuffer(bytes: Uint8Array): ArrayBuffer {
   return copy.buffer;
 }
 
+function readBlobArrayBuffer(blob: Blob): Promise<ArrayBuffer> {
+  if (typeof blob.arrayBuffer === 'function') return blob.arrayBuffer();
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onerror = () => reject(reader.error ?? new Error('Unable to read exported clip for ZIP packaging.'));
+    reader.onload = () => {
+      if (reader.result instanceof ArrayBuffer) resolve(reader.result);
+      else reject(new Error('Unable to read exported clip for ZIP packaging.'));
+    };
+    reader.readAsArrayBuffer(blob);
+  });
+}
+
 export function sanitizeZipEntryName(value: string): string {
   const cleaned = value.replace(/[\\/]+/g, '-').replace(/[\u0000-\u001f\u007f]/g, '').trim();
   return cleaned || 'clip.mp4';
@@ -70,7 +83,7 @@ async function crc32File(file: File): Promise<number> {
       crc = updateCrc32(crc, value);
     }
   } else {
-    crc = updateCrc32(crc, new Uint8Array(await file.arrayBuffer()));
+    crc = updateCrc32(crc, new Uint8Array(await readBlobArrayBuffer(file)));
   }
   return (crc ^ 0xffffffff) >>> 0;
 }
