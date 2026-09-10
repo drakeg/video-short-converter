@@ -67,7 +67,7 @@ Delivered:
 - Add focused queue/recovery tests for snapshots and legacy compatibility.
 
 ## Sprint 21 - Production dependency security gate
-Status: **Implemented - awaiting merge**
+Status: **Complete**
 Delivered:
 - Keep reproducible `npm ci` installs while skipping npm's broad install-time audit of development-only packages.
 - Add an explicit high-severity production dependency audit to normal CI with `npm audit --omit=dev --audit-level=high`.
@@ -75,9 +75,20 @@ Delivered:
 - Keep existing Snyk coverage and avoid duplicate noisy failures from development-only test/coverage tooling.
 - Preserve the fast CI shape and avoid lockfile surgery, forced major upgrades, AWS activation, or paid services.
 
+## Sprint 22 - Single-download batch ZIP export
+Status: **Implemented - awaiting merge**
+Delivered:
+- Keep queued clips rendering sequentially through FFmpeg so browser memory pressure remains predictable.
+- Collect the generated MP4 files and package batches of two or more clips into one standards-compliant ZIP download.
+- Build the ZIP entirely in the browser without adding an npm dependency, network upload, AWS resource, or paid service.
+- Store MP4 files without recompression so packaging does not waste CPU trying to compress already-compressed video.
+- Stream CRC-32 calculation when browser support is available and reuse each generated File as a ZIP Blob part instead of duplicating full video buffers.
+- Sanitize and de-duplicate archive entry names, keep one-clip exports as a direct MP4 download, and reject unsupported ZIP32-size batches with actionable errors.
+- Add focused tests for CRC-32, archive naming, duplicate entry handling, ZIP signatures, and empty-batch validation.
+
 Recommended next increments:
 - Optional local transcription when browser/runtime support is practical.
-- Consider packaging multi-clip exports to avoid browser automatic-download limits.
+- Improve batch-export resilience with per-clip failure reporting/retry instead of failing the whole batch on one bad clip.
 - Continue maintenance upgrades through Renovate within the existing zero-cost/approval policy.
 
 Assisted features remain optional. The user remains in control of clip selection, framing, timing, captions, audio, and export.
