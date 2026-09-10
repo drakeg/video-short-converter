@@ -2,7 +2,7 @@ export type CropMode = 'crop' | 'fit';
 export type ExportQuality = 'standard' | 'high' | 'maximum';
 
 export interface ExportPreset { id: string; label: string; platform: string; width: number; height: number; cropMode: CropMode; }
-export interface VideoExportOptions { presetId: string; cropPosition: number; cropPositionY?: number; quality?: ExportQuality; }
+export interface VideoExportOptions { presetId: string; cropPosition: number; cropPositionY?: number; quality?: ExportQuality; frameRate?: number; }
 
 export const EXPORT_PRESETS: ExportPreset[] = [
   { id: 'youtube-short', label: 'YouTube Short (9:16)', platform: 'YouTube Shorts', width: 1080, height: 1920, cropMode: 'crop' },

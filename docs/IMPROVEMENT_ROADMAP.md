@@ -46,7 +46,7 @@ Delivered:
 - Cover hook/boundary preference and deterministic ranking with focused tests.
 
 ## Sprint 19 - PKCE login reliability
-Status: **Implemented - awaiting merge**
+Status: **Complete**
 Delivered:
 - Bind every PKCE verifier to a cryptographically random OAuth `state` value instead of one global verifier key.
 - Validate callback state, transaction age, redirect URI continuity, and callback origin before exchanging the authorization code.
@@ -55,9 +55,20 @@ Delivered:
 - Remove completed or invalid PKCE transactions and reject stale callbacks with actionable error messages.
 - Add focused tests for cross-origin handoff, successful state-bound token exchange, missing state, missing transactions, and expired transactions.
 
+## Sprint 20 - Per-clip export-setting snapshots
+Status: **Implemented - awaiting merge**
+Delivered:
+- Snapshot framing, quality, frame rate, audio, caption style, and caption burn-in choices when a clip is added to the queue.
+- Restore a queued clip's saved settings when it is selected for further editing.
+- Use each queued clip's own saved settings during batch export instead of applying the current global editor state to every clip.
+- Persist queued clip snapshots through browser-local project recovery while remaining compatible with older queue items that have no settings snapshot.
+- Persist the current caption burn-in choice as part of project recovery.
+- Carry the selected frame rate into FFmpeg output so the existing frame-rate control now affects generated files.
+- Add focused queue/recovery tests for snapshots and legacy compatibility.
+
 Recommended next increments:
 - Optional local transcription when browser/runtime support is practical.
-- Per-clip export-setting snapshots for queued clips so batch exports can retain independently tuned framing/audio/caption choices.
 - Continue dependency/security maintenance without blindly forcing major upgrades.
+- Consider packaging multi-clip exports to avoid browser automatic-download limits.
 
 Assisted features remain optional. The user remains in control of clip selection, framing, timing, captions, audio, and export.

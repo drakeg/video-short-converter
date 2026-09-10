@@ -6,7 +6,7 @@ const recovery: RecoverableProjectState = {
   savedAt: 1700000001000,
   startTime: 12.5,
   endTime: 48.25,
-  presetId: 'vertical',
+  presetId: 'youtube-short',
   cropPosition: 42,
   cropPositionY: 65,
   quality: 'high',
@@ -17,11 +17,19 @@ const recovery: RecoverableProjectState = {
   fadeIn: 0.5,
   fadeOut: 1,
   captionStyle: { size: 'large', position: 'bottom', backdrop: true },
-  clipQueue: [{ id: 'clip-1', name: 'waterfall', start: 12.5, end: 48.25 }],
+  burnCaptions: true,
+  clipQueue: [{
+    id: 'clip-1', name: 'waterfall', start: 12.5, end: 48.25,
+    settings: {
+      presetId: 'tiktok', cropPosition: 35, cropPositionY: 60, quality: 'maximum', frameRate: 29.97,
+      muted: true, gainDb: -1, normalize: false, fadeIn: 0.25, fadeOut: 0.75,
+      captionStyle: { size: 'small', position: 'top', backdrop: false }, burnCaptions: false,
+    },
+  }],
 };
 
 describe('project recovery', () => {
-  it('round-trips recoverable editor metadata', () => {
+  it('round-trips recoverable editor metadata including clip settings', () => {
     expect(parseProjectRecovery(serializeProjectRecovery(recovery))).toEqual(recovery);
   });
 
@@ -29,6 +37,12 @@ describe('project recovery', () => {
     expect(buildSourceFingerprint(source)).toEqual(source);
     expect(sourceMatchesRecovery(source, recovery)).toBe(true);
     expect(sourceMatchesRecovery({ ...source, size: source.size + 1 }, recovery)).toBe(false);
+  });
+
+  it('keeps legacy queued clips without settings compatible', () => {
+    const parsed = parseProjectRecovery(JSON.stringify({ ...recovery, burnCaptions: undefined, clipQueue: [{ id: 'legacy', name: 'old', start: 1, end: 5 }] }));
+    expect(parsed?.burnCaptions).toBe(false);
+    expect(parsed?.clipQueue).toEqual([{ id: 'legacy', name: 'old', start: 1, end: 5 }]);
   });
 
   it('rejects invalid recovery payloads and sanitizes malformed values', () => {
