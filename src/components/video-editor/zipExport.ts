@@ -6,7 +6,6 @@ const DOS_DATE_1980_01_01 = 0x0021;
 interface PreparedEntry {
   file: File;
   nameBytes: Uint8Array;
-  name: string;
   crc: number;
   offset: number;
 }
@@ -146,7 +145,7 @@ export async function createBatchZip(files: File[], archiveName: string): Promis
     if (file.size > ZIP32_MAX) throw new Error(`${file.name} is too large for the browser ZIP exporter.`);
     const nameBytes = encoder.encode(names[index]);
     if (nameBytes.length > 0xffff) throw new Error(`${file.name} has a file name that is too long for ZIP export.`);
-    const entry: PreparedEntry = { file, nameBytes, name: names[index], crc: await crc32File(file), offset };
+    const entry: PreparedEntry = { file, nameBytes, crc: await crc32File(file), offset };
     entries.push(entry);
     offset += 30 + nameBytes.length + file.size;
     if (offset > ZIP32_MAX) throw new Error('The batch is too large for the browser ZIP exporter. Export fewer clips at a time.');
