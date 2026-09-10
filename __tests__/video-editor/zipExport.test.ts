@@ -6,6 +6,16 @@ beforeAll(() => {
   globalThis.TextDecoder = NodeTextDecoder as typeof TextDecoder;
 });
 
+function readBlobArrayBuffer(blob: Blob): Promise<ArrayBuffer> {
+  if (typeof blob.arrayBuffer === 'function') return blob.arrayBuffer();
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onerror = () => reject(reader.error ?? new Error('Unable to read test blob.'));
+    reader.onload = () => reader.result instanceof ArrayBuffer ? resolve(reader.result) : reject(new Error('Unable to read test blob.'));
+    reader.readAsArrayBuffer(blob);
+  });
+}
+
 describe('batch ZIP export', () => {
   it('calculates the standard CRC-32 value', () => {
     expect(crc32(new TextEncoder().encode('123456789'))).toBe(0xcbf43926);
@@ -25,7 +35,7 @@ describe('batch ZIP export', () => {
     const first = new File([new Uint8Array([1, 2, 3])], 'first.mp4', { type: 'video/mp4' });
     const second = new File([new Uint8Array([4, 5])], 'second.mp4', { type: 'video/mp4' });
     const archive = await createBatchZip([first, second], 'batch.zip');
-    const bytes = new Uint8Array(await archive.arrayBuffer());
+    const bytes = new Uint8Array(await readBlobArrayBuffer(archive));
     const view = new DataView(bytes.buffer);
 
     expect(archive.name).toBe('batch.zip');
