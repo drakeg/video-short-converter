@@ -3,7 +3,7 @@ import ClipQueue from '@/components/video-editor/ClipQueue';
 import type { ClipQueueItem } from '@/components/video-editor/clipQueue';
 
 const baseClip: ClipQueueItem = { id: 'one', name: 'clip-one', start: 0, end: 30 };
-const handlers = { onAdd: jest.fn(), onSelect: jest.fn(), onRename: jest.fn(), onRemove: jest.fn(), onExportAll: jest.fn() };
+const handlers = { onAdd: jest.fn(), onSelect: jest.fn(), onRename: jest.fn(), onRemove: jest.fn(), onExportAll: jest.fn(), onRetryFailed: jest.fn() };
 
 describe('ClipQueue batch export labels', () => {
   beforeEach(() => jest.clearAllMocks());
@@ -19,5 +19,14 @@ describe('ClipQueue batch export labels', () => {
     const button = screen.getByRole('button', { name: 'Export all 2 clips as ZIP' });
     fireEvent.click(button);
     expect(handlers.onExportAll).toHaveBeenCalledTimes(1);
+  });
+
+  it('highlights failed clips and retries only through the failure action', () => {
+    const clips = [baseClip, { ...baseClip, id: 'two', name: 'clip-two', start: 30, end: 60 }];
+    render(<ClipQueue clips={clips} failedClipIds={['two']} {...handlers} />);
+    expect(screen.getByText('Export failed')).toBeInTheDocument();
+    const retry = screen.getByRole('button', { name: 'Retry 1 failed clip' });
+    fireEvent.click(retry);
+    expect(handlers.onRetryFailed).toHaveBeenCalledTimes(1);
   });
 });
