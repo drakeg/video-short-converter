@@ -87,7 +87,7 @@ Delivered:
 - Add focused tests for CRC-32, archive naming, duplicate entry handling, ZIP signatures, and empty-batch validation.
 
 ## Sprint 23 - Resilient batch export and retry
-Status: **Implemented - awaiting merge**
+Status: **Complete**
 Delivered:
 - Continue processing the remaining queue when an individual clip export fails instead of aborting the entire batch.
 - Preserve and download/package every clip that exported successfully during a partially failed run.
@@ -97,9 +97,19 @@ Delivered:
 - Clear stale failure markers when a failed clip is removed or a new source is loaded.
 - Add focused tests for partial success, multiple failures, failure summaries, queue highlighting, and retry invocation.
 
+## Sprint 24 - Batch export manifest
+Status: **Implemented - awaiting merge**
+Delivered:
+- Add a versioned `export-manifest.json` to multi-clip ZIP exports without adding a service or dependency.
+- Record the source filename, export timestamp, queue order, clip names, in/out times, durations, successful output filenames, and per-clip failure messages.
+- Include a manifest even when a multi-clip batch has only one successful output so partial exports remain self-describing.
+- Keep single queued-clip export as a direct MP4 download with no extra browser download.
+- Keep all manifest generation local in the browser and package it through the existing ZIP writer.
+- Add focused tests for deterministic manifest content and JSON sidecar creation.
+
 Recommended next increments:
 - Optional local transcription when browser/runtime support is practical.
-- Add export history or a lightweight manifest for completed batch files if users need repeatable handoff/audit information.
+- Consider a lightweight completed-export history in browser storage if repeatable handoff tracking becomes useful beyond the ZIP manifest.
 - Continue maintenance upgrades through Renovate within the existing zero-cost/approval policy.
 
 Assisted features remain optional. The user remains in control of clip selection, framing, timing, captions, audio, and export.
