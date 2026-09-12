@@ -76,7 +76,7 @@ Delivered:
 - Preserve the fast CI shape and avoid lockfile surgery, forced major upgrades, AWS activation, or paid services.
 
 ## Sprint 22 - Single-download batch ZIP export
-Status: **Implemented - awaiting merge**
+Status: **Complete**
 Delivered:
 - Keep queued clips rendering sequentially through FFmpeg so browser memory pressure remains predictable.
 - Collect the generated MP4 files and package batches of two or more clips into one standards-compliant ZIP download.
@@ -86,9 +86,20 @@ Delivered:
 - Sanitize and de-duplicate archive entry names, keep one-clip exports as a direct MP4 download, and reject unsupported ZIP32-size batches with actionable errors.
 - Add focused tests for CRC-32, archive naming, duplicate entry handling, ZIP signatures, and empty-batch validation.
 
+## Sprint 23 - Resilient batch export and retry
+Status: **Implemented - awaiting merge**
+Delivered:
+- Continue processing the remaining queue when an individual clip export fails instead of aborting the entire batch.
+- Preserve and download/package every clip that exported successfully during a partially failed run.
+- Track failed queue items independently and surface them directly in the clip queue.
+- Provide a one-click retry action that reprocesses only failed clips rather than repeating successful work.
+- Report partial-success and failure summaries while keeping full failures actionable.
+- Clear stale failure markers when a failed clip is removed or a new source is loaded.
+- Add focused tests for partial success, multiple failures, failure summaries, queue highlighting, and retry invocation.
+
 Recommended next increments:
 - Optional local transcription when browser/runtime support is practical.
-- Improve batch-export resilience with per-clip failure reporting/retry instead of failing the whole batch on one bad clip.
+- Add export history or a lightweight manifest for completed batch files if users need repeatable handoff/audit information.
 - Continue maintenance upgrades through Renovate within the existing zero-cost/approval policy.
 
 Assisted features remain optional. The user remains in control of clip selection, framing, timing, captions, audio, and export.
