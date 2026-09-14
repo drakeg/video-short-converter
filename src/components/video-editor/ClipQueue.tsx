@@ -13,11 +13,12 @@ interface ClipQueueProps {
   onRemove: (id: string) => void;
   onExportAll: () => void;
   onRetryFailed?: () => void;
+  onRestoreHistoryQueue?: (clips: ClipQueueItem[]) => void;
 }
 
 const format = (seconds: number) => `${Math.floor(seconds / 60)}:${Math.floor(seconds % 60).toString().padStart(2, '0')}`;
 
-export default function ClipQueue({ clips, disabled, failedClipIds = [], onAdd, onSelect, onRename, onRemove, onExportAll, onRetryFailed }: ClipQueueProps) {
+export default function ClipQueue({ clips, disabled, failedClipIds = [], onAdd, onSelect, onRename, onRemove, onExportAll, onRetryFailed, onRestoreHistoryQueue }: ClipQueueProps) {
   const failed = new Set(failedClipIds);
   return <div className="space-y-4">
     <section className="rounded-lg border border-gray-200 bg-gray-50 p-4" aria-label="Clip queue">
@@ -29,6 +30,6 @@ export default function ClipQueue({ clips, disabled, failedClipIds = [], onAdd, 
       {failedClipIds.length>0&&onRetryFailed&&<button type="button" onClick={onRetryFailed} disabled={disabled} className="mt-4 w-full rounded bg-amber-600 px-4 py-3 font-medium text-white disabled:bg-gray-400">{disabled?'Retrying…':`Retry ${failedClipIds.length} failed clip${failedClipIds.length===1?'':'s'}`}</button>}
       {clips.length>0&&<button type="button" onClick={onExportAll} disabled={disabled} className="mt-4 w-full rounded bg-green-700 px-4 py-3 font-medium text-white disabled:bg-gray-400">{disabled?'Exporting…':clips.length===1?'Export queued clip':`Export all ${clips.length} clips as ZIP`}</button>}
     </section>
-    <ExportHistory />
+    <ExportHistory onRestoreQueue={onRestoreHistoryQueue} />
   </div>;
 }
