@@ -1,7 +1,12 @@
 'use client';
 
 import { useCallback, useEffect, useState } from 'react';
-import { clearExportHistory, createExportHistoryManifestFile, EXPORT_HISTORY_CHANGED_EVENT, EXPORT_HISTORY_KEY, parseExportHistory, type ExportHistoryEntry } from './exportHistory';
+import type { ClipQueueItem } from './clipQueue';
+import { clearExportHistory, createExportHistoryManifestFile, EXPORT_HISTORY_CHANGED_EVENT, EXPORT_HISTORY_KEY, parseExportHistory, restoreClipQueueFromHistory, type ExportHistoryEntry } from './exportHistory';
+
+interface ExportHistoryProps {
+  onRestoreQueue?: (clips: ClipQueueItem[]) => void;
+}
 
 function formatDate(value: string): string {
   const date = new Date(value);
@@ -26,7 +31,7 @@ function downloadManifest(entry: ExportHistoryEntry): void {
   setTimeout(() => URL.revokeObjectURL(url), 0);
 }
 
-export default function ExportHistory() {
+export default function ExportHistory({ onRestoreQueue }: ExportHistoryProps) {
   const [entries, setEntries] = useState<ExportHistoryEntry[]>(readHistory);
   const refresh = useCallback(() => setEntries(readHistory()), []);
 
@@ -50,7 +55,7 @@ export default function ExportHistory() {
       <div className="flex flex-wrap items-center justify-between gap-2"><strong>{entry.successCount} of {entry.clipCount} clips exported</strong><span className="text-xs text-gray-500">{formatDate(entry.exportedAt)}</span></div>
       {entry.successfulFiles.length > 0 && <p className="mt-1 text-xs text-gray-600">Files: {entry.successfulFiles.join(', ')}</p>}
       {entry.failureCount > 0 && <p className="mt-1 text-xs text-red-700">Failed: {entry.failedClips.map((failure) => failure.name).join(', ')}</p>}
-      {entry.manifest && <button type="button" onClick={() => downloadManifest(entry)} className="mt-2 rounded bg-white px-3 py-1.5 text-xs font-medium text-blue-700 shadow-sm">Download metadata manifest</button>}
+      {entry.manifest && <div className="mt-2 flex flex-wrap gap-2"><button type="button" onClick={() => downloadManifest(entry)} className="rounded bg-white px-3 py-1.5 text-xs font-medium text-blue-700 shadow-sm">Download metadata manifest</button>{onRestoreQueue && <button type="button" onClick={() => { const clips = restoreClipQueueFromHistory(entry); if (clips) onRestoreQueue(clips); }} className="rounded bg-white px-3 py-1.5 text-xs font-medium text-green-700 shadow-sm">Restore queue</button>}</div>}
     </article>)}</div>
   </section>;
 }
