@@ -1,9 +1,28 @@
 import type { BatchExportFailure } from './batchExport';
-import type { ClipQueueItem } from './clipQueue';
+import type { ClipExportSettings, ClipQueueItem } from './clipQueue';
 
 export const EXPORT_HISTORY_KEY = 'video-short-converter:export-history';
 export const EXPORT_HISTORY_CHANGED_EVENT = 'video-short-converter:export-history-changed';
 const MAX_HISTORY_ENTRIES = 10;
+
+export interface ExportHistoryManifestClip {
+  id: string;
+  name: string;
+  start: number;
+  end: number;
+  duration: number;
+  status: 'exported' | 'failed';
+  outputFile?: string;
+  error?: string;
+  settingsCaptured: boolean;
+  settings?: ClipExportSettings;
+}
+
+export interface ExportHistoryManifest {
+  schemaVersion: 1;
+  exportedAt: string;
+  clips: ExportHistoryManifestClip[];
+}
 
 export interface ExportHistoryEntry {
   id: string;
@@ -13,6 +32,23 @@ export interface ExportHistoryEntry {
   failureCount: number;
   successfulFiles: string[];
   failedClips: Array<{ name: string; message: string }>;
+  manifest?: ExportHistoryManifest;
+}
+
+function isHistoryManifest(value: unknown): value is ExportHistoryManifest {
+  if (!value || typeof value !== 'object') return false;
+  const manifest = value as Partial<ExportHistoryManifest>;
+  return manifest.schemaVersion === 1
+    && typeof manifest.exportedAt === 'string'
+    && Array.isArray(manifest.clips)
+    && manifest.clips.every((clip) => Boolean(clip)
+      && typeof clip.id === 'string'
+      && typeof clip.name === 'string'
+      && typeof clip.start === 'number'
+      && typeof clip.end === 'number'
+      && typeof clip.duration === 'number'
+      && (clip.status === 'exported' || clip.status === 'failed')
+      && typeof clip.settingsCaptured === 'boolean');
 }
 
 export function parseExportHistory(raw: string | null): ExportHistoryEntry[] {
@@ -30,11 +66,36 @@ export function parseExportHistory(raw: string | null): ExportHistoryEntry[] {
         && Array.isArray(entry.successfulFiles)
         && entry.successfulFiles.every((name: unknown) => typeof name === 'string')
         && Array.isArray(entry.failedClips)
-        && entry.failedClips.every((failure: unknown) => Boolean(failure) && typeof (failure as { name?: unknown }).name === 'string' && typeof (failure as { message?: unknown }).message === 'string');
+        && entry.failedClips.every((failure: unknown) => Boolean(failure) && typeof (failure as { name?: unknown }).name === 'string' && typeof (failure as { message?: unknown }).message === 'string')
+        && (entry.manifest === undefined || isHistoryManifest(entry.manifest));
     }).slice(0, MAX_HISTORY_ENTRIES);
   } catch {
     return [];
   }
+}
+
+function buildHistoryManifest(clips: ClipQueueItem[], files: File[], failures: BatchExportFailure[], exportedAt: string): ExportHistoryManifest {
+  const failedById = new Map(failures.map((failure) => [failure.clip.id, failure]));
+  let fileIndex = 0;
+  return {
+    schemaVersion: 1,
+    exportedAt,
+    clips: clips.map((clip) => {
+      const failure = failedById.get(clip.id);
+      const common = {
+        id: clip.id,
+        name: clip.name,
+        start: clip.start,
+        end: clip.end,
+        duration: clip.end - clip.start,
+        settingsCaptured: Boolean(clip.settings),
+        ...(clip.settings ? { settings: { ...clip.settings, captionStyle: { ...clip.settings.captionStyle } } } : {}),
+      };
+      if (failure) return { ...common, status: 'failed' as const, error: failure.message };
+      const file = files[fileIndex++];
+      return { ...common, status: 'exported' as const, outputFile: file?.name };
+    }),
+  };
 }
 
 export function buildExportHistoryEntry(clips: ClipQueueItem[], files: File[], failures: BatchExportFailure[], exportedAt = new Date()): ExportHistoryEntry {
@@ -47,6 +108,7 @@ export function buildExportHistoryEntry(clips: ClipQueueItem[], files: File[], f
     failureCount: failures.length,
     successfulFiles: files.map((file) => file.name),
     failedClips: failures.map(({ clip, message }) => ({ name: clip.name, message })),
+    manifest: buildHistoryManifest(clips, files, failures, timestamp),
   };
 }
 
@@ -59,6 +121,11 @@ export function recordExportHistory(clips: ClipQueueItem[], files: File[], failu
   const next = appendExportHistory(parseExportHistory(window.localStorage.getItem(EXPORT_HISTORY_KEY)), buildExportHistoryEntry(clips, files, failures));
   window.localStorage.setItem(EXPORT_HISTORY_KEY, JSON.stringify(next));
   window.dispatchEvent(new Event(EXPORT_HISTORY_CHANGED_EVENT));
+}
+
+export function createExportHistoryManifestFile(entry: ExportHistoryEntry): File | null {
+  if (!entry.manifest) return null;
+  return new File([`${JSON.stringify(entry.manifest, null, 2)}\n`], 'export-history-manifest.json', { type: 'application/json' });
 }
 
 export function clearExportHistory(): void {
