@@ -157,7 +157,7 @@ Delivered:
 - Add focused tests for source metadata round-trips, validation, and source-specific recovery creation.
 
 ## Sprint 30 - Batch export orchestration extraction
-Status: **Implemented - awaiting merge**
+Status: **Complete**
 Delivered:
 - Extract sequential batch execution outcome handling, failure-ID collection, direct-download selection, ZIP/manifest packaging, and final status/error generation from the oversized editor component into a typed orchestration module.
 - Keep FFmpeg rendering inputs and editor state ownership unchanged so the refactor does not alter export behavior.
@@ -165,6 +165,15 @@ Delivered:
 - Keep export-history recording in the existing resilient batch runner so source-aware history behavior remains unchanged.
 - Reduce `VideoEditor.tsx` export-path responsibilities to render callbacks, progress/state updates, and browser download dispatch.
 - Add focused orchestration tests for single success, partial multi-clip success, and complete failure.
+
+## Sprint 31 - Clip render option extraction
+Status: **Implemented - awaiting merge**
+Delivered:
+- Extract queued-clip render option resolution from `VideoEditor.tsx` into a pure typed helper.
+- Keep saved per-clip setting snapshots authoritative while preserving current-editor fallback behavior for legacy queue items.
+- Centralize video, audio, output filename, caption-burn, caption-style, and clip-scoped transcript cue construction.
+- Preserve FFmpeg invocation, progress reporting, batch orchestration, retry targeting, and browser download behavior.
+- Add focused tests for legacy fallback behavior, saved-setting precedence, sanitized output naming, and transcript cue scoping.
 
 Recommended next increments:
 - Continue extracting editor responsibilities behind typed helpers before adding larger features.
