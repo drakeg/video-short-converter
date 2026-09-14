@@ -1,7 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useState } from 'react';
-import { clearExportHistory, EXPORT_HISTORY_CHANGED_EVENT, EXPORT_HISTORY_KEY, parseExportHistory, type ExportHistoryEntry } from './exportHistory';
+import { clearExportHistory, createExportHistoryManifestFile, EXPORT_HISTORY_CHANGED_EVENT, EXPORT_HISTORY_KEY, parseExportHistory, type ExportHistoryEntry } from './exportHistory';
 
 function formatDate(value: string): string {
   const date = new Date(value);
@@ -11,6 +11,19 @@ function formatDate(value: string): string {
 function readHistory(): ExportHistoryEntry[] {
   if (typeof window === 'undefined') return [];
   return parseExportHistory(window.localStorage.getItem(EXPORT_HISTORY_KEY));
+}
+
+function downloadManifest(entry: ExportHistoryEntry): void {
+  const file = createExportHistoryManifestFile(entry);
+  if (!file) return;
+  const url = URL.createObjectURL(file);
+  const anchor = document.createElement('a');
+  anchor.href = url;
+  anchor.download = file.name;
+  document.body.appendChild(anchor);
+  anchor.click();
+  document.body.removeChild(anchor);
+  setTimeout(() => URL.revokeObjectURL(url), 0);
 }
 
 export default function ExportHistory() {
@@ -37,6 +50,7 @@ export default function ExportHistory() {
       <div className="flex flex-wrap items-center justify-between gap-2"><strong>{entry.successCount} of {entry.clipCount} clips exported</strong><span className="text-xs text-gray-500">{formatDate(entry.exportedAt)}</span></div>
       {entry.successfulFiles.length > 0 && <p className="mt-1 text-xs text-gray-600">Files: {entry.successfulFiles.join(', ')}</p>}
       {entry.failureCount > 0 && <p className="mt-1 text-xs text-red-700">Failed: {entry.failedClips.map((failure) => failure.name).join(', ')}</p>}
+      {entry.manifest && <button type="button" onClick={() => downloadManifest(entry)} className="mt-2 rounded bg-white px-3 py-1.5 text-xs font-medium text-blue-700 shadow-sm">Download metadata manifest</button>}
     </article>)}</div>
   </section>;
 }
