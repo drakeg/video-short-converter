@@ -147,7 +147,7 @@ Delivered:
 - Add focused helper and UI tests while keeping the feature dependency-free, local-only, and zero-cost.
 
 ## Sprint 29 - Source-aware history restore
-Status: **Implemented - awaiting merge**
+Status: **Complete**
 Delivered:
 - Advance new export-history manifests to schema version 2 when the current project source fingerprint is available.
 - Retain the original local source name, size, and last-modified timestamp as metadata only; never store video bytes or a file handle.
@@ -156,7 +156,18 @@ Delivered:
 - Surface the retained source filename in recent export history and reject malformed schema-version-2 source fingerprints.
 - Add focused tests for source metadata round-trips, validation, and source-specific recovery creation.
 
+## Sprint 30 - Batch export orchestration extraction
+Status: **Implemented - awaiting merge**
+Delivered:
+- Extract sequential batch execution outcome handling, failure-ID collection, direct-download selection, ZIP/manifest packaging, and final status/error generation from the oversized editor component into a typed orchestration module.
+- Keep FFmpeg rendering inputs and editor state ownership unchanged so the refactor does not alter export behavior.
+- Preserve direct MP4 downloads for one queued clip, ZIP plus manifest packaging for multi-clip or partial-success batches, retry messaging, and all-failure handling.
+- Keep export-history recording in the existing resilient batch runner so source-aware history behavior remains unchanged.
+- Reduce `VideoEditor.tsx` export-path responsibilities to render callbacks, progress/state updates, and browser download dispatch.
+- Add focused orchestration tests for single success, partial multi-clip success, and complete failure.
+
 Recommended next increments:
+- Continue extracting editor responsibilities behind typed helpers before adding larger features.
 - Optional local transcription when browser/runtime support is practical.
 - Continue maintenance upgrades through Renovate within the existing zero-cost/approval policy.
 
