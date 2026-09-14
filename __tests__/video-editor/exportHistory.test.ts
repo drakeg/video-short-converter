@@ -21,6 +21,8 @@ const clips: ClipQueueItem[] = [
   { id: 'two', name: 'outro', start: 30, end: 60 },
 ];
 
+const source = { name: 'source.mov', size: 123456, lastModified: 1720000000000 };
+
 describe('export history', () => {
   it('summarizes outcomes and stores a metadata-only manifest snapshot', () => {
     const entry = buildExportHistoryEntry(clips, [new File(['video-bytes'], 'intro.mp4')], [{ clip: clips[1], message: 'encoder failed' }], new Date('2026-09-13T20:00:00.000Z'));
@@ -30,6 +32,19 @@ describe('export history', () => {
       { id: 'two', name: 'outro', start: 30, end: 60, duration: 30, status: 'failed', error: 'encoder failed', settingsCaptured: false },
     ] });
     expect(JSON.stringify(entry)).not.toContain('video-bytes');
+  });
+
+  it('uses schema version 2 when a source fingerprint is available', () => {
+    const entry = buildExportHistoryEntry(clips, [new File(['x'], 'intro.mp4')], [{ clip: clips[1], message: 'failed' }], new Date('2026-09-13T20:00:00.000Z'), source);
+    expect(entry.manifest).toMatchObject({ schemaVersion: 2, source });
+    const roundTrip = parseExportHistory(JSON.stringify([entry]));
+    expect(roundTrip[0].manifest?.source).toEqual(source);
+  });
+
+  it('rejects schema version 2 manifests without a valid source fingerprint', () => {
+    const entry = buildExportHistoryEntry(clips, [new File(['x'], 'intro.mp4')], [], new Date('2026-09-13T20:00:00.000Z'), source);
+    const malformed = { ...entry, manifest: { ...entry.manifest, source: { name: 'source.mov', size: 'bad', lastModified: 1 } } };
+    expect(parseExportHistory(JSON.stringify([malformed]))).toEqual([]);
   });
 
   it('restores queue ranges, names, and captured settings without reusing historical IDs', () => {
