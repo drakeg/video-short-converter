@@ -117,7 +117,7 @@ Delivered:
 - Add focused tests for captured settings, legacy provenance, and immutable manifest snapshots.
 
 ## Sprint 26 - Browser-local export history
-Status: **Implemented - awaiting merge**
+Status: **Complete**
 Delivered:
 - Keep the ten most recent completed batch-export results in browser local storage using metadata only; never persist video bytes.
 - Record clip counts, successful output filenames, failed clip names/messages, and completion timestamps after each batch attempt.
@@ -125,6 +125,16 @@ Delivered:
 - Provide a local Clear history action and listen for browser storage changes so multiple tabs stay in sync.
 - Safely ignore malformed persisted history and cap retention to prevent unbounded local-storage growth.
 - Add focused storage and UI tests while keeping the feature dependency-free, local-only, and zero-cost.
+
+## Sprint 27 - Downloadable export-history manifests
+Status: **Implemented - awaiting merge**
+Delivered:
+- Retain a metadata-only manifest snapshot with each new browser-local export-history entry.
+- Record queue order, clip timing/duration, success/failure state, output filenames, failure messages, and captured per-clip render/audio/caption settings.
+- Add a Download metadata manifest action for retained history entries without storing generated video bytes.
+- Preserve backward compatibility for existing Sprint 26 history entries that predate retained manifests.
+- Keep history capped at ten entries and local to the browser with no backend, network upload, AWS resource, or paid service.
+- Add focused tests for metadata-only snapshots, legacy history parsing, and downloadable JSON manifest creation.
 
 Recommended next increments:
 - Optional local transcription when browser/runtime support is practical.
