@@ -127,7 +127,7 @@ Delivered:
 - Add focused storage and UI tests while keeping the feature dependency-free, local-only, and zero-cost.
 
 ## Sprint 27 - Downloadable export-history manifests
-Status: **Implemented - awaiting merge**
+Status: **Complete**
 Delivered:
 - Retain a metadata-only manifest snapshot with each new browser-local export-history entry.
 - Record queue order, clip timing/duration, success/failure state, output filenames, failure messages, and captured per-clip render/audio/caption settings.
@@ -135,6 +135,16 @@ Delivered:
 - Preserve backward compatibility for existing Sprint 26 history entries that predate retained manifests.
 - Keep history capped at ten entries and local to the browser with no backend, network upload, AWS resource, or paid service.
 - Add focused tests for metadata-only snapshots, legacy history parsing, and downloadable JSON manifest creation.
+
+## Sprint 28 - Restore queue from export history
+Status: **Implemented - awaiting merge**
+Delivered:
+- Rebuild clip queue items from retained export-history manifests, including names, ranges, and captured per-clip export settings.
+- Generate fresh queue IDs so restored history never collides with historical queue identity.
+- Add a Restore queue action beside downloadable history manifests.
+- Reuse the existing browser-local project recovery flow when the editor does not provide a live restore callback, keeping local-file permission handling unchanged.
+- Reject malformed historical ranges before they can be restored.
+- Add focused helper and UI tests while keeping the feature dependency-free, local-only, and zero-cost.
 
 Recommended next increments:
 - Optional local transcription when browser/runtime support is practical.

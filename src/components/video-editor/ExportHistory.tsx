@@ -1,7 +1,13 @@
 'use client';
 
 import { useCallback, useEffect, useState } from 'react';
-import { clearExportHistory, createExportHistoryManifestFile, EXPORT_HISTORY_CHANGED_EVENT, EXPORT_HISTORY_KEY, parseExportHistory, type ExportHistoryEntry } from './exportHistory';
+import type { ClipQueueItem } from './clipQueue';
+import { clearExportHistory, createExportHistoryManifestFile, EXPORT_HISTORY_CHANGED_EVENT, EXPORT_HISTORY_KEY, parseExportHistory, restoreClipQueueFromHistory, type ExportHistoryEntry } from './exportHistory';
+import { parseProjectRecovery, PROJECT_RECOVERY_KEY, serializeProjectRecovery } from './projectRecovery';
+
+interface ExportHistoryProps {
+  onRestoreQueue?: (clips: ClipQueueItem[]) => void;
+}
 
 function formatDate(value: string): string {
   const date = new Date(value);
@@ -26,8 +32,40 @@ function downloadManifest(entry: ExportHistoryEntry): void {
   setTimeout(() => URL.revokeObjectURL(url), 0);
 }
 
-export default function ExportHistory() {
+function restoreThroughRecovery(entry: ExportHistoryEntry): boolean {
+  const clips = restoreClipQueueFromHistory(entry);
+  const recovery = parseProjectRecovery(window.localStorage.getItem(PROJECT_RECOVERY_KEY));
+  if (!clips || clips.length === 0 || !recovery) return false;
+  const first = clips[0];
+  const settings = first.settings;
+  const next = {
+    ...recovery,
+    savedAt: Date.now(),
+    startTime: first.start,
+    endTime: first.end,
+    clipQueue: clips,
+    ...(settings ? {
+      presetId: settings.presetId,
+      cropPosition: settings.cropPosition,
+      cropPositionY: settings.cropPositionY,
+      quality: settings.quality,
+      frameRate: settings.frameRate,
+      muted: settings.muted,
+      gainDb: settings.gainDb,
+      normalize: settings.normalize,
+      fadeIn: settings.fadeIn,
+      fadeOut: settings.fadeOut,
+      captionStyle: settings.captionStyle,
+      burnCaptions: settings.burnCaptions,
+    } : {}),
+  };
+  window.localStorage.setItem(PROJECT_RECOVERY_KEY, serializeProjectRecovery(next));
+  return true;
+}
+
+export default function ExportHistory({ onRestoreQueue }: ExportHistoryProps) {
   const [entries, setEntries] = useState<ExportHistoryEntry[]>(readHistory);
+  const [restoreMessage, setRestoreMessage] = useState<string | null>(null);
   const refresh = useCallback(() => setEntries(readHistory()), []);
 
   useEffect(() => {
@@ -41,16 +79,29 @@ export default function ExportHistory() {
 
   if (entries.length === 0) return null;
 
+  const restore = (entry: ExportHistoryEntry) => {
+    const clips = restoreClipQueueFromHistory(entry);
+    if (!clips) return;
+    if (onRestoreQueue) {
+      onRestoreQueue(clips);
+      setRestoreMessage(`Restored ${clips.length} clip${clips.length === 1 ? '' : 's'} to the current queue.`);
+      return;
+    }
+    if (restoreThroughRecovery(entry)) setRestoreMessage('Queue restored to the saved project. Re-select the same source video to load it.');
+    else setRestoreMessage('Load the source video first so the restored queue can be tied to that local project.');
+  };
+
   return <section className="rounded-lg border border-gray-200 bg-white p-4" aria-label="Recent export history">
     <div className="flex items-center justify-between gap-3">
       <div><h2 className="font-semibold text-gray-900">Recent exports</h2><p className="mt-1 text-xs text-gray-600">Stored only in this browser. Video files are never saved here.</p></div>
       <button type="button" onClick={clearExportHistory} className="rounded bg-gray-100 px-3 py-2 text-xs text-gray-700">Clear history</button>
     </div>
+    {restoreMessage && <p className="mt-2 text-xs text-blue-700" role="status">{restoreMessage}</p>}
     <div className="mt-3 space-y-2">{entries.map((entry) => <article key={entry.id} className="rounded border border-gray-200 bg-gray-50 p-3 text-sm">
       <div className="flex flex-wrap items-center justify-between gap-2"><strong>{entry.successCount} of {entry.clipCount} clips exported</strong><span className="text-xs text-gray-500">{formatDate(entry.exportedAt)}</span></div>
       {entry.successfulFiles.length > 0 && <p className="mt-1 text-xs text-gray-600">Files: {entry.successfulFiles.join(', ')}</p>}
       {entry.failureCount > 0 && <p className="mt-1 text-xs text-red-700">Failed: {entry.failedClips.map((failure) => failure.name).join(', ')}</p>}
-      {entry.manifest && <button type="button" onClick={() => downloadManifest(entry)} className="mt-2 rounded bg-white px-3 py-1.5 text-xs font-medium text-blue-700 shadow-sm">Download metadata manifest</button>}
+      {entry.manifest && <div className="mt-2 flex flex-wrap gap-2"><button type="button" onClick={() => downloadManifest(entry)} className="rounded bg-white px-3 py-1.5 text-xs font-medium text-blue-700 shadow-sm">Download metadata manifest</button><button type="button" onClick={() => restore(entry)} className="rounded bg-white px-3 py-1.5 text-xs font-medium text-green-700 shadow-sm">Restore queue</button></div>}
     </article>)}</div>
   </section>;
 }
