@@ -1,13 +1,28 @@
-import { appendExportHistory, buildExportHistoryEntry, parseExportHistory } from '@/components/video-editor/exportHistory';
+import { appendExportHistory, buildExportHistoryEntry, createExportHistoryManifestFile, parseExportHistory } from '@/components/video-editor/exportHistory';
 import type { ClipQueueItem } from '@/components/video-editor/clipQueue';
 
+const capturedSettings = {
+  presetId: 'youtube-shorts',
+  cropPosition: 50,
+  cropPositionY: 50,
+  quality: 'high' as const,
+  frameRate: 30,
+  muted: false,
+  gainDb: 0,
+  normalize: true,
+  fadeIn: 0,
+  fadeOut: 0,
+  captionStyle: { size: 'medium' as const, position: 'bottom' as const, backdrop: true },
+  burnCaptions: false,
+};
+
 const clips: ClipQueueItem[] = [
-  { id: 'one', name: 'intro', start: 0, end: 30 },
+  { id: 'one', name: 'intro', start: 0, end: 30, settings: capturedSettings },
   { id: 'two', name: 'outro', start: 30, end: 60 },
 ];
 
 describe('export history', () => {
-  it('summarizes successful files and failures without storing video bytes', () => {
+  it('summarizes outcomes and stores a metadata-only manifest snapshot', () => {
     const entry = buildExportHistoryEntry(
       clips,
       [new File(['video-bytes'], 'intro.mp4')],
@@ -15,7 +30,7 @@ describe('export history', () => {
       new Date('2026-09-13T20:00:00.000Z'),
     );
 
-    expect(entry).toEqual({
+    expect(entry).toMatchObject({
       id: '2026-09-13T20:00:00.000Z:one,two',
       exportedAt: '2026-09-13T20:00:00.000Z',
       clipCount: 2,
@@ -24,7 +39,28 @@ describe('export history', () => {
       successfulFiles: ['intro.mp4'],
       failedClips: [{ name: 'outro', message: 'encoder failed' }],
     });
+    expect(entry.manifest).toEqual({
+      schemaVersion: 1,
+      exportedAt: '2026-09-13T20:00:00.000Z',
+      clips: [
+        { id: 'one', name: 'intro', start: 0, end: 30, duration: 30, status: 'exported', outputFile: 'intro.mp4', settingsCaptured: true, settings: capturedSettings },
+        { id: 'two', name: 'outro', start: 30, end: 60, duration: 30, status: 'failed', error: 'encoder failed', settingsCaptured: false },
+      ],
+    });
     expect(JSON.stringify(entry)).not.toContain('video-bytes');
+  });
+
+  it('creates a downloadable JSON file only for entries with retained manifests', () => {
+    const entry = buildExportHistoryEntry(clips, [new File(['x'], 'intro.mp4')], [{ clip: clips[1], message: 'failed' }]);
+    const file = createExportHistoryManifestFile(entry);
+    expect(file?.name).toBe('export-history-manifest.json');
+    expect(file?.type).toBe('application/json');
+    expect(createExportHistoryManifestFile({ ...entry, manifest: undefined })).toBeNull();
+  });
+
+  it('keeps older valid history entries that predate retained manifests', () => {
+    const legacy = [{ id: 'old', exportedAt: '2026-09-01T00:00:00.000Z', clipCount: 1, successCount: 1, failureCount: 0, successfulFiles: ['old.mp4'], failedClips: [] }];
+    expect(parseExportHistory(JSON.stringify(legacy))).toEqual(legacy);
   });
 
   it('keeps only the ten most recent entries', () => {
