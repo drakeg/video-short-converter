@@ -98,7 +98,7 @@ Delivered:
 - Add focused tests for partial success, multiple failures, failure summaries, queue highlighting, and retry invocation.
 
 ## Sprint 24 - Batch export manifest
-Status: **Implemented - awaiting merge**
+Status: **Complete**
 Delivered:
 - Add a versioned `export-manifest.json` to multi-clip ZIP exports without adding a service or dependency.
 - Record the source filename, export timestamp, queue order, clip names, in/out times, durations, successful output filenames, and per-clip failure messages.
@@ -106,6 +106,15 @@ Delivered:
 - Keep single queued-clip export as a direct MP4 download with no extra browser download.
 - Keep all manifest generation local in the browser and package it through the existing ZIP writer.
 - Add focused tests for deterministic manifest content and JSON sidecar creation.
+
+## Sprint 25 - Reproducible export manifest settings
+Status: **Implemented - awaiting merge**
+Delivered:
+- Advance the batch manifest schema to version 2 and record each queued clip's saved framing, quality, frame rate, audio, caption-style, and caption-burn settings.
+- Mark whether settings were captured for each clip so older recovered queue items never imply reproducibility when they predate per-clip snapshots.
+- Deep-copy nested caption settings into the manifest so later in-memory edits cannot mutate the generated handoff metadata.
+- Preserve queue order, output mapping, partial-failure reporting, and all-local ZIP packaging.
+- Add focused tests for captured settings, legacy provenance, and immutable manifest snapshots.
 
 Recommended next increments:
 - Optional local transcription when browser/runtime support is practical.
