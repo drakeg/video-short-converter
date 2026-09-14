@@ -1,4 +1,5 @@
 import type { ClipQueueItem } from './clipQueue';
+import { recordExportHistory } from './exportHistory';
 
 export interface BatchExportFailure {
   clip: ClipQueueItem;
@@ -29,6 +30,7 @@ export async function runBatchExport(
     }
   }
 
+  recordExportHistory(clips, files, failures);
   return { files, failures };
 }
 
