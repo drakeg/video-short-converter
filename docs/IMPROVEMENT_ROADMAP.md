@@ -137,7 +137,7 @@ Delivered:
 - Add focused tests for metadata-only snapshots, legacy history parsing, and downloadable JSON manifest creation.
 
 ## Sprint 28 - Restore queue from export history
-Status: **Implemented - awaiting merge**
+Status: **Complete**
 Delivered:
 - Rebuild clip queue items from retained export-history manifests, including names, ranges, and captured per-clip export settings.
 - Generate fresh queue IDs so restored history never collides with historical queue identity.
@@ -145,6 +145,16 @@ Delivered:
 - Reuse the existing browser-local project recovery flow when the editor does not provide a live restore callback, keeping local-file permission handling unchanged.
 - Reject malformed historical ranges before they can be restored.
 - Add focused helper and UI tests while keeping the feature dependency-free, local-only, and zero-cost.
+
+## Sprint 29 - Source-aware history restore
+Status: **Implemented - awaiting merge**
+Delivered:
+- Advance new export-history manifests to schema version 2 when the current project source fingerprint is available.
+- Retain the original local source name, size, and last-modified timestamp as metadata only; never store video bytes or a file handle.
+- Build restored project recovery directly from retained history source identity so the user can re-select and validate the exact original video.
+- Keep schema-version-1 history and older entries backward-compatible, with existing recovery metadata used only as a legacy fallback.
+- Surface the retained source filename in recent export history and reject malformed schema-version-2 source fingerprints.
+- Add focused tests for source metadata round-trips, validation, and source-specific recovery creation.
 
 Recommended next increments:
 - Optional local transcription when browser/runtime support is practical.

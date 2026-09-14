@@ -1,5 +1,6 @@
 import type { BatchExportFailure } from './batchExport';
 import type { ClipExportSettings, ClipQueueItem } from './clipQueue';
+import { parseProjectRecovery, PROJECT_RECOVERY_KEY, type SourceFingerprint } from './projectRecovery';
 
 export const EXPORT_HISTORY_KEY = 'video-short-converter:export-history';
 export const EXPORT_HISTORY_CHANGED_EVENT = 'video-short-converter:export-history-changed';
@@ -19,8 +20,9 @@ export interface ExportHistoryManifestClip {
 }
 
 export interface ExportHistoryManifest {
-  schemaVersion: 1;
+  schemaVersion: 1 | 2;
   exportedAt: string;
+  source?: SourceFingerprint;
   clips: ExportHistoryManifestClip[];
 }
 
@@ -35,10 +37,21 @@ export interface ExportHistoryEntry {
   manifest?: ExportHistoryManifest;
 }
 
+function isSourceFingerprint(value: unknown): value is SourceFingerprint {
+  if (!value || typeof value !== 'object') return false;
+  const source = value as Partial<SourceFingerprint>;
+  return typeof source.name === 'string'
+    && Number.isFinite(source.size)
+    && Number.isFinite(source.lastModified);
+}
+
 function isHistoryManifest(value: unknown): value is ExportHistoryManifest {
   if (!value || typeof value !== 'object') return false;
   const manifest = value as Partial<ExportHistoryManifest>;
-  return manifest.schemaVersion === 1
+  const validSchema = manifest.schemaVersion === 1 || manifest.schemaVersion === 2;
+  const validSource = manifest.schemaVersion === 1 ? manifest.source === undefined || isSourceFingerprint(manifest.source) : isSourceFingerprint(manifest.source);
+  return validSchema
+    && validSource
     && typeof manifest.exportedAt === 'string'
     && Array.isArray(manifest.clips)
     && manifest.clips.every((clip) => Boolean(clip)
@@ -75,12 +88,13 @@ export function parseExportHistory(raw: string | null): ExportHistoryEntry[] {
   }
 }
 
-function buildHistoryManifest(clips: ClipQueueItem[], files: File[], failures: BatchExportFailure[], exportedAt: string): ExportHistoryManifest {
+function buildHistoryManifest(clips: ClipQueueItem[], files: File[], failures: BatchExportFailure[], exportedAt: string, source?: SourceFingerprint): ExportHistoryManifest {
   const failedById = new Map(failures.map((failure) => [failure.clip.id, failure]));
   let fileIndex = 0;
   return {
-    schemaVersion: 1,
+    schemaVersion: source ? 2 : 1,
     exportedAt,
+    ...(source ? { source: { ...source } } : {}),
     clips: clips.map((clip) => {
       const failure = failedById.get(clip.id);
       const common = {
@@ -99,7 +113,7 @@ function buildHistoryManifest(clips: ClipQueueItem[], files: File[], failures: B
   };
 }
 
-export function buildExportHistoryEntry(clips: ClipQueueItem[], files: File[], failures: BatchExportFailure[], exportedAt = new Date()): ExportHistoryEntry {
+export function buildExportHistoryEntry(clips: ClipQueueItem[], files: File[], failures: BatchExportFailure[], exportedAt = new Date(), source?: SourceFingerprint): ExportHistoryEntry {
   const timestamp = exportedAt.toISOString();
   return {
     id: `${timestamp}:${clips.map((clip) => clip.id).join(',')}`,
@@ -109,7 +123,7 @@ export function buildExportHistoryEntry(clips: ClipQueueItem[], files: File[], f
     failureCount: failures.length,
     successfulFiles: files.map((file) => file.name),
     failedClips: failures.map(({ clip, message }) => ({ name: clip.name, message })),
-    manifest: buildHistoryManifest(clips, files, failures, timestamp),
+    manifest: buildHistoryManifest(clips, files, failures, timestamp, source),
   };
 }
 
@@ -119,7 +133,9 @@ export function appendExportHistory(entries: ExportHistoryEntry[], entry: Export
 
 export function recordExportHistory(clips: ClipQueueItem[], files: File[], failures: BatchExportFailure[]): void {
   if (typeof window === 'undefined') return;
-  const next = appendExportHistory(parseExportHistory(window.localStorage.getItem(EXPORT_HISTORY_KEY)), buildExportHistoryEntry(clips, files, failures));
+  const recovery = parseProjectRecovery(window.localStorage.getItem(PROJECT_RECOVERY_KEY));
+  const entry = buildExportHistoryEntry(clips, files, failures, new Date(), recovery?.source);
+  const next = appendExportHistory(parseExportHistory(window.localStorage.getItem(EXPORT_HISTORY_KEY)), entry);
   window.localStorage.setItem(EXPORT_HISTORY_KEY, JSON.stringify(next));
   window.dispatchEvent(new Event(EXPORT_HISTORY_CHANGED_EVENT));
 }
