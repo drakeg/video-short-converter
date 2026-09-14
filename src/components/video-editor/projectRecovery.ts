@@ -30,6 +30,15 @@ export interface RecoverableProjectState {
   clipQueue: ClipQueueItem[];
 }
 
+export interface BuildRecoverableProjectStateInput {
+  source: SourceFingerprint;
+  savedAt?: number;
+  startTime: number | null;
+  endTime: number | null;
+  settings: ClipExportSettings;
+  clipQueue: ClipQueueItem[];
+}
+
 const finiteOrNull = (value: unknown): number | null => typeof value === 'number' && Number.isFinite(value) ? value : null;
 const clampPercent = (value: unknown, fallback = 50) => Math.min(100, Math.max(0, finiteOrNull(value) ?? fallback));
 const parseQuality = (value: unknown): ExportQuality => ['standard', 'high', 'maximum'].includes(typeof value === 'string' ? value : '') ? value as ExportQuality : 'standard';
@@ -63,6 +72,28 @@ function parseClipSettings(value: unknown): ClipExportSettings | undefined {
 
 export function buildSourceFingerprint(file: Pick<File, 'name' | 'size' | 'lastModified'>): SourceFingerprint {
   return { name: file.name, size: file.size, lastModified: file.lastModified };
+}
+
+export function buildRecoverableProjectState(input: BuildRecoverableProjectStateInput): RecoverableProjectState {
+  return {
+    source: { ...input.source },
+    savedAt: input.savedAt ?? Date.now(),
+    startTime: input.startTime,
+    endTime: input.endTime,
+    presetId: input.settings.presetId,
+    cropPosition: input.settings.cropPosition,
+    cropPositionY: input.settings.cropPositionY,
+    quality: input.settings.quality,
+    frameRate: input.settings.frameRate,
+    muted: input.settings.muted,
+    gainDb: input.settings.gainDb,
+    normalize: input.settings.normalize,
+    fadeIn: input.settings.fadeIn,
+    fadeOut: input.settings.fadeOut,
+    captionStyle: { ...input.settings.captionStyle },
+    burnCaptions: input.settings.burnCaptions,
+    clipQueue: input.clipQueue,
+  };
 }
 
 export function sourceMatchesRecovery(file: Pick<File, 'name' | 'size' | 'lastModified'>, recovery: RecoverableProjectState): boolean {
