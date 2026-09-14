@@ -108,7 +108,7 @@ Delivered:
 - Add focused tests for deterministic manifest content and JSON sidecar creation.
 
 ## Sprint 25 - Reproducible export manifest settings
-Status: **Implemented - awaiting merge**
+Status: **Complete**
 Delivered:
 - Advance the batch manifest schema to version 2 and record each queued clip's saved framing, quality, frame rate, audio, caption-style, and caption-burn settings.
 - Mark whether settings were captured for each clip so older recovered queue items never imply reproducibility when they predate per-clip snapshots.
@@ -116,9 +116,18 @@ Delivered:
 - Preserve queue order, output mapping, partial-failure reporting, and all-local ZIP packaging.
 - Add focused tests for captured settings, legacy provenance, and immutable manifest snapshots.
 
+## Sprint 26 - Browser-local export history
+Status: **Implemented - awaiting merge**
+Delivered:
+- Keep the ten most recent completed batch-export results in browser local storage using metadata only; never persist video bytes.
+- Record clip counts, successful output filenames, failed clip names/messages, and completion timestamps after each batch attempt.
+- Surface the recent export history beneath the clip queue and update it immediately after an export or retry finishes.
+- Provide a local Clear history action and listen for browser storage changes so multiple tabs stay in sync.
+- Safely ignore malformed persisted history and cap retention to prevent unbounded local-storage growth.
+- Add focused storage and UI tests while keeping the feature dependency-free, local-only, and zero-cost.
+
 Recommended next increments:
 - Optional local transcription when browser/runtime support is practical.
-- Consider a lightweight completed-export history in browser storage if repeatable handoff tracking becomes useful beyond the ZIP manifest.
 - Continue maintenance upgrades through Renovate within the existing zero-cost/approval policy.
 
 Assisted features remain optional. The user remains in control of clip selection, framing, timing, captions, audio, and export.
