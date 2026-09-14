@@ -1,4 +1,4 @@
-import { buildSourceFingerprint, parseProjectRecovery, serializeProjectRecovery, sourceMatchesRecovery, type RecoverableProjectState } from '@/components/video-editor/projectRecovery';
+import { buildRecoverableProjectState, buildSourceFingerprint, parseProjectRecovery, serializeProjectRecovery, sourceMatchesRecovery, type RecoverableProjectState } from '@/components/video-editor/projectRecovery';
 
 const source = { name: 'trip.mp4', size: 123456, lastModified: 1700000000000 };
 const recovery: RecoverableProjectState = {
@@ -31,6 +31,33 @@ const recovery: RecoverableProjectState = {
 describe('project recovery', () => {
   it('round-trips recoverable editor metadata including clip settings', () => {
     expect(parseProjectRecovery(serializeProjectRecovery(recovery))).toEqual(recovery);
+  });
+
+  it('builds recovery metadata from the same export settings snapshot used by queue and batch fallback', () => {
+    const settings = {
+      presetId: recovery.presetId,
+      cropPosition: recovery.cropPosition,
+      cropPositionY: recovery.cropPositionY,
+      quality: recovery.quality,
+      frameRate: recovery.frameRate,
+      muted: recovery.muted,
+      gainDb: recovery.gainDb,
+      normalize: recovery.normalize,
+      fadeIn: recovery.fadeIn,
+      fadeOut: recovery.fadeOut,
+      captionStyle: recovery.captionStyle,
+      burnCaptions: recovery.burnCaptions,
+    };
+    const built = buildRecoverableProjectState({
+      source,
+      savedAt: recovery.savedAt,
+      startTime: recovery.startTime,
+      endTime: recovery.endTime,
+      settings,
+      clipQueue: recovery.clipQueue,
+    });
+    expect(built).toEqual(recovery);
+    expect(built.captionStyle).not.toBe(settings.captionStyle);
   });
 
   it('matches a reselected source using stable file metadata', () => {
