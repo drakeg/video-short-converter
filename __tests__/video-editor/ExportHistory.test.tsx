@@ -19,4 +19,18 @@ describe('ExportHistory', () => {
     expect(screen.queryByLabelText('Recent export history')).not.toBeInTheDocument();
     expect(window.localStorage.getItem(EXPORT_HISTORY_KEY)).toBeNull();
   });
+
+  it('restores retained manifest clips through the provided queue callback', () => {
+    const onRestoreQueue = jest.fn();
+    window.localStorage.setItem(EXPORT_HISTORY_KEY, JSON.stringify([{
+      id: 'one', exportedAt: '2026-09-13T20:00:00.000Z', clipCount: 1, successCount: 1, failureCount: 0, successfulFiles: ['intro.mp4'], failedClips: [],
+      manifest: { schemaVersion: 1, exportedAt: '2026-09-13T20:00:00.000Z', clips: [{ id: 'clip-one', name: 'intro', start: 4, end: 34, duration: 30, status: 'exported', outputFile: 'intro.mp4', settingsCaptured: false }] },
+    }]));
+
+    render(<ExportHistory onRestoreQueue={onRestoreQueue} />);
+    fireEvent.click(screen.getByRole('button', { name: 'Restore queue' }));
+    expect(onRestoreQueue).toHaveBeenCalledTimes(1);
+    expect(onRestoreQueue.mock.calls[0][0]).toEqual([expect.objectContaining({ name: 'intro', start: 4, end: 34 })]);
+    expect(screen.getByRole('status')).toHaveTextContent('Restored 1 clip to the current queue.');
+  });
 });
