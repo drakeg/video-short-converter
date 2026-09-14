@@ -44,9 +44,10 @@ function isHistoryManifest(value: unknown): value is ExportHistoryManifest {
     && manifest.clips.every((clip) => Boolean(clip)
       && typeof clip.id === 'string'
       && typeof clip.name === 'string'
-      && typeof clip.start === 'number'
-      && typeof clip.end === 'number'
-      && typeof clip.duration === 'number'
+      && Number.isFinite(clip.start)
+      && Number.isFinite(clip.end)
+      && clip.end > clip.start
+      && Number.isFinite(clip.duration)
       && (clip.status === 'exported' || clip.status === 'failed')
       && typeof clip.settingsCaptured === 'boolean');
 }
@@ -126,6 +127,17 @@ export function recordExportHistory(clips: ClipQueueItem[], files: File[], failu
 export function createExportHistoryManifestFile(entry: ExportHistoryEntry): File | null {
   if (!entry.manifest) return null;
   return new File([`${JSON.stringify(entry.manifest, null, 2)}\n`], 'export-history-manifest.json', { type: 'application/json' });
+}
+
+export function restoreClipQueueFromHistory(entry: ExportHistoryEntry): ClipQueueItem[] | null {
+  if (!entry.manifest) return null;
+  return entry.manifest.clips.map((clip, index) => ({
+    id: `restored-${entry.exportedAt}-${index}-${clip.id}`,
+    name: clip.name,
+    start: clip.start,
+    end: clip.end,
+    ...(clip.settingsCaptured && clip.settings ? { settings: { ...clip.settings, captionStyle: { ...clip.settings.captionStyle } } } : {}),
+  }));
 }
 
 export function clearExportHistory(): void {
