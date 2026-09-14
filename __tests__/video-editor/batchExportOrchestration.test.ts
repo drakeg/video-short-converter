@@ -1,3 +1,4 @@
+import { TextDecoder as NodeTextDecoder, TextEncoder as NodeTextEncoder } from 'node:util';
 import { executeBatchExport } from '@/components/video-editor/batchExportOrchestration';
 import type { ClipQueueItem } from '@/components/video-editor/clipQueue';
 
@@ -5,6 +6,11 @@ const clips: ClipQueueItem[] = [
   { id: 'one', name: 'intro', start: 0, end: 10 },
   { id: 'two', name: 'outro', start: 10, end: 20 },
 ];
+
+beforeAll(() => {
+  globalThis.TextEncoder = NodeTextEncoder as typeof TextEncoder;
+  globalThis.TextDecoder = NodeTextDecoder as typeof TextDecoder;
+});
 
 describe('batch export orchestration', () => {
   beforeEach(() => window.localStorage.clear());
