@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import type { ClipQueueItem } from './clipQueue';
 import { clearExportHistory, createExportHistoryManifestFile, EXPORT_HISTORY_CHANGED_EVENT, EXPORT_HISTORY_KEY, parseExportHistory, restoreClipQueueFromHistory, type ExportHistoryEntry } from './exportHistory';
-import { parseProjectRecovery, PROJECT_RECOVERY_KEY, serializeProjectRecovery } from './projectRecovery';
+import { parseProjectRecovery, PROJECT_RECOVERY_KEY, serializeProjectRecovery, type RecoverableProjectState } from './projectRecovery';
 
 interface ExportHistoryProps {
   onRestoreQueue?: (clips: ClipQueueItem[]) => void;
@@ -32,35 +32,35 @@ function downloadManifest(entry: ExportHistoryEntry): void {
   setTimeout(() => URL.revokeObjectURL(url), 0);
 }
 
-function restoreThroughRecovery(entry: ExportHistoryEntry): boolean {
+function restoreThroughRecovery(entry: ExportHistoryEntry): string | null {
   const clips = restoreClipQueueFromHistory(entry);
-  const recovery = parseProjectRecovery(window.localStorage.getItem(PROJECT_RECOVERY_KEY));
-  if (!clips || clips.length === 0 || !recovery) return false;
+  if (!clips || clips.length === 0) return null;
+  const existing = parseProjectRecovery(window.localStorage.getItem(PROJECT_RECOVERY_KEY));
+  const source = entry.manifest?.source ?? existing?.source;
+  if (!source) return null;
   const first = clips[0];
   const settings = first.settings;
-  const next = {
-    ...recovery,
+  const next: RecoverableProjectState = {
+    source: { ...source },
     savedAt: Date.now(),
     startTime: first.start,
     endTime: first.end,
+    presetId: settings?.presetId ?? existing?.presetId ?? 'youtube-short',
+    cropPosition: settings?.cropPosition ?? existing?.cropPosition ?? 50,
+    cropPositionY: settings?.cropPositionY ?? existing?.cropPositionY ?? 50,
+    quality: settings?.quality ?? existing?.quality ?? 'standard',
+    frameRate: settings?.frameRate ?? existing?.frameRate ?? 30,
+    muted: settings?.muted ?? existing?.muted ?? false,
+    gainDb: settings?.gainDb ?? existing?.gainDb ?? 0,
+    normalize: settings?.normalize ?? existing?.normalize ?? false,
+    fadeIn: settings?.fadeIn ?? existing?.fadeIn ?? 0,
+    fadeOut: settings?.fadeOut ?? existing?.fadeOut ?? 0,
+    captionStyle: settings?.captionStyle ?? existing?.captionStyle ?? { size: 'medium', position: 'bottom', backdrop: true },
+    burnCaptions: settings?.burnCaptions ?? existing?.burnCaptions ?? false,
     clipQueue: clips,
-    ...(settings ? {
-      presetId: settings.presetId,
-      cropPosition: settings.cropPosition,
-      cropPositionY: settings.cropPositionY,
-      quality: settings.quality,
-      frameRate: settings.frameRate,
-      muted: settings.muted,
-      gainDb: settings.gainDb,
-      normalize: settings.normalize,
-      fadeIn: settings.fadeIn,
-      fadeOut: settings.fadeOut,
-      captionStyle: settings.captionStyle,
-      burnCaptions: settings.burnCaptions,
-    } : {}),
   };
   window.localStorage.setItem(PROJECT_RECOVERY_KEY, serializeProjectRecovery(next));
-  return true;
+  return source.name;
 }
 
 export default function ExportHistory({ onRestoreQueue }: ExportHistoryProps) {
@@ -87,8 +87,9 @@ export default function ExportHistory({ onRestoreQueue }: ExportHistoryProps) {
       setRestoreMessage(`Restored ${clips.length} clip${clips.length === 1 ? '' : 's'} to the current queue.`);
       return;
     }
-    if (restoreThroughRecovery(entry)) setRestoreMessage('Queue restored to the saved project. Re-select the same source video to load it.');
-    else setRestoreMessage('Load the source video first so the restored queue can be tied to that local project.');
+    const sourceName = restoreThroughRecovery(entry);
+    if (sourceName) setRestoreMessage(`Queue restored. Re-select ${sourceName} to load the exact source project.`);
+    else setRestoreMessage('This older history entry has no source identity. Load its source video first, then restore the queue again.');
   };
 
   return <section className="rounded-lg border border-gray-200 bg-white p-4" aria-label="Recent export history">
@@ -99,6 +100,7 @@ export default function ExportHistory({ onRestoreQueue }: ExportHistoryProps) {
     {restoreMessage && <p className="mt-2 text-xs text-blue-700" role="status">{restoreMessage}</p>}
     <div className="mt-3 space-y-2">{entries.map((entry) => <article key={entry.id} className="rounded border border-gray-200 bg-gray-50 p-3 text-sm">
       <div className="flex flex-wrap items-center justify-between gap-2"><strong>{entry.successCount} of {entry.clipCount} clips exported</strong><span className="text-xs text-gray-500">{formatDate(entry.exportedAt)}</span></div>
+      {entry.manifest?.source && <p className="mt-1 text-xs text-gray-600">Source: {entry.manifest.source.name}</p>}
       {entry.successfulFiles.length > 0 && <p className="mt-1 text-xs text-gray-600">Files: {entry.successfulFiles.join(', ')}</p>}
       {entry.failureCount > 0 && <p className="mt-1 text-xs text-red-700">Failed: {entry.failedClips.map((failure) => failure.name).join(', ')}</p>}
       {entry.manifest && <div className="mt-2 flex flex-wrap gap-2"><button type="button" onClick={() => downloadManifest(entry)} className="rounded bg-white px-3 py-1.5 text-xs font-medium text-blue-700 shadow-sm">Download metadata manifest</button><button type="button" onClick={() => restore(entry)} className="rounded bg-white px-3 py-1.5 text-xs font-medium text-green-700 shadow-sm">Restore queue</button></div>}
