@@ -8,12 +8,16 @@ function formatDate(value: string): string {
   return Number.isNaN(date.getTime()) ? value : date.toLocaleString();
 }
 
+function readHistory(): ExportHistoryEntry[] {
+  if (typeof window === 'undefined') return [];
+  return parseExportHistory(window.localStorage.getItem(EXPORT_HISTORY_KEY));
+}
+
 export default function ExportHistory() {
-  const [entries, setEntries] = useState<ExportHistoryEntry[]>([]);
-  const refresh = useCallback(() => setEntries(parseExportHistory(window.localStorage.getItem(EXPORT_HISTORY_KEY))), []);
+  const [entries, setEntries] = useState<ExportHistoryEntry[]>(readHistory);
+  const refresh = useCallback(() => setEntries(readHistory()), []);
 
   useEffect(() => {
-    refresh();
     window.addEventListener(EXPORT_HISTORY_CHANGED_EVENT, refresh);
     window.addEventListener('storage', refresh);
     return () => {
