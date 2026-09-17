@@ -44,6 +44,14 @@ const nonNegativeOrNull = (value: unknown): number | null => {
   const parsed = finiteOrNull(value);
   return parsed === null ? null : Math.max(0, parsed);
 };
+const parseSourceFingerprint = (value: unknown): SourceFingerprint | null => {
+  if (!value || typeof value !== 'object') return null;
+  const source = value as Partial<SourceFingerprint>;
+  if (typeof source.name !== 'string' || source.name.trim().length === 0) return null;
+  if (!Number.isSafeInteger(source.size) || source.size! < 0) return null;
+  if (!Number.isSafeInteger(source.lastModified) || source.lastModified! < 0) return null;
+  return { name: source.name, size: source.size!, lastModified: source.lastModified! };
+};
 const parseTrimRange = (startValue: unknown, endValue: unknown): Pick<RecoverableProjectState, 'startTime' | 'endTime'> => {
   const startTime = nonNegativeOrNull(startValue);
   const endTime = nonNegativeOrNull(endValue);
@@ -122,7 +130,8 @@ export function parseProjectRecovery(raw: string | null): RecoverableProjectStat
   if (!raw) return null;
   try {
     const value = JSON.parse(raw) as Partial<RecoverableProjectState>;
-    if (!value.source || typeof value.source.name !== 'string' || !Number.isFinite(value.source.size) || !Number.isFinite(value.source.lastModified)) return null;
+    const source = parseSourceFingerprint(value.source);
+    if (!source) return null;
     const settings = parseClipSettings(value);
     if (!settings) return null;
     const trimRange = parseTrimRange(value.startTime, value.endTime);
@@ -134,7 +143,7 @@ export function parseProjectRecovery(raw: string | null): RecoverableProjectStat
       return [{ id: item.id, name: item.name, start: item.start!, end: item.end!, ...(clipSettings ? { settings: clipSettings } : {}) }];
     }) : [];
     return {
-      source: { name: value.source.name, size: value.source.size!, lastModified: value.source.lastModified! },
+      source,
       savedAt: finiteOrNull(value.savedAt) ?? Date.now(),
       ...trimRange,
       ...settings,

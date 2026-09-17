@@ -54,6 +54,21 @@ describe('project recovery', () => {
     expect(sourceMatchesRecovery({ ...source, size: source.size + 1 }, recovery)).toBe(false);
   });
 
+  it('rejects malformed source fingerprints before offering recovery', () => {
+    for (const invalidSource of [
+      { ...source, name: '' },
+      { ...source, name: '   ' },
+      { ...source, size: -1 },
+      { ...source, size: 1.5 },
+      { ...source, lastModified: -1 },
+      { ...source, lastModified: 1.5 },
+    ]) {
+      expect(parseProjectRecovery(JSON.stringify({ ...recovery, source: invalidSource }))).toBeNull();
+    }
+    expect(parseProjectRecovery(JSON.stringify({ ...recovery, source: { name: 'empty.mp4', size: 0, lastModified: 0 } }))?.source)
+      .toEqual({ name: 'empty.mp4', size: 0, lastModified: 0 });
+  });
+
   it('keeps legacy queued clips without settings compatible', () => {
     const parsed = parseProjectRecovery(JSON.stringify({ ...recovery, burnCaptions: undefined, clipQueue: [{ id: 'legacy', name: 'old', start: 1, end: 5 }] }));
     expect(parsed?.burnCaptions).toBe(false);
