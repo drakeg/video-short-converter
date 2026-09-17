@@ -1,4 +1,4 @@
-import { buildRecoverableProjectState, buildSourceFingerprint, parseProjectRecovery, serializeProjectRecovery, sourceMatchesRecovery, type RecoverableProjectState } from '@/components/video-editor/projectRecovery';
+import { buildRecoverableProjectState, buildSourceFingerprint, parseProjectRecovery, recoveryExportSettings, serializeProjectRecovery, sourceMatchesRecovery, type RecoverableProjectState } from '@/components/video-editor/projectRecovery';
 
 const source = { name: 'trip.mp4', size: 123456, lastModified: 1700000000000 };
 const recovery: RecoverableProjectState = {
@@ -34,20 +34,7 @@ describe('project recovery', () => {
   });
 
   it('builds recovery metadata from the same export settings snapshot used by queue and batch fallback', () => {
-    const settings = {
-      presetId: recovery.presetId,
-      cropPosition: recovery.cropPosition,
-      cropPositionY: recovery.cropPositionY,
-      quality: recovery.quality,
-      frameRate: recovery.frameRate,
-      muted: recovery.muted,
-      gainDb: recovery.gainDb,
-      normalize: recovery.normalize,
-      fadeIn: recovery.fadeIn,
-      fadeOut: recovery.fadeOut,
-      captionStyle: recovery.captionStyle,
-      burnCaptions: recovery.burnCaptions,
-    };
+    const settings = recoveryExportSettings(recovery);
     const built = buildRecoverableProjectState({
       source,
       savedAt: recovery.savedAt,
@@ -57,6 +44,7 @@ describe('project recovery', () => {
       clipQueue: recovery.clipQueue,
     });
     expect(built).toEqual(recovery);
+    expect(settings.captionStyle).not.toBe(recovery.captionStyle);
     expect(built.captionStyle).not.toBe(settings.captionStyle);
   });
 
@@ -72,20 +60,34 @@ describe('project recovery', () => {
     expect(parsed?.clipQueue).toEqual([{ id: 'legacy', name: 'old', start: 1, end: 5 }]);
   });
 
-  it('rejects invalid recovery payloads and sanitizes malformed values', () => {
+  it('normalizes top-level and queued settings with the same defaults', () => {
+    const malformedSettings = {
+      presetId: '', cropPosition: 999, cropPositionY: -5, quality: 'ultra', frameRate: 17,
+      muted: 1, gainDb: 'loud', normalize: 1, fadeIn: -2, fadeOut: -3,
+      captionStyle: { size: 'huge', position: 'left', backdrop: 'yes' }, burnCaptions: 1,
+    };
+    const parsed = parseProjectRecovery(JSON.stringify({
+      ...recovery,
+      ...malformedSettings,
+      clipQueue: [{ id: 'clip', name: 'clip', start: 1, end: 5, settings: malformedSettings }],
+    }));
+    const expected = {
+      presetId: 'youtube-short', cropPosition: 100, cropPositionY: 0, quality: 'standard', frameRate: 30,
+      muted: true, gainDb: 0, normalize: true, fadeIn: 0, fadeOut: 0,
+      captionStyle: { size: 'medium', position: 'bottom', backdrop: true }, burnCaptions: true,
+    };
+    expect(parsed && recoveryExportSettings(parsed)).toEqual(expected);
+    expect(parsed?.clipQueue[0].settings).toEqual(expected);
+  });
+
+  it('rejects invalid recovery payloads and malformed clip ranges', () => {
     expect(parseProjectRecovery('{not-json')).toBeNull();
     expect(parseProjectRecovery(JSON.stringify({ source: { name: 'x.mp4' } }))).toBeNull();
 
     const parsed = parseProjectRecovery(JSON.stringify({
       ...recovery,
-      cropPosition: 999,
-      cropPositionY: -5,
-      frameRate: 17,
       clipQueue: [...recovery.clipQueue, { id: 'bad', name: 'bad', start: 8, end: 3 }],
     }));
-    expect(parsed?.cropPosition).toBe(100);
-    expect(parsed?.cropPositionY).toBe(0);
-    expect(parsed?.frameRate).toBe(30);
     expect(parsed?.clipQueue).toEqual(recovery.clipQueue);
   });
 });
