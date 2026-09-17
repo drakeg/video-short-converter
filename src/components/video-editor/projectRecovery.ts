@@ -96,6 +96,23 @@ export function buildRecoverableProjectState(input: BuildRecoverableProjectState
   };
 }
 
+export function recoveryExportSettings(recovery: RecoverableProjectState): ClipExportSettings {
+  return {
+    presetId: recovery.presetId,
+    cropPosition: recovery.cropPosition,
+    cropPositionY: recovery.cropPositionY,
+    quality: recovery.quality,
+    frameRate: recovery.frameRate,
+    muted: recovery.muted,
+    gainDb: recovery.gainDb,
+    normalize: recovery.normalize,
+    fadeIn: recovery.fadeIn,
+    fadeOut: recovery.fadeOut,
+    captionStyle: { ...recovery.captionStyle },
+    burnCaptions: recovery.burnCaptions,
+  };
+}
+
 export function sourceMatchesRecovery(file: Pick<File, 'name' | 'size' | 'lastModified'>, recovery: RecoverableProjectState): boolean {
   const source = buildSourceFingerprint(file);
   return source.name === recovery.source.name && source.size === recovery.source.size && source.lastModified === recovery.source.lastModified;
