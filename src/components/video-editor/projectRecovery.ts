@@ -80,18 +80,8 @@ export function buildRecoverableProjectState(input: BuildRecoverableProjectState
     savedAt: input.savedAt ?? Date.now(),
     startTime: input.startTime,
     endTime: input.endTime,
-    presetId: input.settings.presetId,
-    cropPosition: input.settings.cropPosition,
-    cropPositionY: input.settings.cropPositionY,
-    quality: input.settings.quality,
-    frameRate: input.settings.frameRate,
-    muted: input.settings.muted,
-    gainDb: input.settings.gainDb,
-    normalize: input.settings.normalize,
-    fadeIn: input.settings.fadeIn,
-    fadeOut: input.settings.fadeOut,
+    ...input.settings,
     captionStyle: { ...input.settings.captionStyle },
-    burnCaptions: input.settings.burnCaptions,
     clipQueue: input.clipQueue,
   };
 }
@@ -123,30 +113,21 @@ export function parseProjectRecovery(raw: string | null): RecoverableProjectStat
   try {
     const value = JSON.parse(raw) as Partial<RecoverableProjectState>;
     if (!value.source || typeof value.source.name !== 'string' || !Number.isFinite(value.source.size) || !Number.isFinite(value.source.lastModified)) return null;
+    const settings = parseClipSettings(value);
+    if (!settings) return null;
     const clipQueue = Array.isArray(value.clipQueue) ? value.clipQueue.flatMap((clip) => {
       if (!clip || typeof clip !== 'object') return [];
       const item = clip as Partial<ClipQueueItem>;
       if (typeof item.id !== 'string' || typeof item.name !== 'string' || !Number.isFinite(item.start) || !Number.isFinite(item.end) || item.end! <= item.start!) return [];
-      const settings = parseClipSettings(item.settings);
-      return [{ id: item.id, name: item.name, start: item.start!, end: item.end!, ...(settings ? { settings } : {}) }];
+      const clipSettings = parseClipSettings(item.settings);
+      return [{ id: item.id, name: item.name, start: item.start!, end: item.end!, ...(clipSettings ? { settings: clipSettings } : {}) }];
     }) : [];
     return {
       source: { name: value.source.name, size: value.source.size!, lastModified: value.source.lastModified! },
       savedAt: finiteOrNull(value.savedAt) ?? Date.now(),
       startTime: finiteOrNull(value.startTime),
       endTime: finiteOrNull(value.endTime),
-      presetId: typeof value.presetId === 'string' && value.presetId ? value.presetId : 'youtube-short',
-      cropPosition: clampPercent(value.cropPosition),
-      cropPositionY: clampPercent(value.cropPositionY),
-      quality: parseQuality(value.quality),
-      frameRate: typeof value.frameRate === 'number' && [23.976, 24, 25, 29.97, 30, 50, 59.94, 60].includes(value.frameRate) ? value.frameRate : 30,
-      muted: Boolean(value.muted),
-      gainDb: finiteOrNull(value.gainDb) ?? 0,
-      normalize: Boolean(value.normalize),
-      fadeIn: Math.max(0, finiteOrNull(value.fadeIn) ?? 0),
-      fadeOut: Math.max(0, finiteOrNull(value.fadeOut) ?? 0),
-      captionStyle: parseCaptionStyle(value.captionStyle),
-      burnCaptions: Boolean(value.burnCaptions),
+      ...settings,
       clipQueue,
     };
   } catch {
