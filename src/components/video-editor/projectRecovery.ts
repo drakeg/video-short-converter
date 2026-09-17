@@ -40,6 +40,16 @@ export interface BuildRecoverableProjectStateInput {
 }
 
 const finiteOrNull = (value: unknown): number | null => typeof value === 'number' && Number.isFinite(value) ? value : null;
+const nonNegativeOrNull = (value: unknown): number | null => {
+  const parsed = finiteOrNull(value);
+  return parsed === null ? null : Math.max(0, parsed);
+};
+const parseTrimRange = (startValue: unknown, endValue: unknown): Pick<RecoverableProjectState, 'startTime' | 'endTime'> => {
+  const startTime = nonNegativeOrNull(startValue);
+  const endTime = nonNegativeOrNull(endValue);
+  if (startTime !== null && endTime !== null && endTime <= startTime) return { startTime: null, endTime: null };
+  return { startTime, endTime };
+};
 const clampPercent = (value: unknown, fallback = 50) => Math.min(100, Math.max(0, finiteOrNull(value) ?? fallback));
 const parseQuality = (value: unknown): ExportQuality => ['standard', 'high', 'maximum'].includes(typeof value === 'string' ? value : '') ? value as ExportQuality : 'standard';
 const parseCaptionStyle = (value: unknown): CaptionStyle => {
@@ -115,18 +125,18 @@ export function parseProjectRecovery(raw: string | null): RecoverableProjectStat
     if (!value.source || typeof value.source.name !== 'string' || !Number.isFinite(value.source.size) || !Number.isFinite(value.source.lastModified)) return null;
     const settings = parseClipSettings(value);
     if (!settings) return null;
+    const trimRange = parseTrimRange(value.startTime, value.endTime);
     const clipQueue = Array.isArray(value.clipQueue) ? value.clipQueue.flatMap((clip) => {
       if (!clip || typeof clip !== 'object') return [];
       const item = clip as Partial<ClipQueueItem>;
-      if (typeof item.id !== 'string' || typeof item.name !== 'string' || !Number.isFinite(item.start) || !Number.isFinite(item.end) || item.end! <= item.start!) return [];
+      if (typeof item.id !== 'string' || typeof item.name !== 'string' || !Number.isFinite(item.start) || !Number.isFinite(item.end) || item.start! < 0 || item.end! <= item.start!) return [];
       const clipSettings = parseClipSettings(item.settings);
       return [{ id: item.id, name: item.name, start: item.start!, end: item.end!, ...(clipSettings ? { settings: clipSettings } : {}) }];
     }) : [];
     return {
       source: { name: value.source.name, size: value.source.size!, lastModified: value.source.lastModified! },
       savedAt: finiteOrNull(value.savedAt) ?? Date.now(),
-      startTime: finiteOrNull(value.startTime),
-      endTime: finiteOrNull(value.endTime),
+      ...trimRange,
       ...settings,
       clipQueue,
     };
