@@ -80,13 +80,37 @@ describe('project recovery', () => {
     expect(parsed?.clipQueue[0].settings).toEqual(expected);
   });
 
-  it('rejects invalid recovery payloads and malformed clip ranges', () => {
+  it('clears impossible recovered trim ranges instead of restoring an invalid edit', () => {
+    const reversed = parseProjectRecovery(JSON.stringify({ ...recovery, startTime: 20, endTime: 10 }));
+    expect(reversed?.startTime).toBeNull();
+    expect(reversed?.endTime).toBeNull();
+
+    const equal = parseProjectRecovery(JSON.stringify({ ...recovery, startTime: 20, endTime: 20 }));
+    expect(equal?.startTime).toBeNull();
+    expect(equal?.endTime).toBeNull();
+  });
+
+  it('clamps negative recovered trim endpoints and preserves incomplete marks', () => {
+    const negativeStart = parseProjectRecovery(JSON.stringify({ ...recovery, startTime: -5, endTime: 10 }));
+    expect(negativeStart?.startTime).toBe(0);
+    expect(negativeStart?.endTime).toBe(10);
+
+    const openEnded = parseProjectRecovery(JSON.stringify({ ...recovery, startTime: 12, endTime: null }));
+    expect(openEnded?.startTime).toBe(12);
+    expect(openEnded?.endTime).toBeNull();
+  });
+
+  it('rejects invalid recovery payloads and malformed queued clip ranges', () => {
     expect(parseProjectRecovery('{not-json')).toBeNull();
     expect(parseProjectRecovery(JSON.stringify({ source: { name: 'x.mp4' } }))).toBeNull();
 
     const parsed = parseProjectRecovery(JSON.stringify({
       ...recovery,
-      clipQueue: [...recovery.clipQueue, { id: 'bad', name: 'bad', start: 8, end: 3 }],
+      clipQueue: [
+        ...recovery.clipQueue,
+        { id: 'reversed', name: 'bad', start: 8, end: 3 },
+        { id: 'negative', name: 'bad', start: -1, end: 3 },
+      ],
     }));
     expect(parsed?.clipQueue).toEqual(recovery.clipQueue);
   });
