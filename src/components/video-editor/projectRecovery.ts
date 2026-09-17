@@ -88,6 +88,21 @@ function parseClipSettings(value: unknown): ClipExportSettings | undefined {
   };
 }
 
+function parseClipQueue(value: unknown): ClipQueueItem[] {
+  if (!Array.isArray(value)) return [];
+  const seenIds = new Set<string>();
+  return value.flatMap((clip) => {
+    if (!clip || typeof clip !== 'object') return [];
+    const item = clip as Partial<ClipQueueItem>;
+    if (typeof item.id !== 'string' || item.id.trim().length === 0 || seenIds.has(item.id)) return [];
+    if (typeof item.name !== 'string' || item.name.trim().length === 0) return [];
+    if (!Number.isFinite(item.start) || !Number.isFinite(item.end) || item.start! < 0 || item.end! <= item.start!) return [];
+    seenIds.add(item.id);
+    const clipSettings = parseClipSettings(item.settings);
+    return [{ id: item.id, name: item.name, start: item.start!, end: item.end!, ...(clipSettings ? { settings: clipSettings } : {}) }];
+  });
+}
+
 export function buildSourceFingerprint(file: Pick<File, 'name' | 'size' | 'lastModified'>): SourceFingerprint {
   return { name: file.name, size: file.size, lastModified: file.lastModified };
 }
@@ -135,19 +150,12 @@ export function parseProjectRecovery(raw: string | null): RecoverableProjectStat
     const settings = parseClipSettings(value);
     if (!settings) return null;
     const trimRange = parseTrimRange(value.startTime, value.endTime);
-    const clipQueue = Array.isArray(value.clipQueue) ? value.clipQueue.flatMap((clip) => {
-      if (!clip || typeof clip !== 'object') return [];
-      const item = clip as Partial<ClipQueueItem>;
-      if (typeof item.id !== 'string' || typeof item.name !== 'string' || !Number.isFinite(item.start) || !Number.isFinite(item.end) || item.start! < 0 || item.end! <= item.start!) return [];
-      const clipSettings = parseClipSettings(item.settings);
-      return [{ id: item.id, name: item.name, start: item.start!, end: item.end!, ...(clipSettings ? { settings: clipSettings } : {}) }];
-    }) : [];
     return {
       source,
       savedAt: finiteOrNull(value.savedAt) ?? Date.now(),
       ...trimRange,
       ...settings,
-      clipQueue,
+      clipQueue: parseClipQueue(value.clipQueue),
     };
   } catch {
     return null;
