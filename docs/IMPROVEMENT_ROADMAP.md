@@ -176,18 +176,63 @@ Delivered:
 - Add focused tests for legacy fallback behavior, saved-setting precedence, sanitized output naming, and transcript cue scoping.
 
 ## Sprint 32 - Centralized editor export settings snapshot
-Status: **Implemented - awaiting merge**
+Status: **Complete**
 Delivered:
-- Build one typed `ClipExportSettings` snapshot from the current editor state instead of reconstructing the same twelve export-affecting fields in multiple paths.
+- Build one typed `ClipExportSettings` snapshot from the current editor state instead of reconstructing the same export-affecting fields in multiple paths.
 - Reuse that snapshot when adding clips to the queue, building browser-local project recovery, and providing fallback settings for legacy queue items during batch export.
 - Deep-copy caption style into the snapshot and recovery state so later editor mutations cannot silently alter retained settings.
 - Add a typed recovery-state builder that maps the shared settings snapshot into the existing recovery schema without changing persisted compatibility.
 - Keep single-clip processing, FFmpeg invocation, queue selection restore behavior, batch orchestration, retry, history, ZIP, and manifest behavior unchanged.
 - Add focused tests for complete snapshot coverage, nested caption immutability, and recovery construction from the shared snapshot.
 
+## Sprint 33 - Centralized recovery settings normalization
+Status: **Complete**
+Delivered:
+- Reuse one typed normalizer for top-level recovery settings and queued-clip settings.
+- Add `recoveryExportSettings` as the typed inverse of recovery-state construction.
+- Preserve the project-recovery v1 storage schema and legacy queue compatibility.
+- Deep-copy nested caption style at recovery boundaries.
+- Add focused tests proving malformed top-level and queued settings normalize consistently.
+
+## Sprint 34 - Recovered trim-range hardening
+Status: **Complete**
+Delivered:
+- Clamp negative recovered trim endpoints to zero.
+- Clear reversed or zero-length top-level trim ranges instead of restoring impossible edits.
+- Preserve valid incomplete start-only/end-only recovery marks.
+- Reject queued clips with negative starts, reversed ranges, or zero-length ranges.
+- Preserve the existing recovery storage schema and valid saved projects.
+- Add focused regression coverage for malformed top-level and queued ranges.
+
+## Sprint 35 - Recovery source fingerprint validation
+Status: **Complete**
+Delivered:
+- Reject empty or whitespace-only saved source filenames.
+- Require source size and last-modified values to be non-negative safe integers.
+- Preserve valid zero-byte and zero-timestamp fingerprints rather than relying on truthiness checks.
+- Centralize source fingerprint parsing.
+- Keep the existing project-recovery v1 schema and valid saved projects unchanged.
+- Add focused regression coverage for malformed and boundary-value source metadata.
+
+## Sprint 36 - Agile project controls and immutable recovery queue snapshots
+Status: **In progress**
+Goal:
+- Make project planning/status explicit and durable in the repository.
+- Ensure recovery metadata is a true point-in-time snapshot of queued clips and nested export settings.
+
+Acceptance criteria:
+- Add an Agile operating model with cadence, Definition of Ready, Definition of Done, risk controls, and sprint review expectations.
+- Add a prioritized product backlog with explicit item state and cost/privacy constraints.
+- Bring roadmap status through Sprint 35 up to date.
+- Deep-copy recovery queue items, per-clip export settings, and nested caption styles when constructing recoverable state.
+- Add a regression test proving later mutation of the live queue cannot change the retained recovery snapshot.
+- Keep recovery schema compatibility, user-facing behavior, AWS-disabled policy, and zero-cost/local processing unchanged.
+- Require normal CI and any applicable specialized checks to be green before merge.
+
 Recommended next increments:
 - Continue extracting editor responsibilities behind typed helpers before adding larger features.
-- Optional local transcription when browser/runtime support is practical.
+- Define and implement an explicit recovery schema version/migration strategy before future persisted-shape changes.
+- Evaluate optional local transcription only after a browser/runtime feasibility spike.
 - Continue maintenance upgrades through Renovate within the existing zero-cost/approval policy.
 
 Assisted features remain optional. The user remains in control of clip selection, framing, timing, captions, audio, and export.
