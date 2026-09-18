@@ -11,6 +11,43 @@ export interface ClipRenderOptions {
   captions: CaptionBurnInOptions;
 }
 
+export interface ActiveRenderOptions {
+  video: VideoExportOptions;
+  audio: AudioExportOptions;
+  output: OutputOptions;
+  captions: CaptionBurnInOptions;
+}
+
+export function buildActiveRenderOptions(
+  settings: ClipExportSettings,
+  startTime: number,
+  endTime: number,
+  transcriptCues: TranscriptCue[],
+): ActiveRenderOptions {
+  return {
+    video: {
+      presetId: settings.presetId,
+      cropPosition: settings.cropPosition,
+      cropPositionY: settings.cropPositionY,
+      quality: settings.quality,
+      frameRate: settings.frameRate,
+    },
+    audio: {
+      muted: settings.muted,
+      gainDb: settings.gainDb,
+      normalize: settings.normalize,
+      fadeIn: settings.fadeIn,
+      fadeOut: settings.fadeOut,
+    },
+    output: {},
+    captions: {
+      enabled: settings.burnCaptions,
+      cues: clipTranscript(transcriptCues, startTime, endTime),
+      style: settings.captionStyle,
+    },
+  };
+}
+
 export function buildClipRenderOptions(
   clip: ClipQueueItem,
   index: number,

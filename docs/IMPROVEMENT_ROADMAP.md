@@ -253,7 +253,7 @@ Delivered:
 - Preserved the existing local-storage key, editor behavior, AWS-disabled policy, and local-only processing.
 
 ## Sprint 39 - Trim-range normalization extraction
-Status: **In progress**
+Status: **Complete**
 Goal:
 - Remove trim-range normalization and duration arithmetic from `VideoEditor.tsx` while preserving current editing behavior.
 
@@ -266,6 +266,18 @@ Acceptance criteria:
 - Add focused unit coverage for negative/out-of-range values, open-ended ranges, and reversed selected ranges.
 - Keep user-facing editor behavior, AWS-disabled policy, dependencies, and local-only processing unchanged.
 - Require normal CI and any applicable specialized checks to be green before merge.
+
+## Sprint 40 - Active render-option resolution
+Status: **In progress**
+Goal:
+- Remove active single-clip render-option construction from `VideoEditor.tsx` and resolve it through a typed helper.
+
+Acceptance criteria:
+- Build active video, audio, output, and caption options from `ClipExportSettings` in one pure helper.
+- Scope transcript cues to the active trim range using the existing transcript behavior.
+- Reuse the helper in the preview-first processing path.
+- Keep batch export behavior, filenames, user-facing behavior, dependencies, AWS-disabled policy, and local-only processing unchanged.
+- Add focused unit coverage for active render option resolution.
 
 Recommended next increments:
 - Continue extracting editor responsibilities behind typed helpers before adding larger features.

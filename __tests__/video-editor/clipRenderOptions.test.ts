@@ -1,4 +1,4 @@
-import { buildClipRenderOptions } from '@/components/video-editor/clipRenderOptions';
+import { buildActiveRenderOptions, buildClipRenderOptions } from '@/components/video-editor/clipRenderOptions';
 import type { ClipExportSettings, ClipQueueItem } from '@/components/video-editor/clipQueue';
 import type { TranscriptCue } from '@/components/video-editor/transcript';
 
@@ -25,6 +25,22 @@ const cues: TranscriptCue[] = [
 ];
 
 describe('clip render option resolution', () => {
+  it('builds active render options from the current editor settings', () => {
+    const result = buildActiveRenderOptions(current, 10, 20, cues);
+
+    expect(result.video).toEqual({ presetId: 'youtube-short', cropPosition: 50, cropPositionY: 40, quality: 'standard', frameRate: 30 });
+    expect(result.audio).toEqual({ muted: false, gainDb: 1, normalize: false, fadeIn: 0.2, fadeOut: 0.3 });
+    expect(result.output).toEqual({});
+    expect(result.captions).toEqual({
+      enabled: false,
+      cues: [
+        { start: 1, end: 3, text: 'inside' },
+        { start: 8, end: 10, text: 'overlap' },
+      ],
+      style: current.captionStyle,
+    });
+  });
+
   it('uses current editor settings for legacy queue items and scopes captions to the clip', () => {
     const clip: ClipQueueItem = { id: 'legacy', name: 'Intro / Hook', start: 10, end: 20 };
     const result = buildClipRenderOptions(clip, 0, current, cues);
