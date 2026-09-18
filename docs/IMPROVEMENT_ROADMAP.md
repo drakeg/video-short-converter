@@ -240,18 +240,31 @@ Delivered:
 - Preserved queue selection, project recovery, export, AWS-disabled policy, and local-only processing behavior.
 
 ## Sprint 38 - Export preference persistence extraction
-Status: **In progress**
-Goal:
+Status: **Complete**
+Delivered:
 - Remove browser-local export preference parsing/serialization from `VideoEditor.tsx` while preserving the existing preference contract.
 
+- Added a typed parser for saved preset, crop positions, and quality preferences.
+- Clamped finite crop percentages to 0–100 and ignored malformed/non-finite values.
+- Ignored invalid JSON and unsupported quality values without breaking editor initialization.
+- Added deterministic serialization for the current preference snapshot.
+- Reused the helper from the editor's load/save effects.
+- Added focused coverage for valid, malformed, clamped, and serialized preferences.
+- Preserved the existing local-storage key, editor behavior, AWS-disabled policy, and local-only processing.
+
+## Sprint 39 - Trim-range normalization extraction
+Status: **In progress**
+Goal:
+- Remove trim-range normalization and duration arithmetic from `VideoEditor.tsx` while preserving current editing behavior.
+
 Acceptance criteria:
-- Add a typed parser for the saved preset, crop positions, and quality preference object.
-- Clamp finite crop percentages to 0–100 and ignore malformed/non-finite values.
-- Ignore invalid JSON and unsupported quality values without breaking editor initialization.
-- Add deterministic serialization for the current preference snapshot.
-- Reuse the helper from the editor's load/save effects.
-- Add focused unit coverage for valid, malformed, clamped, and serialized preferences.
-- Keep the existing local-storage key, editor behavior, AWS-disabled policy, and local-only processing unchanged.
+- Add pure typed helpers for loaded-media range normalization, exact start updates, exact end updates, and explicit range selection.
+- Clamp loaded/exact trim values using the existing duration boundaries.
+- Preserve current null/end semantics for open-ended trim state.
+- Keep duration calculations non-negative.
+- Reuse the helpers from metadata loading, exact in/out edits, and suggested/queued clip selection.
+- Add focused unit coverage for negative/out-of-range values, open-ended ranges, and reversed selected ranges.
+- Keep user-facing editor behavior, AWS-disabled policy, dependencies, and local-only processing unchanged.
 - Require normal CI and any applicable specialized checks to be green before merge.
 
 Recommended next increments:
