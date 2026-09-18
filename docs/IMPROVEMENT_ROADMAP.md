@@ -228,17 +228,30 @@ Delivered:
 - Preserved recovery schema compatibility, user-facing behavior, AWS-disabled policy, and zero-cost/local processing.
 
 ## Sprint 37 - Centralized editor settings application
-Status: **In progress**
-Goal:
+Status: **Complete**
+Delivered:
 - Remove duplicated export-setting application logic from `VideoEditor.tsx` without changing editor behavior.
 
+- Added one typed helper that applies every `ClipExportSettings` field through explicit setters.
+- Reused the helper for recovered projects and queued clips with saved settings.
+- Reused `recoveryExportSettings` instead of manually mapping recovery fields in the component.
+- Copied nested caption style before applying it so active editor state cannot alias retained settings.
+- Added focused coverage for complete setter application and caption-style isolation.
+- Preserved queue selection, project recovery, export, AWS-disabled policy, and local-only processing behavior.
+
+## Sprint 38 - Export preference persistence extraction
+Status: **In progress**
+Goal:
+- Remove browser-local export preference parsing/serialization from `VideoEditor.tsx` while preserving the existing preference contract.
+
 Acceptance criteria:
-- Add one typed helper that applies every `ClipExportSettings` field through explicit setters.
-- Reuse the helper when restoring a recovered project and when selecting a queued clip with saved settings.
-- Reuse `recoveryExportSettings` rather than manually mapping recovery fields in the component.
-- Copy nested caption style before applying it so active editor state cannot alias a retained settings snapshot.
-- Add focused unit coverage for complete setter application and caption-style isolation.
-- Keep queue selection, project recovery, export, AWS-disabled policy, and local-only processing behavior unchanged.
+- Add a typed parser for the saved preset, crop positions, and quality preference object.
+- Clamp finite crop percentages to 0–100 and ignore malformed/non-finite values.
+- Ignore invalid JSON and unsupported quality values without breaking editor initialization.
+- Add deterministic serialization for the current preference snapshot.
+- Reuse the helper from the editor's load/save effects.
+- Add focused unit coverage for valid, malformed, clamped, and serialized preferences.
+- Keep the existing local-storage key, editor behavior, AWS-disabled policy, and local-only processing unchanged.
 - Require normal CI and any applicable specialized checks to be green before merge.
 
 Recommended next increments:
