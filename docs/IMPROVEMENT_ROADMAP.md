@@ -280,7 +280,7 @@ Acceptance criteria:
 - Add focused unit coverage for active render option resolution.
 
 ## Sprint 41 - Playback navigation calculation extraction
-Status: **In progress**
+Status: **Complete**
 Goal:
 - Remove playback seek/offset and mark-boundary arithmetic from `VideoEditor.tsx` while preserving current interaction behavior.
 
@@ -290,6 +290,19 @@ Acceptance criteria:
 - Preserve the existing near-zero mark-in snap and never allow mark-out before mark-in.
 - Add focused tests for bounds, frame offsets, near-zero mark-in, and mark-out-before-start cases.
 - Keep user-facing behavior, dependencies, AWS-disabled policy, and local-only processing unchanged.
+
+## Sprint 42 - Profile API CORS reliability hotfix
+Status: **In progress**
+Goal:
+- Restore profile load/save reliability for HTTPS-hosted app deployments without changing the static-export architecture.
+
+Acceptance criteria:
+- Allow HTTPS browser origins in API Gateway HTTP API CORS while retaining the configured primary origin.
+- Preserve JWT authorization and the existing profile API route/payload contract.
+- Convert browser-level profile fetch failures into an actionable profile API/CORS diagnostic instead of a generic `Failed to fetch`.
+- Add focused auth coverage for the network failure path.
+- Keep automated AWS deployment disabled; infrastructure changes require the existing explicit/manual deployment process.
+- Add no new dependency or paid service.
 
 Recommended next increments:
 - Continue extracting editor responsibilities behind typed helpers before adding larger features.

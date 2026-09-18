@@ -146,7 +146,13 @@ export async function getValidAccessToken(): Promise<string | null> { if (isExpi
 
 async function authenticatedProfileFetch(method: "GET" | "POST", profile?: { display_name?: string; youtube_channel?: string }) {
   const config = getAuthConfig(); if (!config.profileApiBaseUrl) throw new Error("Profile API is not configured."); const token = await getValidAccessToken(); if (!token) throw new Error("Your session expired. Please sign in again.");
-  const response = await fetch(`${config.profileApiBaseUrl}/profile`, { method, headers: { authorization: `Bearer ${token}`, ...(profile ? { "content-type": "application/json" } : {}) }, ...(profile ? { body: JSON.stringify(profile) } : {}) });
+  let response: Response;
+  try {
+    response = await fetch(`${config.profileApiBaseUrl}/profile`, { method, headers: { authorization: `Bearer ${token}`, ...(profile ? { "content-type": "application/json" } : {}) }, ...(profile ? { body: JSON.stringify(profile) } : {}) });
+  } catch (error) {
+    const origin = typeof window === "undefined" ? "this site" : window.location.origin;
+    throw new Error(`Unable to reach the profile API from ${origin}. Check the profile API URL and CORS configuration.`, { cause: error });
+  }
   if (!response.ok) throw new Error(await response.text()); return response.json();
 }
 export async function fetchProfile() { return authenticatedProfileFetch("GET"); }

@@ -178,7 +178,7 @@ resource "aws_apigatewayv2_api" "profile" {
     allow_credentials = false
     allow_headers     = ["authorization", "content-type"]
     allow_methods     = ["GET", "POST", "OPTIONS"]
-    allow_origins     = [var.auth_cors_allow_origin]
+    allow_origins     = [var.auth_cors_allow_origin, "https://*"]
     max_age           = 300
   }
 }
