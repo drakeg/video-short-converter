@@ -1,4 +1,4 @@
-import { getAuthOriginHandoffUrl, getValidAccessToken, handleAuthCallback, refreshSession } from '@/lib/auth';
+import { getAuthOriginHandoffUrl, getValidAccessToken, handleAuthCallback, refreshSession, saveProfile } from '@/lib/auth';
 
 const encode = (value: object) => btoa(JSON.stringify(value)).replace(/=/g, '').replace(/\+/g, '-').replace(/\//g, '_');
 const token = (exp: number) => `header.${encode({ sub: 'user', email: 'test@example.com', exp })}.signature`;
@@ -12,7 +12,7 @@ describe('auth session and PKCE handling', () => {
     jest.restoreAllMocks();
     fetchMock.mockReset();
     Object.defineProperty(globalThis, 'fetch', { value: fetchMock, configurable: true, writable: true });
-    process.env = { ...env, NEXT_PUBLIC_COGNITO_DOMAIN: 'https://example.auth.us-east-1.amazoncognito.com', NEXT_PUBLIC_COGNITO_CLIENT_ID: 'client', NEXT_PUBLIC_COGNITO_REDIRECT_URI: 'http://localhost/auth/callback/', NEXT_PUBLIC_COGNITO_LOGOUT_URI: 'http://localhost/' };
+    process.env = { ...env, NEXT_PUBLIC_COGNITO_DOMAIN: 'https://example.auth.us-east-1.amazoncognito.com', NEXT_PUBLIC_COGNITO_CLIENT_ID: 'client', NEXT_PUBLIC_COGNITO_REDIRECT_URI: 'http://localhost/auth/callback/', NEXT_PUBLIC_COGNITO_LOGOUT_URI: 'http://localhost/', NEXT_PUBLIC_PROFILE_API_BASE_URL: 'https://profile.example.com' };
     window.history.replaceState({}, '', '/');
   });
   afterAll(() => { process.env = env; });
@@ -48,6 +48,18 @@ describe('auth session and PKCE handling', () => {
     await expect(refreshSession()).resolves.toBe(false);
     expect(localStorage.getItem('vsc_access_token')).toBeNull();
     expect(localStorage.getItem('vsc_refresh_token')).toBeNull();
+  });
+
+
+  it('surfaces an actionable error when the browser cannot reach the profile API', async () => {
+    const current = token(Math.floor(Date.now() / 1000) + 3600);
+    localStorage.setItem('vsc_access_token', current);
+    localStorage.setItem('vsc_id_token', current);
+    fetchMock.mockRejectedValue(new TypeError('Failed to fetch'));
+
+    await expect(saveProfile({ display_name: 'Greg' })).rejects.toThrow(
+      'Unable to reach the profile API from http://localhost',
+    );
   });
 
   it('creates an origin handoff when login starts on a different hostname', () => {
