@@ -3,6 +3,12 @@ import type { ClipExportSettings, ClipQueueItem } from './clipQueue';
 import type { ExportQuality } from './editorConfig';
 
 export const PROJECT_RECOVERY_KEY = 'video-short-converter:project-recovery:v1';
+export const PROJECT_RECOVERY_SCHEMA_VERSION = 1 as const;
+
+interface ProjectRecoveryEnvelopeV1 {
+  version: typeof PROJECT_RECOVERY_SCHEMA_VERSION;
+  state: RecoverableProjectState;
+}
 
 export interface SourceFingerprint {
   name: string;
@@ -136,16 +142,15 @@ export function sourceMatchesRecovery(file: Pick<File, 'name' | 'size' | 'lastMo
   return source.name === recovery.source.name && source.size === recovery.source.size && source.lastModified === recovery.source.lastModified;
 }
 
-export function parseProjectRecovery(raw: string | null): RecoverableProjectState | null {
-  if (!raw) return null;
-  try {
-    const value = JSON.parse(raw) as Partial<RecoverableProjectState>;
-    const source = parseSourceFingerprint(value.source);
+function parseRecoveryState(value: unknown): RecoverableProjectState | null {
+  if (!value || typeof value !== 'object') return null;
+  const state = value as Partial<RecoverableProjectState>;
+  const source = parseSourceFingerprint(state.source);
     if (!source) return null;
     const settings = parseClipSettings(value);
     if (!settings) return null;
-    const trimRange = parseTrimRange(value.startTime, value.endTime);
-    const clipQueue = Array.isArray(value.clipQueue) ? value.clipQueue.flatMap((clip) => {
+    const trimRange = parseTrimRange(state.startTime, state.endTime);
+    const clipQueue = Array.isArray(state.clipQueue) ? state.clipQueue.flatMap((clip) => {
       if (!clip || typeof clip !== 'object') return [];
       const item = clip as Partial<ClipQueueItem>;
       if (typeof item.id !== 'string' || typeof item.name !== 'string' || !Number.isFinite(item.start) || !Number.isFinite(item.end) || item.start! < 0 || item.end! <= item.start!) return [];
@@ -154,16 +159,32 @@ export function parseProjectRecovery(raw: string | null): RecoverableProjectStat
     }) : [];
     return {
       source,
-      savedAt: finiteOrNull(value.savedAt) ?? Date.now(),
+      savedAt: finiteOrNull(state.savedAt) ?? Date.now(),
       ...trimRange,
       ...settings,
       clipQueue,
     };
+}
+
+export function parseProjectRecovery(raw: string | null): RecoverableProjectState | null {
+  if (!raw) return null;
+  try {
+    const value = JSON.parse(raw) as unknown;
+    if (value && typeof value === 'object' && 'version' in value) {
+      const envelope = value as Partial<ProjectRecoveryEnvelopeV1> & { version?: unknown };
+      if (envelope.version !== PROJECT_RECOVERY_SCHEMA_VERSION) return null;
+      return parseRecoveryState(envelope.state);
+    }
+    return parseRecoveryState(value);
   } catch {
     return null;
   }
 }
 
 export function serializeProjectRecovery(state: RecoverableProjectState): string {
-  return JSON.stringify(state);
+  const envelope: ProjectRecoveryEnvelopeV1 = {
+    version: PROJECT_RECOVERY_SCHEMA_VERSION,
+    state,
+  };
+  return JSON.stringify(envelope);
 }
