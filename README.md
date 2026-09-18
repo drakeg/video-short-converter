@@ -113,9 +113,11 @@ Files that are empty or unsupported are rejected before FFmpeg initializes. File
 - Playwright
 - Docker / nginx for local production-style testing
 
-## Development roadmap
+## Project planning
 
-The current audit and improvement plan is maintained in [docs/IMPROVEMENT_ROADMAP.md](docs/IMPROVEMENT_ROADMAP.md).
+- [Agile project operating model](docs/AGILE_PROJECT.md) — cadence, readiness/done criteria, risks, and review expectations.
+- [Product backlog](docs/PRODUCT_BACKLOG.md) — prioritized active work and constraints.
+- [Improvement roadmap](docs/IMPROVEMENT_ROADMAP.md) — completed sprint history and near-term direction.
 
 ## Deployment
 
