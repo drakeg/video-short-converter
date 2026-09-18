@@ -292,7 +292,7 @@ Acceptance criteria:
 - Keep user-facing behavior, dependencies, AWS-disabled policy, and local-only processing unchanged.
 
 ## Sprint 42 - Profile API CORS reliability hotfix
-Status: **In progress**
+Status: **Complete (repository changes)**
 Goal:
 - Restore profile load/save reliability for HTTPS-hosted app deployments without changing the static-export architecture.
 
@@ -303,6 +303,22 @@ Acceptance criteria:
 - Add focused auth coverage for the network failure path.
 - Keep automated AWS deployment disabled; infrastructure changes require the existing explicit/manual deployment process.
 - Add no new dependency or paid service.
+
+Operational follow-up:
+- The API Gateway CORS change is not live until the explicitly authorized/manual Terraform apply is performed. Automated AWS deployment remains disabled.
+
+## Sprint 43 - Recovery schema versioning and migration
+Status: **In progress**
+Goal:
+- Make persisted project recovery evolution explicit instead of relying on implicit shape compatibility.
+
+Acceptance criteria:
+- Serialize new recovery data in a versioned envelope while keeping the existing local-storage key.
+- Continue parsing legacy unversioned v1 recovery payloads so existing browser data is preserved.
+- Reject unknown or malformed schema versions rather than guessing how to interpret them.
+- Keep the existing recovered editor-state validation/normalization rules unchanged.
+- Add focused tests for versioned round trips, legacy migration, and unknown-version rejection.
+- Add no dependency, paid service, cloud processing, or automated AWS deployment.
 
 Recommended next increments:
 - Continue extracting editor responsibilities behind typed helpers before adding larger features.
