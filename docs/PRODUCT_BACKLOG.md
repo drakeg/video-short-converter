@@ -6,7 +6,7 @@ This backlog is the active, prioritized work queue for Video Shorts Editor. Comp
 
 | Priority | Item | State | User value / outcome | Acceptance summary |
 | --- | --- | --- | --- | --- |
-| P1 | Sprint 37 — centralize editor settings application | In progress | Easier maintenance and lower regression risk when restoring saved settings | One typed helper applies all export-affecting settings for recovery and queued-clip selection; focused tests verify complete application and caption-style isolation |
+| P1 | Sprint 38 — extract export preference persistence | In progress | Safer browser-local preference loading and less component responsibility | One typed helper parses/serializes persisted export preferences; invalid values are ignored/clamped; focused tests cover malformed storage |
 | P1 | Further reduce `VideoEditor.tsx` responsibilities | Ready | Easier maintenance and lower regression risk | Extract another cohesive editor responsibility behind typed/tested helpers without changing user-visible behavior |
 | P1 | Recovery schema versioning/migration strategy | Ready | Safer future evolution of saved projects | Explicit schema/version handling preserves existing v1 data and tests migration/rejection paths |
 | P2 | Optional local transcription feasibility spike | Ready | Faster transcript-assisted editing without cloud upload | Document browser/runtime options, performance constraints, bundle size, privacy, and a zero-cost recommendation before implementation |
