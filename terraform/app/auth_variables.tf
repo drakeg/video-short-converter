@@ -17,7 +17,7 @@ variable "auth_logout_urls" {
 }
 
 variable "auth_cors_allow_origin" {
-  description = "Browser origin allowed to call the profile API, for example https://shorts.example.com"
+  description = "Primary browser origin allowed to call the profile API, for example https://shorts.example.com. HTTPS deployment origins are also allowed by the API CORS policy."
   type        = string
 }
 
