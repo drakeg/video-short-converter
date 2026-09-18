@@ -69,6 +69,17 @@ const parseCaptionStyle = (value: unknown): CaptionStyle => {
   } as CaptionStyle;
 };
 
+function cloneClipSettings(settings: ClipExportSettings): ClipExportSettings {
+  return { ...settings, captionStyle: { ...settings.captionStyle } };
+}
+
+function cloneClipQueue(clipQueue: ClipQueueItem[]): ClipQueueItem[] {
+  return clipQueue.map((clip) => ({
+    ...clip,
+    ...(clip.settings ? { settings: cloneClipSettings(clip.settings) } : {}),
+  }));
+}
+
 function parseClipSettings(value: unknown): ClipExportSettings | undefined {
   if (!value || typeof value !== 'object') return undefined;
   const settings = value as Partial<ClipExportSettings>;
@@ -98,9 +109,8 @@ export function buildRecoverableProjectState(input: BuildRecoverableProjectState
     savedAt: input.savedAt ?? Date.now(),
     startTime: input.startTime,
     endTime: input.endTime,
-    ...input.settings,
-    captionStyle: { ...input.settings.captionStyle },
-    clipQueue: input.clipQueue,
+    ...cloneClipSettings(input.settings),
+    clipQueue: cloneClipQueue(input.clipQueue),
   };
 }
 
