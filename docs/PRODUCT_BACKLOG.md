@@ -6,8 +6,8 @@ This backlog is the active, prioritized work queue for Video Shorts Editor. Comp
 
 | Priority | Item | State | User value / outcome | Acceptance summary |
 | --- | --- | --- | --- | --- |
-| P0 | Sprint 36 — immutable recovery queue snapshots + Agile project controls | In progress | Recovery metadata remains a true point-in-time snapshot; project planning stays current and auditable | Recovery builder deep-copies queued clip settings including nested caption style; regression test proves later mutations cannot alter the snapshot; Agile docs and roadmap are current |
-| P1 | Further reduce `VideoEditor.tsx` responsibilities | Ready | Easier maintenance and lower regression risk | Extract one cohesive editor responsibility behind typed/tested helpers without changing user-visible behavior |
+| P1 | Sprint 37 — centralize editor settings application | In progress | Easier maintenance and lower regression risk when restoring saved settings | One typed helper applies all export-affecting settings for recovery and queued-clip selection; focused tests verify complete application and caption-style isolation |
+| P1 | Further reduce `VideoEditor.tsx` responsibilities | Ready | Easier maintenance and lower regression risk | Extract another cohesive editor responsibility behind typed/tested helpers without changing user-visible behavior |
 | P1 | Recovery schema versioning/migration strategy | Ready | Safer future evolution of saved projects | Explicit schema/version handling preserves existing v1 data and tests migration/rejection paths |
 | P2 | Optional local transcription feasibility spike | Ready | Faster transcript-assisted editing without cloud upload | Document browser/runtime options, performance constraints, bundle size, privacy, and a zero-cost recommendation before implementation |
 | P2 | Clip queue UX refinement | Ready | Faster editing of many shorts | Identify and implement a small usability improvement with keyboard/accessibility coverage |

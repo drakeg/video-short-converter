@@ -215,18 +215,30 @@ Delivered:
 - Add focused regression coverage for malformed and boundary-value source metadata.
 
 ## Sprint 36 - Agile project controls and immutable recovery queue snapshots
-Status: **In progress**
-Goal:
+Status: **Complete**
+Delivered:
 - Make project planning/status explicit and durable in the repository.
 - Ensure recovery metadata is a true point-in-time snapshot of queued clips and nested export settings.
 
+- Added an Agile operating model with cadence, Definition of Ready, Definition of Done, risk controls, and sprint review expectations.
+- Added a prioritized product backlog with explicit item state and cost/privacy constraints.
+- Brought roadmap status through Sprint 35 up to date.
+- Deep-copied recovery queue items, per-clip export settings, and nested caption styles when constructing recoverable state.
+- Added a regression test proving later mutation of the live queue cannot change the retained recovery snapshot.
+- Preserved recovery schema compatibility, user-facing behavior, AWS-disabled policy, and zero-cost/local processing.
+
+## Sprint 37 - Centralized editor settings application
+Status: **In progress**
+Goal:
+- Remove duplicated export-setting application logic from `VideoEditor.tsx` without changing editor behavior.
+
 Acceptance criteria:
-- Add an Agile operating model with cadence, Definition of Ready, Definition of Done, risk controls, and sprint review expectations.
-- Add a prioritized product backlog with explicit item state and cost/privacy constraints.
-- Bring roadmap status through Sprint 35 up to date.
-- Deep-copy recovery queue items, per-clip export settings, and nested caption styles when constructing recoverable state.
-- Add a regression test proving later mutation of the live queue cannot change the retained recovery snapshot.
-- Keep recovery schema compatibility, user-facing behavior, AWS-disabled policy, and zero-cost/local processing unchanged.
+- Add one typed helper that applies every `ClipExportSettings` field through explicit setters.
+- Reuse the helper when restoring a recovered project and when selecting a queued clip with saved settings.
+- Reuse `recoveryExportSettings` rather than manually mapping recovery fields in the component.
+- Copy nested caption style before applying it so active editor state cannot alias a retained settings snapshot.
+- Add focused unit coverage for complete setter application and caption-style isolation.
+- Keep queue selection, project recovery, export, AWS-disabled policy, and local-only processing behavior unchanged.
 - Require normal CI and any applicable specialized checks to be green before merge.
 
 Recommended next increments:
