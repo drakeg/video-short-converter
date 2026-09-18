@@ -35,25 +35,29 @@ describe('project recovery', () => {
 
   it('builds recovery metadata from the same export settings snapshot used by queue and batch fallback', () => {
     const settings = recoveryExportSettings(recovery);
+    const queueInput = recovery.clipQueue.map((clip) => ({
+      ...clip,
+      ...(clip.settings ? { settings: { ...clip.settings, captionStyle: { ...clip.settings.captionStyle } } } : {}),
+    }));
     const built = buildRecoverableProjectState({
       source,
       savedAt: recovery.savedAt,
       startTime: recovery.startTime,
       endTime: recovery.endTime,
       settings,
-      clipQueue: recovery.clipQueue,
+      clipQueue: queueInput,
     });
     expect(built).toEqual(recovery);
     expect(settings.captionStyle).not.toBe(recovery.captionStyle);
     expect(built.captionStyle).not.toBe(settings.captionStyle);
-    expect(built.clipQueue).not.toBe(recovery.clipQueue);
-    expect(built.clipQueue[0]).not.toBe(recovery.clipQueue[0]);
-    expect(built.clipQueue[0].settings).not.toBe(recovery.clipQueue[0].settings);
-    expect(built.clipQueue[0].settings?.captionStyle).not.toBe(recovery.clipQueue[0].settings?.captionStyle);
+    expect(built.clipQueue).not.toBe(queueInput);
+    expect(built.clipQueue[0]).not.toBe(queueInput[0]);
+    expect(built.clipQueue[0].settings).not.toBe(queueInput[0].settings);
+    expect(built.clipQueue[0].settings?.captionStyle).not.toBe(queueInput[0].settings?.captionStyle);
 
-    recovery.clipQueue[0].name = 'changed-after-snapshot';
-    if (recovery.clipQueue[0].settings) {
-      recovery.clipQueue[0].settings.captionStyle.size = 'medium';
+    queueInput[0].name = 'changed-after-snapshot';
+    if (queueInput[0].settings) {
+      queueInput[0].settings.captionStyle.size = 'medium';
     }
     expect(built.clipQueue[0].name).toBe('waterfall');
     expect(built.clipQueue[0].settings?.captionStyle.size).toBe('small');
