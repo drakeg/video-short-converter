@@ -268,7 +268,7 @@ Acceptance criteria:
 - Require normal CI and any applicable specialized checks to be green before merge.
 
 ## Sprint 40 - Active render-option resolution
-Status: **In progress**
+Status: **Complete**
 Goal:
 - Remove active single-clip render-option construction from `VideoEditor.tsx` and resolve it through a typed helper.
 
@@ -278,6 +278,18 @@ Acceptance criteria:
 - Reuse the helper in the preview-first processing path.
 - Keep batch export behavior, filenames, user-facing behavior, dependencies, AWS-disabled policy, and local-only processing unchanged.
 - Add focused unit coverage for active render option resolution.
+
+## Sprint 41 - Playback navigation calculation extraction
+Status: **In progress**
+Goal:
+- Remove playback seek/offset and mark-boundary arithmetic from `VideoEditor.tsx` while preserving current interaction behavior.
+
+Acceptance criteria:
+- Add pure helpers for seek clamping, time offsets, frame-step conversion, mark-in normalization, and mark-out normalization.
+- Reuse the helpers in direct seeking, quick jumps, frame stepping, and mark-in/out handlers.
+- Preserve the existing near-zero mark-in snap and never allow mark-out before mark-in.
+- Add focused tests for bounds, frame offsets, near-zero mark-in, and mark-out-before-start cases.
+- Keep user-facing behavior, dependencies, AWS-disabled policy, and local-only processing unchanged.
 
 Recommended next increments:
 - Continue extracting editor responsibilities behind typed helpers before adding larger features.

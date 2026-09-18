@@ -6,7 +6,7 @@ This backlog is the active, prioritized work queue for Video Shorts Editor. Comp
 
 | Priority | Item | State | User value / outcome | Acceptance summary |
 | --- | --- | --- | --- | --- |
-| P1 | Sprint 40 — centralize active render options | In progress | Less duplicated export wiring and lower regression risk | Active preview processing resolves video/audio/output/caption options through a typed helper shared with the export settings model |
+| P1 | Sprint 41 — extract playback navigation calculations | In progress | More predictable seek/mark behavior and less component responsibility | Pure helpers own seek bounds, quick/frame offsets, and mark-in/out normalization; focused tests cover edge cases |
 | P1 | Further reduce `VideoEditor.tsx` responsibilities | Ready | Easier maintenance and lower regression risk | Extract another cohesive editor responsibility behind typed/tested helpers without changing user-visible behavior |
 | P1 | Recovery schema versioning/migration strategy | Ready | Safer future evolution of saved projects | Explicit schema/version handling preserves existing v1 data and tests migration/rejection paths |
 | P2 | Optional local transcription feasibility spike | Ready | Faster transcript-assisted editing without cloud upload | Document browser/runtime options, performance constraints, bundle size, privacy, and a zero-cost recommendation before implementation |
