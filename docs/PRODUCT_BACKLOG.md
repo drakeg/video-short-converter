@@ -6,9 +6,9 @@ This backlog is the active, prioritized work queue for Video Shorts Editor. Comp
 
 | Priority | Item | State | User value / outcome | Acceptance summary |
 | --- | --- | --- | --- | --- |
-| P0 | Sprint 42 — profile API CORS reliability hotfix | In progress | Profile load/save works from supported HTTPS deployments | API Gateway CORS accepts HTTPS deployment origins; profile fetch failures surface actionable network/CORS diagnostics; focused auth coverage protects the error path |
+| P0 | Apply Sprint 42 profile CORS Terraform change | Blocked — manual approval/deployment required | Makes the merged profile fix live in API Gateway | Run the explicitly authorized/manual Terraform apply; automated AWS deployment remains disabled |
+| P1 | Sprint 43 — recovery schema versioning/migration | In progress | Safer future evolution of saved projects | Serialize an explicit versioned envelope, migrate legacy unversioned v1 data, and reject unknown versions with focused tests |
 | P1 | Further reduce `VideoEditor.tsx` responsibilities | Ready | Easier maintenance and lower regression risk | Extract another cohesive editor responsibility behind typed/tested helpers without changing user-visible behavior |
-| P1 | Recovery schema versioning/migration strategy | Ready | Safer future evolution of saved projects | Explicit schema/version handling preserves existing v1 data and tests migration/rejection paths |
 | P2 | Optional local transcription feasibility spike | Ready | Faster transcript-assisted editing without cloud upload | Document browser/runtime options, performance constraints, bundle size, privacy, and a zero-cost recommendation before implementation |
 | P2 | Clip queue UX refinement | Ready | Faster editing of many shorts | Identify and implement a small usability improvement with keyboard/accessibility coverage |
 | P2 | Export history usability refinement | Ready | Easier reuse of prior work | Improve restore/history clarity without storing video bytes or requiring a backend |

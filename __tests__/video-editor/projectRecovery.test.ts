@@ -1,4 +1,4 @@
-import { buildRecoverableProjectState, buildSourceFingerprint, parseProjectRecovery, recoveryExportSettings, serializeProjectRecovery, sourceMatchesRecovery, type RecoverableProjectState } from '@/components/video-editor/projectRecovery';
+import { buildRecoverableProjectState, buildSourceFingerprint, parseProjectRecovery, PROJECT_RECOVERY_SCHEMA_VERSION, recoveryExportSettings, serializeProjectRecovery, sourceMatchesRecovery, type RecoverableProjectState } from '@/components/video-editor/projectRecovery';
 
 const source = { name: 'trip.mp4', size: 123456, lastModified: 1700000000000 };
 const recovery: RecoverableProjectState = {
@@ -29,8 +29,23 @@ const recovery: RecoverableProjectState = {
 };
 
 describe('project recovery', () => {
-  it('round-trips recoverable editor metadata including clip settings', () => {
-    expect(parseProjectRecovery(serializeProjectRecovery(recovery))).toEqual(recovery);
+  it('serializes an explicit versioned envelope and round-trips recovery metadata', () => {
+    const serialized = serializeProjectRecovery(recovery);
+    expect(JSON.parse(serialized)).toEqual({
+      version: PROJECT_RECOVERY_SCHEMA_VERSION,
+      state: recovery,
+    });
+    expect(parseProjectRecovery(serialized)).toEqual(recovery);
+  });
+
+  it('migrates legacy unversioned recovery payloads through the current parser', () => {
+    expect(parseProjectRecovery(JSON.stringify(recovery))).toEqual(recovery);
+  });
+
+  it('rejects unknown recovery schema versions instead of guessing their shape', () => {
+    expect(parseProjectRecovery(JSON.stringify({ version: 2, state: recovery }))).toBeNull();
+    expect(parseProjectRecovery(JSON.stringify({ version: '1', state: recovery }))).toBeNull();
+    expect(parseProjectRecovery(JSON.stringify({ version: 1 }))).toBeNull();
   });
 
   it('builds recovery metadata from the same export settings snapshot used by queue and batch fallback', () => {
