@@ -308,7 +308,7 @@ Operational follow-up:
 - The API Gateway CORS change is not live until the explicitly authorized/manual Terraform apply is performed. Automated AWS deployment remains disabled.
 
 ## Sprint 43 - Recovery schema versioning and migration
-Status: **In progress**
+Status: **Complete**
 Goal:
 - Make persisted project recovery evolution explicit instead of relying on implicit shape compatibility.
 
@@ -319,6 +319,20 @@ Acceptance criteria:
 - Keep the existing recovered editor-state validation/normalization rules unchanged.
 - Add focused tests for versioned round trips, legacy migration, and unknown-version rejection.
 - Add no dependency, paid service, cloud processing, or automated AWS deployment.
+
+## Sprint 44 - Source selection and recovery resolution extraction
+Status: **In progress**
+Goal:
+- Remove video validation, recovery matching, and initial trim/queue decision logic from `VideoEditor.tsx` while preserving current source-selection behavior.
+
+Acceptance criteria:
+- Add one typed resolver for source validation and pending-recovery matching.
+- Return the initial trim range, queue, and warning/error state required by the editor.
+- Restore recovery only when stable source metadata matches the selected file.
+- Preserve large-file warnings when recovery is not applied.
+- Reuse the resolver from the file-selection handler while keeping React/media element state ownership in the editor.
+- Add focused tests for invalid files, matching recovery, mismatched recovery, and large-file warnings.
+- Keep dependencies, AWS-disabled policy, cloud processing, and user-facing behavior unchanged.
 
 Recommended next increments:
 - Continue extracting editor responsibilities behind typed helpers before adding larger features.
