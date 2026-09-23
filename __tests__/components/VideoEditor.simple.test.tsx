@@ -1,5 +1,5 @@
 import React from 'react';
-import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import '@testing-library/jest-dom';
 
 jest.mock('next/dynamic', () => () => function MockDynamicComponent() {
@@ -34,6 +34,22 @@ describe('VideoEditor', () => {
     await act(async () => { fireEvent.change(fileInput, { target: { files: [file] } }); });
     expect(mockCreateObjectURL).toHaveBeenCalledWith(file);
     expect(screen.getByLabelText('Video player')).toBeInTheDocument();
+  });
+
+  it('keeps primary editing controls grouped with the video', async () => {
+    const file = new File(['test'], 'test.mp4', { type: 'video/mp4' });
+    const { container } = render(<VideoEditorContent />);
+    const fileInput = container.querySelector('input[type="file"]') as HTMLInputElement;
+    fireEvent.change(fileInput, { target: { files: [file] } });
+
+    const editingControls = screen.getByRole('region', { name: 'Video editing controls' });
+    expect(within(editingControls).getByLabelText('Video player')).toBeInTheDocument();
+    expect(within(editingControls).getByRole('button', { name: 'Mark Start' })).toBeInTheDocument();
+    expect(within(editingControls).getByRole('button', { name: 'Mark End' })).toBeInTheDocument();
+    expect(within(editingControls).getByRole('button', { name: /Process .* Short/ })).toBeInTheDocument();
+
+    const options = screen.getByRole('complementary', { name: 'Editing options and clip queue' });
+    expect(options).toBeInTheDocument();
   });
 
   it('shows loaded video duration', async () => {
