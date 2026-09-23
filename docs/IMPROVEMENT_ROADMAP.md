@@ -377,7 +377,7 @@ Acceptance criteria:
 - Keep dependencies, AWS-disabled policy, cloud processing, and user-facing behavior unchanged.
 
 ## Sprint 48 - Time and progress presentation extraction
-Status: **In progress**
+Status: **Complete**
 Goal:
 - Remove editor time formatting, open-trim duration math, and render progress normalization from `VideoEditor.tsx` while preserving displayed values and progress behavior.
 
@@ -388,6 +388,20 @@ Acceptance criteria:
 - Preserve batch progress ordering and final 100% completion behavior.
 - Reuse the helpers in time-update, live mark-in duration tracking, single processing, batch processing, and displayed time labels.
 - Add focused tests for time formatting, progress bounds, percent/fraction inputs, batch math, and non-negative duration.
+- Keep dependencies, AWS-disabled policy, cloud processing, and user-facing behavior unchanged.
+
+## Sprint 49 - Editor persistence hydration extraction
+Status: **In progress**
+Goal:
+- Remove local-storage parsing decisions from the editor startup effect while preserving preference and recovery behavior.
+
+Acceptance criteria:
+- Add one typed helper that parses export preferences and pending project recovery together.
+- Reuse the existing preference and recovery parsers rather than duplicating validation rules.
+- Preserve partial preference hydration and pending-recovery behavior exactly as before.
+- Treat malformed or missing persisted payloads safely as empty preferences/no recovery.
+- Keep runtime-support detection and React state mutation inside `VideoEditor.tsx`.
+- Add focused tests for valid persisted state, malformed payloads, and missing values.
 - Keep dependencies, AWS-disabled policy, cloud processing, and user-facing behavior unchanged.
 
 Recommended next increments:
