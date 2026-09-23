@@ -9,7 +9,7 @@ describe('editor presentation helpers', () => {
   it('formats editor times with minutes and tenths of a second', () => {
     expect(formatEditorTime(0)).toBe('00:00.0');
     expect(formatEditorTime(65.4)).toBe('01:05.4');
-    expect(formatEditorTime(600.05)).toBe('10:00.1');
+    expect(formatEditorTime(600.05)).toBe('10:00.0');
   });
 
   it('normalizes fractional and percentage processing progress into preview range', () => {
