@@ -335,7 +335,7 @@ Acceptance criteria:
 - Keep dependencies, AWS-disabled policy, cloud processing, and user-facing behavior unchanged.
 
 ## Sprint 45 - Keyboard shortcut resolution extraction
-Status: **In progress**
+Status: **Complete**
 Goal:
 - Remove shortcut eligibility and key-mapping decisions from `VideoEditor.tsx` while preserving existing editor keyboard behavior.
 
@@ -346,6 +346,20 @@ Acceptance criteria:
 - Keep event prevention behavior unchanged for playback/frame navigation.
 - Reuse the resolver from the global keydown effect while keeping media/state actions in the editor.
 - Add focused tests for supported keys, editable targets, preview/no-video state, and unrelated keys.
+- Keep dependencies, AWS-disabled policy, cloud processing, and user-facing behavior unchanged.
+
+## Sprint 46 - Browser file lifecycle extraction
+Status: **In progress**
+Goal:
+- Remove browser object-URL and download DOM plumbing from `VideoEditor.tsx` while preserving current file/preview/export behavior.
+
+Acceptance criteria:
+- Add shared helpers for replacing object URLs, revoking object URLs, and dispatching browser file downloads.
+- Reuse URL replacement for selected source files and processed preview files.
+- Reuse URL cleanup for processed resets and component cleanup effects.
+- Reuse download dispatch for processed single clips and packaged batch downloads.
+- Preserve downloaded filenames and asynchronous temporary-URL revocation behavior.
+- Add focused tests for replacement cleanup, null cleanup, and browser download dispatch.
 - Keep dependencies, AWS-disabled policy, cloud processing, and user-facing behavior unchanged.
 
 Recommended next increments:
