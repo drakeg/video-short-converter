@@ -31,7 +31,7 @@ describe('resolveLoadedMediaState', () => {
     });
   });
 
-  it('preserves an open-ended start mark after metadata loads', () => {
+  it('resolves an open-ended start mark to the loaded media duration', () => {
     expect(resolveLoadedMediaState(
       { duration: 60, videoWidth: 640, videoHeight: 360 },
       12,
@@ -41,8 +41,8 @@ describe('resolveLoadedMediaState', () => {
       sourceWidth: 640,
       sourceHeight: 360,
       startTime: 12,
-      endTime: null,
-      trimDuration: 0,
+      endTime: 60,
+      trimDuration: 48,
     });
   });
 });
