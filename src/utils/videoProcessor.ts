@@ -13,13 +13,43 @@ let ffmpegInstance: FFmpegClient | null = null;
 let initializationPromise: Promise<FFmpegClient> | null = null;
 let captionValidationPromise: Promise<void> | null = null;
 let captionRuntimeValidated = false;
+const ffmpegDiagnostics: string[] = [];
+const MAX_FFMPEG_DIAGNOSTICS = 12;
+
+function recordFFmpegDiagnostic(type: string, message: string) {
+  const normalized = message.trim();
+  if (!normalized) return;
+  ffmpegDiagnostics.push(`[${type}] ${normalized}`);
+  if (ffmpegDiagnostics.length > MAX_FFMPEG_DIAGNOSTICS) ffmpegDiagnostics.shift();
+}
+
+export function describeVideoProcessingFailure(error: unknown, diagnostics: string[] = ffmpegDiagnostics): string {
+  const detail = error instanceof Error
+    ? error.message
+    : typeof error === 'string'
+      ? error
+      : error == null
+        ? ''
+        : String(error);
+
+  const recent = diagnostics
+    .map((line) => line.trim())
+    .filter(Boolean)
+    .slice(-4)
+    .join(' | ');
+
+  if (detail && recent && !recent.includes(detail)) return `${detail} — FFmpeg: ${recent}`;
+  if (detail) return detail;
+  if (recent) return `FFmpeg: ${recent}`;
+  return 'Unknown video processor error.';
+}
 
 function getCorePath(): string { if (typeof window === 'undefined') return '/ffmpeg/ffmpeg-core.js'; return new URL('/ffmpeg/ffmpeg-core.js', window.location.origin).href; }
 async function getFFmpegClient(): Promise<FFmpegClient> {
   if (typeof window === 'undefined') throw new Error('FFmpeg can only be used in the browser');
   if (ffmpegInstance) return ffmpegInstance;
   if (initializationPromise) return initializationPromise;
-  initializationPromise = (async () => { try { const ffmpeg = createFFmpeg({ log: false, corePath: getCorePath() }); await ffmpeg.load(); ffmpegInstance = ffmpeg; return ffmpeg; } catch (error) { ffmpegInstance = null; throw new Error(error instanceof Error && /network|fetch|load|404/i.test(error.message) ? 'Unable to load the local video processor assets. Reload the page and try again.' : 'Unable to initialize the video processor. Please reload and try again.'); } finally { initializationPromise = null; } })();
+  initializationPromise = (async () => { try { const ffmpeg = createFFmpeg({ log: false, corePath: getCorePath(), logger: ({ type, message }) => recordFFmpegDiagnostic(type, message) }); await ffmpeg.load(); ffmpegInstance = ffmpeg; return ffmpeg; } catch (error) { ffmpegInstance = null; throw new Error(error instanceof Error && /network|fetch|load|404/i.test(error.message) ? 'Unable to load the local video processor assets. Reload the page and try again.' : 'Unable to initialize the video processor. Please reload and try again.'); } finally { initializationPromise = null; } })();
   return initializationPromise;
 }
 function safeUnlink(ffmpeg: FFmpegClient, fileName: string) { try { const files = ffmpeg.FS('readdir', '/'); if (files.includes(fileName)) ffmpeg.FS('unlink', fileName); } catch { /* best-effort cleanup */ } }
@@ -65,6 +95,7 @@ export async function trimVideo(file: File, startTime: number, endTime: number, 
   if (captions.enabled) await validateCaptionBurnInSupport();
   const ffmpeg = await getFFmpegClient(); const suffix = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`; const inputName = `input-${suffix}.mp4`; const outputName = `output-${suffix}.mp4`; const duration = endTime - startTime; const overlayNames: string[] = [];
   try {
+    ffmpegDiagnostics.length = 0;
     onProgress?.(.01); ffmpeg.FS('writeFile', inputName, await fetchFile(file));
     const validCues = captions.enabled ? (captions.cues ?? []).filter((cue) => Number.isFinite(cue.start) && Number.isFinite(cue.end) && cue.end > cue.start && cue.text.trim()) : [];
     const preset = getExportPreset(options.presetId);
@@ -91,6 +122,6 @@ export async function trimVideo(file: File, startTime: number, endTime: number, 
     onProgress?.(.97); const data = ffmpeg.FS('readFile', outputName); if (!data?.length) throw new Error('The video processor produced an empty file. Try a different trim range or source video.'); const outputBytes = new Uint8Array(data.length); outputBytes.set(data); onProgress?.(1);
     const fileName = output.clipName ? buildClipFileName(file.name, output.clipName) : `short-${file.name.replace(/\.[^/.]+$/, '')}-${Date.now()}.mp4`;
     return new File([new Blob([outputBytes.buffer], { type: 'video/mp4' })], fileName, { type: 'video/mp4' });
-  } catch (error) { if (error instanceof Error && (error.message.startsWith('Unable') || error.message.startsWith('The video') || error.message.startsWith('Burned-in'))) throw error; throw new Error(`Video processing failed${error instanceof Error && error.message ? `: ${error.message}` : '. Please try again.'}`); }
+  } catch (error) { if (error instanceof Error && (error.message.startsWith('Unable') || error.message.startsWith('The video') || error.message.startsWith('Burned-in'))) throw error; throw new Error(`Video processing failed: ${describeVideoProcessingFailure(error)}`); }
   finally { safeUnlink(ffmpeg, inputName); safeUnlink(ffmpeg, outputName); overlayNames.forEach((name) => safeUnlink(ffmpeg, name)); ffmpeg.setProgress(() => undefined); }
 }
