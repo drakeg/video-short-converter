@@ -52,6 +52,20 @@ describe('VideoEditor', () => {
     expect(options).toBeInTheDocument();
   });
 
+  it('places transport and mark controls before timeline fields', async () => {
+    const file = new File(['test'], 'test.mp4', { type: 'video/mp4' });
+    const { container } = render(<VideoEditorContent />);
+    const fileInput = container.querySelector('input[type="file"]') as HTMLInputElement;
+    fireEvent.change(fileInput, { target: { files: [file] } });
+
+    const markStart = screen.getByRole('button', { name: 'Mark Start' });
+    const playhead = screen.getByLabelText('Playhead');
+    const exactStart = screen.getByLabelText('Exact trim start');
+
+    expect(markStart.compareDocumentPosition(playhead) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(markStart.compareDocumentPosition(exactStart) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+  });
+
   it('shows loaded video duration', async () => {
     const file = new File(['test'], 'test.mp4', { type: 'video/mp4' });
     const { container } = render(<VideoEditorContent />);
