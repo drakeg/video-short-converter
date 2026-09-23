@@ -363,7 +363,7 @@ Acceptance criteria:
 - Keep dependencies, AWS-disabled policy, cloud processing, and user-facing behavior unchanged.
 
 ## Sprint 47 - Clip queue mutation extraction
-Status: **In progress**
+Status: **Complete**
 Goal:
 - Remove clip queue append/rename/remove/retry filtering logic from `VideoEditor.tsx` while preserving queue behavior.
 
@@ -374,6 +374,20 @@ Acceptance criteria:
 - Keep failed-id cleanup synchronized with clip removal.
 - Reuse failed-clip selection for retry export.
 - Add focused unit tests for append, rename, remove, failed-id cleanup, and failed-clip selection.
+- Keep dependencies, AWS-disabled policy, cloud processing, and user-facing behavior unchanged.
+
+## Sprint 48 - Time and progress presentation extraction
+Status: **In progress**
+Goal:
+- Remove editor time formatting, open-trim duration math, and render progress normalization from `VideoEditor.tsx` while preserving displayed values and progress behavior.
+
+Acceptance criteria:
+- Add pure helpers for editor time formatting, open-ended trim duration, single-export progress normalization, and batch progress calculation.
+- Preserve support for both fractional (0–1) and percentage (0–100) processor progress callbacks.
+- Preserve the existing 99% cap during active single-clip processing until completion is explicitly set to 100%.
+- Preserve batch progress ordering and final 100% completion behavior.
+- Reuse the helpers in time-update, live mark-in duration tracking, single processing, batch processing, and displayed time labels.
+- Add focused tests for time formatting, progress bounds, percent/fraction inputs, batch math, and non-negative duration.
 - Keep dependencies, AWS-disabled policy, cloud processing, and user-facing behavior unchanged.
 
 Recommended next increments:
