@@ -435,7 +435,7 @@ Acceptance criteria:
 - Keep dependencies, AWS-disabled policy, cloud processing, and user-facing behavior unchanged.
 
 ## Sprint 52 - Primary editor control priority
-Status: **In progress**
+Status: **Complete**
 Goal:
 - Keep the controls used while watching the video immediately adjacent to the video so marking clips does not require scrolling past timeline/detail fields.
 
@@ -446,6 +446,22 @@ Acceptance criteria:
 - Keep Process and source metadata in the primary editing pane without changing processing behavior.
 - Preserve the existing wide-screen sticky editing pane and secondary options column.
 - Add focused UI coverage confirming mark controls appear before timeline/playhead and exact trim fields.
+- Keep dependencies, AWS-disabled policy, cloud processing, and media-processing behavior unchanged.
+
+## Sprint 53 - Mark controls drive playback
+Status: **In progress**
+Goal:
+- Make the primary mark workflow require fewer clicks by coupling mark actions to the expected playback state.
+
+Acceptance criteria:
+- Mark Start records the current in-point and starts video playback.
+- Mark End records the current out-point and pauses video playback.
+- Play/Pause remains available as an independent transport control.
+- Preserve the existing live trim-duration tracking between Start and End.
+- Surface the existing playback error if the browser rejects playback after Mark Start.
+- Add focused UI coverage for play-on-start and pause-on-end behavior.
+- Preserve non-Error FFmpeg rejection details and recent processor diagnostics in export failure messages.
+- Add focused tests for export error normalization and diagnostic fallback.
 - Keep dependencies, AWS-disabled policy, cloud processing, and media-processing behavior unchanged.
 
 Recommended next increments:

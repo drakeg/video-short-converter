@@ -10,16 +10,20 @@ const { VideoEditorContent } = jest.requireActual('../../src/components/VideoEdi
 
 const mockCreateObjectURL = jest.fn(() => 'blob:mock-video');
 const mockRevokeObjectURL = jest.fn();
+const mockPlay = jest.fn().mockResolvedValue(undefined);
+const mockPause = jest.fn();
 
 Object.defineProperty(window.URL, 'createObjectURL', { value: mockCreateObjectURL, writable: true });
 Object.defineProperty(window.URL, 'revokeObjectURL', { value: mockRevokeObjectURL, writable: true });
+Object.defineProperty(HTMLMediaElement.prototype, 'play', { value: mockPlay, writable: true });
+Object.defineProperty(HTMLMediaElement.prototype, 'pause', { value: mockPause, writable: true });
 Object.defineProperty(window, 'Notification', {
   value: { requestPermission: jest.fn().mockResolvedValue('granted'), permission: 'granted' },
   writable: true,
 });
 
 describe('VideoEditor', () => {
-  beforeEach(() => { jest.clearAllMocks(); });
+  beforeEach(() => { jest.clearAllMocks(); mockPlay.mockResolvedValue(undefined); });
 
   it('renders the empty editor state', () => {
     render(<VideoEditorContent />);
@@ -75,6 +79,26 @@ describe('VideoEditor', () => {
     Object.defineProperty(video, 'duration', { value: 30, configurable: true });
     fireEvent.loadedMetadata(video);
     await waitFor(() => { expect(screen.getByText('00:00.0 / 00:30.0')).toBeInTheDocument(); });
+  });
+
+  it('starts playback when marking start and pauses when marking end', async () => {
+    const file = new File(['test'], 'test.mp4', { type: 'video/mp4' });
+    const { container } = render(<VideoEditorContent />);
+    const fileInput = container.querySelector('input[type="file"]') as HTMLInputElement;
+    fireEvent.change(fileInput, { target: { files: [file] } });
+    const video = screen.getByLabelText('Video player') as HTMLVideoElement;
+
+    Object.defineProperty(video, 'duration', { value: 30, configurable: true });
+    Object.defineProperty(video, 'currentTime', { value: 2, writable: true, configurable: true });
+    fireEvent.loadedMetadata(video);
+
+    fireEvent.click(screen.getByRole('button', { name: 'Mark Start' }));
+    expect(mockPlay).toHaveBeenCalledTimes(1);
+
+    video.currentTime = 8;
+    fireEvent.timeUpdate(video);
+    fireEvent.click(screen.getByRole('button', { name: 'Mark End' }));
+    expect(mockPause).toHaveBeenCalledTimes(1);
   });
 
   it('marks a trim start and end using the current video time', async () => {
