@@ -405,7 +405,7 @@ Acceptance criteria:
 - Keep dependencies, AWS-disabled policy, cloud processing, and user-facing behavior unchanged.
 
 ## Sprint 50 - Loaded media state resolution extraction
-Status: **In progress**
+Status: **Complete**
 Goal:
 - Remove loaded-video metadata and recovered trim normalization decisions from `VideoEditor.tsx` while preserving current behavior.
 
@@ -416,6 +416,20 @@ Acceptance criteria:
 - Preserve the existing behavior that resolves an open-ended start mark to the loaded media duration.
 - Keep React state mutation and media element ownership inside `VideoEditor.tsx`.
 - Add focused tests for normal metadata, recovered ranges exceeding duration, and open-ended trim state.
+- Keep dependencies, AWS-disabled policy, cloud processing, and user-facing behavior unchanged.
+
+## Sprint 51 - Editor action availability extraction
+Status: **In progress**
+Goal:
+- Remove duplicated trim-validity and action-gating rules from `VideoEditor.tsx` so UI availability and execution guards share one source of truth.
+
+Acceptance criteria:
+- Add pure helpers for trim-range validity, current-clip processing availability, queue-add availability, and target-clip export availability.
+- Reuse the same processing rule for the process button disabled state and the process callback guard.
+- Preserve queue-add behavior for invalid/missing trim ranges.
+- Preserve batch-export behavior for missing source, active processing, and empty target sets.
+- Keep React state mutation, media processing, and export orchestration inside `VideoEditor.tsx`.
+- Add focused tests for valid/invalid ranges, missing source, busy state, and empty/non-empty export targets.
 - Keep dependencies, AWS-disabled policy, cloud processing, and user-facing behavior unchanged.
 
 Recommended next increments:
