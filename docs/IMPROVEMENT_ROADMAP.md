@@ -419,7 +419,7 @@ Acceptance criteria:
 - Keep dependencies, AWS-disabled policy, cloud processing, and user-facing behavior unchanged.
 
 ## Sprint 51 - Editor action availability extraction
-Status: **In progress**
+Status: **Complete**
 Goal:
 - Remove duplicated trim-validity/action-gating rules and improve the loaded-editor layout so the video and core trimming controls remain together during editing.
 
@@ -433,6 +433,20 @@ Acceptance criteria:
 - On smaller screens, place primary editing controls immediately after the video before secondary options.
 - Add focused tests for valid/invalid ranges, missing source, busy state, empty/non-empty export targets, and primary-control grouping.
 - Keep dependencies, AWS-disabled policy, cloud processing, and user-facing behavior unchanged.
+
+## Sprint 52 - Primary editor control priority
+Status: **In progress**
+Goal:
+- Keep the controls used while watching the video immediately adjacent to the video so marking clips does not require scrolling past timeline/detail fields.
+
+Acceptance criteria:
+- Place quick-jump, frame-step, and play/pause controls directly below the video.
+- Place Mark Start and Mark End immediately below transport controls.
+- Move timeline/playhead and exact in/out controls below the primary transport/mark controls.
+- Keep Process and source metadata in the primary editing pane without changing processing behavior.
+- Preserve the existing wide-screen sticky editing pane and secondary options column.
+- Add focused UI coverage confirming mark controls appear before timeline/playhead and exact trim fields.
+- Keep dependencies, AWS-disabled policy, cloud processing, and media-processing behavior unchanged.
 
 Recommended next increments:
 - Continue extracting editor responsibilities behind typed helpers before adding larger features.
