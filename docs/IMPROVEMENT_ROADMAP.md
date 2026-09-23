@@ -321,7 +321,7 @@ Acceptance criteria:
 - Add no dependency, paid service, cloud processing, or automated AWS deployment.
 
 ## Sprint 44 - Source selection and recovery resolution extraction
-Status: **In progress**
+Status: **Complete**
 Goal:
 - Remove video validation, recovery matching, and initial trim/queue decision logic from `VideoEditor.tsx` while preserving current source-selection behavior.
 
@@ -332,6 +332,20 @@ Acceptance criteria:
 - Preserve large-file warnings when recovery is not applied.
 - Reuse the resolver from the file-selection handler while keeping React/media element state ownership in the editor.
 - Add focused tests for invalid files, matching recovery, mismatched recovery, and large-file warnings.
+- Keep dependencies, AWS-disabled policy, cloud processing, and user-facing behavior unchanged.
+
+## Sprint 45 - Keyboard shortcut resolution extraction
+Status: **In progress**
+Goal:
+- Remove shortcut eligibility and key-mapping decisions from `VideoEditor.tsx` while preserving existing editor keyboard behavior.
+
+Acceptance criteria:
+- Add a pure typed resolver for supported editor shortcuts.
+- Ignore shortcuts when no video is loaded, processed preview is visible, or focus is in input/select/textarea/contenteditable controls.
+- Preserve Space play/pause, left/right frame stepping, and I/O mark-in/out mappings.
+- Keep event prevention behavior unchanged for playback/frame navigation.
+- Reuse the resolver from the global keydown effect while keeping media/state actions in the editor.
+- Add focused tests for supported keys, editable targets, preview/no-video state, and unrelated keys.
 - Keep dependencies, AWS-disabled policy, cloud processing, and user-facing behavior unchanged.
 
 Recommended next increments:
