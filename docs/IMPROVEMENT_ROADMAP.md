@@ -421,7 +421,7 @@ Acceptance criteria:
 ## Sprint 51 - Editor action availability extraction
 Status: **In progress**
 Goal:
-- Remove duplicated trim-validity and action-gating rules from `VideoEditor.tsx` so UI availability and execution guards share one source of truth.
+- Remove duplicated trim-validity/action-gating rules and improve the loaded-editor layout so the video and core trimming controls remain together during editing.
 
 Acceptance criteria:
 - Add pure helpers for trim-range validity, current-clip processing availability, queue-add availability, and target-clip export availability.
@@ -429,7 +429,9 @@ Acceptance criteria:
 - Preserve queue-add behavior for invalid/missing trim ranges.
 - Preserve batch-export behavior for missing source, active processing, and empty target sets.
 - Keep React state mutation, media processing, and export orchestration inside `VideoEditor.tsx`.
-- Add focused tests for valid/invalid ranges, missing source, busy state, and empty/non-empty export targets.
+- On wide screens, keep the video and primary timeline/transport/mark/process controls in a sticky editing pane with transcript/export/audio/queue options in a secondary column.
+- On smaller screens, place primary editing controls immediately after the video before secondary options.
+- Add focused tests for valid/invalid ranges, missing source, busy state, empty/non-empty export targets, and primary-control grouping.
 - Keep dependencies, AWS-disabled policy, cloud processing, and user-facing behavior unchanged.
 
 Recommended next increments:
