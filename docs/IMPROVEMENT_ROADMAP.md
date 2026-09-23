@@ -460,6 +460,8 @@ Acceptance criteria:
 - Preserve the existing live trim-duration tracking between Start and End.
 - Surface the existing playback error if the browser rejects playback after Mark Start.
 - Add focused UI coverage for play-on-start and pause-on-end behavior.
+- Preserve non-Error FFmpeg rejection details and recent processor diagnostics in export failure messages.
+- Add focused tests for export error normalization and diagnostic fallback.
 - Keep dependencies, AWS-disabled policy, cloud processing, and media-processing behavior unchanged.
 
 Recommended next increments:
