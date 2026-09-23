@@ -7,7 +7,7 @@ This backlog is the active, prioritized work queue for Video Shorts Editor. Comp
 | Priority | Item | State | User value / outcome | Acceptance summary |
 | --- | --- | --- | --- | --- |
 | P0 | Apply Sprint 42 profile CORS Terraform change | Blocked — manual approval/deployment required | Makes the merged profile fix live in API Gateway | Run the explicitly authorized/manual Terraform apply; automated AWS deployment remains disabled |
-| P1 | Sprint 50 — extract loaded media state resolution | In progress | Safer metadata/recovery normalization and less component responsibility | Pure helper resolves loaded duration/dimensions plus normalized recovered trim state; focused tests cover normal, clamped, and open-ended-to-duration ranges |
+| P1 | Sprint 51 — extract editor action availability rules | In progress | Consistent process/queue/export gating and less component responsibility | Pure helpers centralize trim validity plus single-process, queue-add, and batch-export availability; focused tests cover invalid ranges, busy state, missing source, and empty targets |
 | P1 | Further reduce `VideoEditor.tsx` responsibilities | Ready | Easier maintenance and lower regression risk | Extract another cohesive editor responsibility behind typed/tested helpers without changing user-visible behavior |
 | P2 | Optional local transcription feasibility spike | Ready | Faster transcript-assisted editing without cloud upload | Document browser/runtime options, performance constraints, bundle size, privacy, and a zero-cost recommendation before implementation |
 | P2 | Clip queue UX refinement | Ready | Faster editing of many shorts | Identify and implement a small usability improvement with keyboard/accessibility coverage |
