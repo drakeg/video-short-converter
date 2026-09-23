@@ -260,7 +260,7 @@ Goal:
 Acceptance criteria:
 - Add pure typed helpers for loaded-media range normalization, exact start updates, exact end updates, and explicit range selection.
 - Clamp loaded/exact trim values using the existing duration boundaries.
-- Preserve current null/end semantics for open-ended trim state.
+- Preserve current null/end semantics for open-ended-to-duration normalization.
 - Keep duration calculations non-negative.
 - Reuse the helpers from metadata loading, exact in/out edits, and suggested/queued clip selection.
 - Add focused unit coverage for negative/out-of-range values, open-ended ranges, and reversed selected ranges.
@@ -391,7 +391,7 @@ Acceptance criteria:
 - Keep dependencies, AWS-disabled policy, cloud processing, and user-facing behavior unchanged.
 
 ## Sprint 49 - Editor persistence hydration extraction
-Status: **In progress**
+Status: **Complete**
 Goal:
 - Remove local-storage parsing decisions from the editor startup effect while preserving preference and recovery behavior.
 
@@ -402,6 +402,20 @@ Acceptance criteria:
 - Treat malformed or missing persisted payloads safely as empty preferences/no recovery.
 - Keep runtime-support detection and React state mutation inside `VideoEditor.tsx`.
 - Add focused tests for valid persisted state, malformed payloads, and missing values.
+- Keep dependencies, AWS-disabled policy, cloud processing, and user-facing behavior unchanged.
+
+## Sprint 50 - Loaded media state resolution extraction
+Status: **In progress**
+Goal:
+- Remove loaded-video metadata and recovered trim normalization decisions from `VideoEditor.tsx` while preserving current behavior.
+
+Acceptance criteria:
+- Add one pure helper that resolves duration, source dimensions, and normalized trim state from loaded video metadata.
+- Reuse the existing trim-range normalization helper rather than duplicating bounds logic.
+- Preserve recovered trim clamping to the loaded duration.
+- Preserve the existing behavior that resolves an open-ended start mark to the loaded media duration.
+- Keep React state mutation and media element ownership inside `VideoEditor.tsx`.
+- Add focused tests for normal metadata, recovered ranges exceeding duration, and open-ended trim state.
 - Keep dependencies, AWS-disabled policy, cloud processing, and user-facing behavior unchanged.
 
 Recommended next increments:
