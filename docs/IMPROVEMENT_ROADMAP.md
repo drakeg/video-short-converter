@@ -349,7 +349,7 @@ Acceptance criteria:
 - Keep dependencies, AWS-disabled policy, cloud processing, and user-facing behavior unchanged.
 
 ## Sprint 46 - Browser file lifecycle extraction
-Status: **In progress**
+Status: **Complete**
 Goal:
 - Remove browser object-URL and download DOM plumbing from `VideoEditor.tsx` while preserving current file/preview/export behavior.
 
@@ -360,6 +360,20 @@ Acceptance criteria:
 - Reuse download dispatch for processed single clips and packaged batch downloads.
 - Preserve downloaded filenames and asynchronous temporary-URL revocation behavior.
 - Add focused tests for replacement cleanup, null cleanup, and browser download dispatch.
+- Keep dependencies, AWS-disabled policy, cloud processing, and user-facing behavior unchanged.
+
+## Sprint 47 - Clip queue mutation extraction
+Status: **In progress**
+Goal:
+- Remove clip queue append/rename/remove/retry filtering logic from `VideoEditor.tsx` while preserving queue behavior.
+
+Acceptance criteria:
+- Add pure helpers for appending a queue item, renaming a queue item, removing a queue item, removing failed ids, and selecting failed clips.
+- Preserve existing default clip naming/index behavior through `createClipQueueItem`.
+- Preserve queue ordering and immutable array updates.
+- Keep failed-id cleanup synchronized with clip removal.
+- Reuse failed-clip selection for retry export.
+- Add focused unit tests for append, rename, remove, failed-id cleanup, and failed-clip selection.
 - Keep dependencies, AWS-disabled policy, cloud processing, and user-facing behavior unchanged.
 
 Recommended next increments:
