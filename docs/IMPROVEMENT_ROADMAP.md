@@ -611,7 +611,7 @@ Acceptance criteria:
 - Keep backlog/roadmap documentation synchronized per the development standards.
 
 ## Sprint 64 - Local transcription feasibility spike
-Status: **In progress**
+Status: **Complete**
 Goal:
 - Determine whether useful automatic transcription can remain browser-local and zero recurring-cost before adding a model/runtime dependency.
 
@@ -625,6 +625,21 @@ Acceptance criteria:
 - Add a concrete next backlog item rather than silently implementing a transcription dependency.
 - Keep AWS disabled and add no dependency, paid service, cloud transcription, or runtime behavior in this spike.
 - Link the feasibility decision from the README and keep planning docs synchronized.
+
+## Sprint 65 - Local transcription prototype gate
+Status: **In progress**
+Goal:
+- Establish the developer-only capability and measurement boundary needed to prototype browser-local Whisper without adding production UX or silently increasing the normal editor bundle.
+
+Acceptance criteria:
+- Add an explicit public build-time developer flag that defaults off.
+- Resolve WebGPU as the preferred execution path and WASM as the constrained benchmark fallback.
+- Keep the prototype disabled unless explicitly enabled.
+- Define a typed benchmark record covering source duration, cold model load, transcription time, execution provider, cue count, and model identity.
+- Provide a deterministic realtime-factor calculation for benchmark comparison.
+- Add focused tests for disabled, WebGPU, WASM, and benchmark-calculation behavior.
+- Do not add a transcription runtime/model, production transcription button, source upload, cloud transcription, AWS change, or recurring cost in this boundary sprint.
+- Keep planning and local-development documentation synchronized.
 
 Recommended next increments:
 - Continue extracting editor responsibilities behind typed helpers before adding larger features.
