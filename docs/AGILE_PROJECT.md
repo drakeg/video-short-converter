@@ -30,6 +30,9 @@ Each sprint follows:
 5. **Review** — summarize behavior, scope, risks, and validation in the pull request.
 6. **Close** — update roadmap/backlog status after merge and identify the next increment.
 
+## Repository standards
+All implementation work follows [DEVELOPMENT_STANDARDS.md](DEVELOPMENT_STANDARDS.md). Coding, testing, Git/PR, security, documentation synchronization, and maintainability rules are part of the sprint quality gate rather than optional follow-up work.
+
 ## Definition of Ready
 A backlog item is ready when:
 - the user/problem statement is clear;
@@ -48,6 +51,7 @@ A sprint is done when:
 - no AWS resource or recurring paid service is activated unless explicitly approved;
 - user-facing or operational documentation is updated when behavior changes;
 - the roadmap/backlog reflects the merged result;
+- coding and contribution standards remain satisfied and are updated when the engineering process changes;
 - the pull request clearly states scope, validation, and any follow-up work.
 
 ## Backlog policy
