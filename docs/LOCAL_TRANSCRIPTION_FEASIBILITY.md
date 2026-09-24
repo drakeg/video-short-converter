@@ -126,7 +126,7 @@ A future implementation should:
 - verify static-export/Vercel/nginx serving of required MIME types and large assets.
 
 ## Proposed future implementation increments
-1. **Prototype:** hidden/developer-gated Transformers.js Whisper tiny English transcription on a short extracted audio sample; no production UX.
+1. **Prototype:** hidden/developer-gated Transformers.js Whisper tiny English transcription on a short extracted audio sample; no production UX. Sprint 65 established the capability/benchmark gate; Sprint 66 adds the independently tested Whisper adapter using the current upstream model id `onnx-community/whisper-tiny.en`. Runtime installation remains a separate increment so npm generates the lockfile rather than maintaining it manually.
 2. **Benchmark:** capture model size, cold load, inference time, memory, timestamps, and browser compatibility.
 3. **UX:** add explicit Transcribe locally action, compatibility explanation, model download disclosure/progress/cancel, transcription progress/cancel, and actionable errors.
 4. **Integration:** adapt timestamped output to `TranscriptCue[]`; existing suggestions/captions/export remain downstream consumers.
