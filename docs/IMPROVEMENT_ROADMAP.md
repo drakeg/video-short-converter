@@ -509,7 +509,7 @@ Acceptance criteria:
 - Keep dependencies, AWS-disabled policy, and local-only media processing unchanged.
 
 ## Sprint 57 - Explicit export stream mapping
-Status: **In progress**
+Status: **Complete**
 Goal:
 - Make FFmpeg stream selection deterministic instead of relying on automatic mapping for ordinary exports.
 
@@ -521,6 +521,22 @@ Acceptance criteria:
 - Preserve existing audio filters, AAC output, video filters, caption filters, output MP4 behavior, and diagnostics.
 - Add focused unit tests for normal, captioned, muted, and captioned-muted stream mappings.
 - Keep dependencies, AWS-disabled policy, and local-only media processing unchanged.
+
+## Sprint 58 - Clip queue reordering
+Status: **In progress**
+Goal:
+- Let users control the order of queued clips before batch/ZIP export without deleting and recreating ranges.
+
+Acceptance criteria:
+- Add Move Up and Move Down controls to every queued clip.
+- Give reorder controls clip-specific accessible labels.
+- Disable Move Up for the first clip and Move Down for the last clip.
+- Disable reorder controls while export processing is active.
+- Reorder queue items immutably and preserve the same array when a requested move is invalid.
+- Make the reordered queue naturally drive batch export order and existing project recovery persistence.
+- Add focused component coverage for accessible controls and boundary states.
+- Add focused mutation coverage for successful, boundary, and missing-item moves.
+- Keep dependencies, AWS-disabled policy, and media-processing behavior unchanged.
 
 Recommended next increments:
 - Continue extracting editor responsibilities behind typed helpers before adding larger features.
