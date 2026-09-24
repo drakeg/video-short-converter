@@ -84,6 +84,16 @@ A sprint is not complete if its documentation describes stale behavior.
 - Avoid unnecessary parallel media processing that increases browser memory pressure.
 - Preserve privacy boundaries: local source video and transcript contents should not leave the browser unless a future approved feature explicitly says otherwise.
 
+## Developer-facing API monetization
+- Any API intentionally offered for consumption by external developers or third-party applications must have a paywall/paid access boundary before it is considered production-ready.
+- Enforce entitlement server-side; never rely on a client-only feature flag, hidden route, or UI control as the paywall.
+- Authenticate developer access and associate credentials/API keys with an account and entitlement. Design for revocation, rotation, and auditability.
+- Define usage metering and rate/usage limits so paid access cannot become an unbounded infrastructure-cost path.
+- Keep internal application APIs and browser-local interfaces distinct from developer-facing APIs; do not accidentally paywall first-party application traffic.
+- Document the developer access model, entitlement checks, usage limits, error behavior, and operational ownership alongside the API.
+- Billing-provider activation, paid infrastructure, production credentials, pricing changes, or recurring spend still require explicit approval. Repository work may establish provider-neutral entitlement and metering boundaries without activating paid services.
+- Add regression tests proving unauthenticated/unentitled developer requests are denied and entitled requests follow the documented contract.
+
 ## Security and secrets
 - Never commit credentials, tokens, private keys, real secrets, or production-only values.
 - Public browser configuration must be safe to expose; `NEXT_PUBLIC_*` values are compiled into client assets.
