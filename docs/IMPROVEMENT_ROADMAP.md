@@ -583,7 +583,7 @@ Acceptance criteria:
 - Keep backlog/roadmap documentation synchronized per the development standards.
 
 ## Sprint 62 - Extract editor persistence reads
-Status: **In progress**
+Status: **Complete**
 Goal:
 - Complete the typed browser-storage boundary by removing raw persistence keys and hydration parsing from `VideoEditor.tsx`.
 
@@ -594,6 +594,20 @@ Acceptance criteria:
 - Preserve preference application, pending recovery behavior, local-only storage, and project recovery compatibility.
 - Add focused unit coverage verifying both established storage keys and hydrated preference results.
 - Keep user-visible behavior, dependencies, AWS-disabled policy, and media processing unchanged.
+- Keep backlog/roadmap documentation synchronized per the development standards.
+
+## Sprint 63 - Extract editor startup hydration mapping
+Status: **In progress**
+Goal:
+- Remove persisted preference/recovery interpretation from `VideoEditor.tsx` by resolving startup state through a pure typed helper.
+
+Acceptance criteria:
+- Add a pure startup-state resolver for hydrated preferences and pending recovery.
+- Preserve optional preference semantics, including valid zero crop positions.
+- Preserve pending recovery identity and null behavior.
+- Delegate startup interpretation from `VideoEditor.tsx` to the resolver.
+- Add focused unit tests for complete and absent preference cases.
+- Keep persistence keys/formats, user-visible behavior, dependencies, AWS-disabled policy, and media processing unchanged.
 - Keep backlog/roadmap documentation synchronized per the development standards.
 
 Recommended next increments:
