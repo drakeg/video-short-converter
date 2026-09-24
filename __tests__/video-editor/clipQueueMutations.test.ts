@@ -1,5 +1,6 @@
 import {
   appendClipQueueItem,
+  moveClipQueueItem,
   removeClipQueueItem,
   removeFailedClipId,
   renameClipQueueItem,
@@ -50,6 +51,19 @@ describe('clip queue mutations', () => {
   it('removes a clip and its failed id independently', () => {
     expect(removeClipQueueItem(items, 'a')).toEqual([items[1]]);
     expect(removeFailedClipId(['a', 'b'], 'a')).toEqual(['b']);
+  });
+
+  it('moves a clip up or down without mutating the input array', () => {
+    const down = moveClipQueueItem(items, 'a', 'down');
+    expect(down).toEqual([items[1], items[0]]);
+    expect(items.map((item) => item.id)).toEqual(['a', 'b']);
+    expect(moveClipQueueItem(down, 'a', 'up')).toEqual(items);
+  });
+
+  it('keeps the same array when a move cannot be applied', () => {
+    expect(moveClipQueueItem(items, 'a', 'up')).toBe(items);
+    expect(moveClipQueueItem(items, 'b', 'down')).toBe(items);
+    expect(moveClipQueueItem(items, 'missing', 'down')).toBe(items);
   });
 
   it('selects only failed clips in queue order', () => {
