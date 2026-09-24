@@ -5,6 +5,7 @@ import { buildClipFileName } from '@/components/video-editor/clipQueue';
 import { DEFAULT_PRESET, DEFAULT_QUALITY, QUALITY_CRF, buildVideoFilter, getExportPreset, type VideoExportOptions } from '@/components/video-editor/editorConfig';
 import type { TranscriptCue } from '@/components/video-editor/transcript';
 import { verifyVideoProcessorAssets } from '@/utils/videoProcessorAssets';
+import { buildProcessorInputName } from '@/utils/videoSourceContainer';
 
 type FFmpegClient = ReturnType<typeof createFFmpeg>;
 export interface AudioExportOptions { muted?: boolean; gainDb?: number; normalize?: boolean; fadeIn?: number; fadeOut?: number; }
@@ -111,7 +112,7 @@ export async function trimVideo(file: File, startTime: number, endTime: number, 
   if (typeof window === 'undefined') throw new Error('Video trimming is only available in the browser');
   if (!Number.isFinite(startTime) || !Number.isFinite(endTime) || endTime <= startTime) throw new Error('Choose a valid start and end time before processing.');
   if (captions.enabled) await validateCaptionBurnInSupport();
-  const ffmpeg = await getFFmpegClient(); const suffix = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`; const inputName = `input-${suffix}.mp4`; const outputName = `output-${suffix}.mp4`; const duration = endTime - startTime; const overlayNames: string[] = [];
+  const ffmpeg = await getFFmpegClient(); const suffix = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`; const inputName = buildProcessorInputName(file, suffix); const outputName = `output-${suffix}.mp4`; const duration = endTime - startTime; const overlayNames: string[] = [];
   try {
     ffmpegDiagnostics.length = 0;
     onProgress?.(.01); ffmpeg.FS('writeFile', inputName, await fetchFile(file));

@@ -7,7 +7,7 @@ This backlog is the active, prioritized work queue for Video Shorts Editor. Comp
 | Priority | Item | State | User value / outcome | Acceptance summary |
 | --- | --- | --- | --- | --- |
 | P0 | Apply Sprint 42 profile CORS Terraform change | Blocked — manual approval/deployment required | Makes the merged profile fix live in API Gateway | Run the explicitly authorized/manual Terraform apply; automated AWS deployment remains disabled |
-| P1 | Sprint 55 — preflight local FFmpeg assets | In progress | Fails fast when browser export assets are missing or mis-served | Verify the self-hosted FFmpeg JS/WASM/worker files before initialization, report the exact failing asset/status, and support HEAD checks in the local static server |
+| P1 | Sprint 56 — preserve source container for processing | In progress | Reduces avoidable FFmpeg input ambiguity across supported source formats | Preserve MP4/MOV/WebM/OGG source extensions in FFmpeg temporary inputs, with MIME fallback for extensionless files |
 | P1 | Further reduce `VideoEditor.tsx` responsibilities | Ready | Easier maintenance and lower regression risk | Extract another cohesive editor responsibility behind typed/tested helpers without changing user-visible behavior |
 | P2 | Optional local transcription feasibility spike | Ready | Faster transcript-assisted editing without cloud upload | Document browser/runtime options, performance constraints, bundle size, privacy, and a zero-cost recommendation before implementation |
 | P2 | Clip queue UX refinement | Ready | Faster editing of many shorts | Identify and implement a small usability improvement with keyboard/accessibility coverage |
