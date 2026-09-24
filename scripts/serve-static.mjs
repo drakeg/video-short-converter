@@ -38,6 +38,10 @@ const server = createServer((request, response) => {
     'cache-control': extname(filePath) === '.html' ? 'no-cache' : 'public, max-age=3600',
     ...isolationHeaders,
   });
+  if (request.method === 'HEAD') {
+    response.end();
+    return;
+  }
   createReadStream(filePath).pipe(response);
 });
 
