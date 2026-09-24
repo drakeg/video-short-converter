@@ -7,8 +7,8 @@ This backlog is the active, prioritized work queue for Video Shorts Editor. Comp
 | Priority | Item | State | User value / outcome | Acceptance summary |
 | --- | --- | --- | --- | --- |
 | P0 | Apply Sprint 42 profile CORS Terraform change | Blocked — manual approval/deployment required | Makes the merged profile fix live in API Gateway | Run the explicitly authorized/manual Terraform apply; automated AWS deployment remains disabled |
-| P1 | Sprint 63 — extract editor startup hydration mapping | In progress | Further reduces `VideoEditor.tsx` startup responsibility with a pure tested state resolver | Move hydrated preference/recovery interpretation behind a typed helper without changing defaults or visible behavior |
-| P2 | Optional local transcription feasibility spike | Ready | Faster transcript-assisted editing without cloud upload | Document browser/runtime options, performance constraints, bundle size, privacy, and a zero-cost recommendation before implementation |
+| P2 | Sprint 64 — local transcription feasibility spike | In progress | Defines a safe path to faster transcript-assisted editing without cloud upload | Evaluate browser-local Whisper options, compatibility, performance/memory, bundle/model delivery, privacy, and a staged zero-cost recommendation |
+| P2 | Local transcription prototype | Ready | Validates one-click local transcription before production UX investment | Developer-gated Transformers.js + tiny English Whisper prototype; benchmark model size, cold load, inference time, memory, timestamps, and browser compatibility before shipping |
 | P3 | Maintenance/dependency upgrades | Ready | Reduced security/maintenance drift | Renovate-compatible upgrades pass existing validation and do not reactivate dormant AWS deployment |
 | P3 | Performance profiling for larger source files | Ready | More predictable behavior on long/high-resolution video | Measure browser memory/processing bottlenecks and capture actionable thresholds before optimization |
 
