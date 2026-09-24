@@ -554,7 +554,7 @@ Acceptance criteria:
 - Keep dependencies, AWS-disabled policy, and media-processing behavior unchanged.
 
 ## Sprint 60 - Development standards documentation
-Status: **In progress**
+Status: **Complete**
 Goal:
 - Make the repository's sprint process, coding expectations, testing discipline, Git/PR conventions, security constraints, and documentation synchronization rules explicit for future development.
 
@@ -566,6 +566,21 @@ Acceptance criteria:
 - Make compliance with the standards part of the Definition of Done.
 - Close Sprint 59 in the roadmap and advance the active backlog to Sprint 60.
 - Do not change runtime behavior, dependencies, AWS state, or media processing.
+
+## Sprint 61 - Extract editor persistence writes
+Status: **In progress**
+Goal:
+- Reduce `VideoEditor.tsx` responsibility by moving browser-storage write/serialization behavior behind a typed, independently tested boundary.
+
+Acceptance criteria:
+- Extract export-preference persistence from the editor component without changing the established storage key or serialized format.
+- Extract recoverable-project snapshot construction/serialization/storage from the editor component.
+- Extract recovery clearing behind the same persistence boundary.
+- Preserve source fingerprinting, project recovery schema, export preference shape, and local-only storage behavior.
+- Ensure saved recovery snapshots do not retain mutable references to the live clip queue.
+- Add focused unit tests for preference persistence, recovery persistence, snapshot isolation, and recovery clearing.
+- Keep user-visible behavior, dependencies, AWS-disabled policy, and media processing unchanged.
+- Keep backlog/roadmap documentation synchronized per the development standards.
 
 Recommended next increments:
 - Continue extracting editor responsibilities behind typed helpers before adding larger features.
