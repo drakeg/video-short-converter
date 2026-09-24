@@ -642,7 +642,7 @@ Acceptance criteria:
 - Keep planning and local-development documentation synchronized.
 
 ## Sprint 66 - Whisper prototype adapter
-Status: **In progress**
+Status: **Complete**
 Goal:
 - Implement and test the inference-facing contract while preserving reproducible installs and keeping the heavy runtime/model outside the normal application path.
 
@@ -656,6 +656,20 @@ Acceptance criteria:
 - Add focused tests for chunk normalization, disabled execution, model/provider wiring, and benchmark evidence.
 - Do not hand-edit generated npm lock data, add a runtime CDN, expose production transcription UX, upload media, enable AWS, or add recurring cost.
 - Keep backlog/roadmap/feasibility documentation synchronized.
+
+## Sprint 67 - Transcription runtime loading boundary
+Status: **In progress**
+Goal:
+- Protect normal editor startup from the experimental inference dependency before installing the heavy runtime.
+
+Acceptance criteria:
+- Add a typed asynchronous importer boundary for the Transformers.js ASR pipeline.
+- Refuse to invoke the importer while the developer prototype is disabled.
+- Validate that the imported module exposes the expected pipeline function.
+- Keep the actual package dependency/model download outside this sprint so generated lock data remains reproducible.
+- Add focused unit tests proving disabled mode never imports the runtime.
+- Do not expose production transcription UX, upload source media, enable AWS, or add recurring cost.
+- Keep planning documentation synchronized.
 
 Recommended next increments:
 - Continue extracting editor responsibilities behind typed helpers before adding larger features.
