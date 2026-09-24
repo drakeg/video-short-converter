@@ -6,6 +6,7 @@ import { DEFAULT_PRESET, DEFAULT_QUALITY, QUALITY_CRF, buildVideoFilter, getExpo
 import type { TranscriptCue } from '@/components/video-editor/transcript';
 import { verifyVideoProcessorAssets } from '@/utils/videoProcessorAssets';
 import { buildProcessorInputName } from '@/utils/videoSourceContainer';
+import { buildOutputStreamMapping } from '@/utils/videoStreamMapping';
 
 type FFmpegClient = ReturnType<typeof createFFmpeg>;
 export interface AudioExportOptions { muted?: boolean; gainDb?: number; normalize?: boolean; fadeIn?: number; fadeOut?: number; }
@@ -130,13 +131,16 @@ export async function trimVideo(file: File, startTime: number, endTime: number, 
     const args = overlayNames.length ? ['-ss', startTime.toFixed(3), '-i', inputName] : ['-i', inputName, '-ss', startTime.toFixed(3)];
     overlayNames.forEach((name) => args.push('-i', name));
     args.push('-t', duration.toFixed(3));
+    let captionVideoLabel: string | undefined;
     if (overlayNames.length) {
       const plan = buildCaptionOverlayFilter(buildVideoFilter(options), validCues);
-      args.push('-filter_complex', plan.filter, '-map', plan.outputLabel);
+      captionVideoLabel = plan.outputLabel;
+      args.push('-filter_complex', plan.filter);
     } else args.push('-vf', buildVideoFilter(options));
+    args.push(...buildOutputStreamMapping({ captionVideoLabel, muted: audio.muted }));
     args.push('-c:v', 'libx264', '-preset', 'medium', '-crf', QUALITY_CRF[options.quality ?? DEFAULT_QUALITY], '-pix_fmt', 'yuv420p');
     if (options.frameRate && Number.isFinite(options.frameRate) && options.frameRate > 0) args.push('-r', String(options.frameRate));
-    if (audio.muted) args.push('-an'); else { if (overlayNames.length) args.push('-map', '0:a?'); const audioFilter = buildAudioFilter(duration, audio); if (audioFilter) args.push('-af', audioFilter); args.push('-c:a', 'aac', '-b:a', '128k'); }
+    if (audio.muted) args.push('-an'); else { const audioFilter = buildAudioFilter(duration, audio); if (audioFilter) args.push('-af', audioFilter); args.push('-c:a', 'aac', '-b:a', '128k'); }
     args.push('-movflags', '+faststart', '-y', outputName); await ffmpeg.run(...args);
     onProgress?.(.97); const data = ffmpeg.FS('readFile', outputName); if (!data?.length) throw new Error('The video processor produced an empty file. Try a different trim range or source video.'); const outputBytes = new Uint8Array(data.length); outputBytes.set(data); onProgress?.(1);
     const fileName = output.clipName ? buildClipFileName(file.name, output.clipName) : `short-${file.name.replace(/\.[^/.]+$/, '')}-${Date.now()}.mp4`;
