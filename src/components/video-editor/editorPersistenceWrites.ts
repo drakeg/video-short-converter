@@ -19,7 +19,7 @@ export interface EditorStorage {
 
 export function persistExportPreferences(
   storage: EditorStorage,
-  preferences: ExportPreferences,
+  preferences: Required<ExportPreferences>,
 ): void {
   storage.setItem(EXPORT_PREFERENCES_KEY, serializeExportPreferences(preferences));
 }
