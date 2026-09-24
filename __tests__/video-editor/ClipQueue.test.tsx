@@ -3,7 +3,7 @@ import ClipQueue from '@/components/video-editor/ClipQueue';
 import type { ClipQueueItem } from '@/components/video-editor/clipQueue';
 
 const baseClip: ClipQueueItem = { id: 'one', name: 'clip-one', start: 0, end: 30 };
-const handlers = { onAdd: jest.fn(), onSelect: jest.fn(), onRename: jest.fn(), onRemove: jest.fn(), onExportAll: jest.fn(), onRetryFailed: jest.fn() };
+const handlers = { onAdd: jest.fn(), onSelect: jest.fn(), onRename: jest.fn(), onRemove: jest.fn(), onMove: jest.fn(), onExportAll: jest.fn(), onRetryFailed: jest.fn() };
 
 describe('ClipQueue batch export labels', () => {
   beforeEach(() => jest.clearAllMocks());
@@ -28,5 +28,19 @@ describe('ClipQueue batch export labels', () => {
     const retry = screen.getByRole('button', { name: 'Retry 1 failed clip' });
     fireEvent.click(retry);
     expect(handlers.onRetryFailed).toHaveBeenCalledTimes(1);
+  });
+
+  it('moves clips with accessible controls and disables queue boundaries', () => {
+    const clips = [baseClip, { ...baseClip, id: 'two', name: 'clip-two', start: 30, end: 60 }];
+    render(<ClipQueue clips={clips} {...handlers} />);
+
+    expect(screen.getByRole('button', { name: 'Move clip-one up' })).toBeDisabled();
+    expect(screen.getByRole('button', { name: 'Move clip-two down' })).toBeDisabled();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Move clip-one down' }));
+    expect(handlers.onMove).toHaveBeenCalledWith('one', 'down');
+
+    fireEvent.click(screen.getByRole('button', { name: 'Move clip-two up' }));
+    expect(handlers.onMove).toHaveBeenCalledWith('two', 'up');
   });
 });
