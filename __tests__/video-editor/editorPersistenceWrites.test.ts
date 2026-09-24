@@ -25,7 +25,7 @@ const settings: ClipExportSettings = {
 describe('editor persistence writes', () => {
   it('persists export preferences under the established storage key', () => {
     const storage = { setItem: jest.fn(), removeItem: jest.fn() };
-    persistExportPreferences(storage, { presetId: 'square', cropPosition: 42, quality: 'high' });
+    persistExportPreferences(storage, { presetId: 'square', cropPosition: 42, cropPositionY: 50, quality: 'high' });
     expect(storage.setItem).toHaveBeenCalledWith(
       EXPORT_PREFERENCES_KEY,
       expect.stringContaining('"presetId":"square"'),
