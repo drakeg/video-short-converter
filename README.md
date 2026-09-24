@@ -34,7 +34,7 @@ For Node development:
 For container testing:
 - Docker with Docker Compose
 
-A modern browser with JavaScript, WebAssembly, Web Workers, canvas/PNG support, and local object-URL support is required. FFmpeg core assets are copied from the locked npm dependency into the static build and served by the application itself; video processing does not depend on a third-party runtime CDN.
+A modern browser with JavaScript, WebAssembly, Web Workers, canvas/PNG support, and local object-URL support is required. FFmpeg core assets are copied from the locked npm dependency into the static build and served by the application itself; video processing does not depend on a third-party runtime CDN. Before the first export, the app verifies that the local FFmpeg JavaScript, WebAssembly, and worker assets are reachable and reports the exact missing asset/status if that preflight fails.
 
 ## Local development with Node
 
