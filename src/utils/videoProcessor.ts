@@ -4,6 +4,7 @@ import type { CaptionStyle } from '@/components/video-editor/CaptionOverlay';
 import { buildClipFileName } from '@/components/video-editor/clipQueue';
 import { DEFAULT_PRESET, DEFAULT_QUALITY, QUALITY_CRF, buildVideoFilter, getExportPreset, type VideoExportOptions } from '@/components/video-editor/editorConfig';
 import type { TranscriptCue } from '@/components/video-editor/transcript';
+import { verifyVideoProcessorAssets } from '@/utils/videoProcessorAssets';
 
 type FFmpegClient = ReturnType<typeof createFFmpeg>;
 export interface AudioExportOptions { muted?: boolean; gainDb?: number; normalize?: boolean; fadeIn?: number; fadeOut?: number; }
@@ -44,12 +45,29 @@ export function describeVideoProcessingFailure(error: unknown, diagnostics: stri
   return 'Unknown video processor error.';
 }
 
-function getCorePath(): string { if (typeof window === 'undefined') return '/ffmpeg/ffmpeg-core.js'; return new URL('/ffmpeg/ffmpeg-core.js', window.location.origin).href; }
 async function getFFmpegClient(): Promise<FFmpegClient> {
   if (typeof window === 'undefined') throw new Error('FFmpeg can only be used in the browser');
   if (ffmpegInstance) return ffmpegInstance;
   if (initializationPromise) return initializationPromise;
-  initializationPromise = (async () => { try { const ffmpeg = createFFmpeg({ log: false, corePath: getCorePath(), logger: ({ type, message }) => recordFFmpegDiagnostic(type, message) }); await ffmpeg.load(); ffmpegInstance = ffmpeg; return ffmpeg; } catch (error) { ffmpegInstance = null; throw new Error(error instanceof Error && /network|fetch|load|404/i.test(error.message) ? 'Unable to load the local video processor assets. Reload the page and try again.' : 'Unable to initialize the video processor. Please reload and try again.'); } finally { initializationPromise = null; } })();
+  initializationPromise = (async () => {
+    try {
+      const assets = await verifyVideoProcessorAssets(window.location.origin);
+      const ffmpeg = createFFmpeg({
+        log: false,
+        corePath: assets['ffmpeg-core.js'],
+        logger: ({ type, message }) => recordFFmpegDiagnostic(type, message),
+      });
+      await ffmpeg.load();
+      ffmpegInstance = ffmpeg;
+      return ffmpeg;
+    } catch (error) {
+      ffmpegInstance = null;
+      if (error instanceof Error && error.message.startsWith('Unable to load the local video processor asset ')) throw error;
+      throw new Error(`Unable to initialize the video processor: ${describeVideoProcessingFailure(error)}`);
+    } finally {
+      initializationPromise = null;
+    }
+  })();
   return initializationPromise;
 }
 function safeUnlink(ffmpeg: FFmpegClient, fileName: string) { try { const files = ffmpeg.FS('readdir', '/'); if (files.includes(fileName)) ffmpeg.FS('unlink', fileName); } catch { /* best-effort cleanup */ } }
