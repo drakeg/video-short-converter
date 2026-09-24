@@ -449,7 +449,7 @@ Acceptance criteria:
 - Keep dependencies, AWS-disabled policy, cloud processing, and media-processing behavior unchanged.
 
 ## Sprint 53 - Mark controls drive playback
-Status: **In progress**
+Status: **Complete**
 Goal:
 - Make the primary mark workflow require fewer clicks by coupling mark actions to the expected playback state.
 
@@ -462,6 +462,21 @@ Acceptance criteria:
 - Add focused UI coverage for play-on-start and pause-on-end behavior.
 - Preserve non-Error FFmpeg rejection details and recent processor diagnostics in export failure messages.
 - Add focused tests for export error normalization and diagnostic fallback.
+- Keep dependencies, AWS-disabled policy, cloud processing, and media-processing behavior unchanged.
+
+## Sprint 54 - Export failure details panel
+Status: **In progress**
+Goal:
+- Turn processor failures into actionable, copyable diagnostics directly in the editor UI.
+
+Acceptance criteria:
+- Recognize single-clip, batch, initialization/asset, empty-output, and caption-runtime export failures separately from unrelated editor errors.
+- Show recognized export failures in a dedicated panel with the complete processor message preserved.
+- Provide a Copy details action for easy troubleshooting/reporting.
+- Use the Clipboard API when available and a DOM copy fallback for HTTP/LAN environments where clipboard access is restricted.
+- Keep non-export errors on the existing general error presentation path.
+- Add focused component tests for export-failure recognition, diagnostic rendering, and copy status.
+- Add focused tests for Clipboard API and fallback copy behavior.
 - Keep dependencies, AWS-disabled policy, cloud processing, and media-processing behavior unchanged.
 
 Recommended next increments:
