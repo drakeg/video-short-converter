@@ -101,9 +101,10 @@ export default function ExportHistory({ onRestoreQueue }: ExportHistoryProps) {
     <div className="mt-3 space-y-2">{entries.map((entry) => <article key={entry.id} className="rounded border border-gray-200 bg-gray-50 p-3 text-sm">
       <div className="flex flex-wrap items-center justify-between gap-2"><strong>{entry.successCount} of {entry.clipCount} clips exported</strong><span className="text-xs text-gray-500">{formatDate(entry.exportedAt)}</span></div>
       {entry.manifest?.source && <p className="mt-1 text-xs text-gray-600">Source: {entry.manifest.source.name}</p>}
+      {entry.manifest && <p className="mt-1 text-xs text-gray-500">{onRestoreQueue ? 'Restore replaces the current clip queue with this saved export setup.' : entry.manifest.source ? `Restore prepares this queue; you will then re-select ${entry.manifest.source.name} to reopen the source video.` : 'Restore requires the original source video to be loaded before this older entry can be reused.'}</p>}
       {entry.successfulFiles.length > 0 && <p className="mt-1 text-xs text-gray-600">Files: {entry.successfulFiles.join(', ')}</p>}
       {entry.failureCount > 0 && <p className="mt-1 text-xs text-red-700">Failed: {entry.failedClips.map((failure) => failure.name).join(', ')}</p>}
-      {entry.manifest && <div className="mt-2 flex flex-wrap gap-2"><button type="button" onClick={() => downloadManifest(entry)} className="rounded bg-white px-3 py-1.5 text-xs font-medium text-blue-700 shadow-sm">Download metadata manifest</button><button type="button" onClick={() => restore(entry)} className="rounded bg-white px-3 py-1.5 text-xs font-medium text-green-700 shadow-sm">Restore queue</button></div>}
+      {entry.manifest && <div className="mt-2 flex flex-wrap gap-2"><button type="button" onClick={() => downloadManifest(entry)} className="rounded bg-white px-3 py-1.5 text-xs font-medium text-blue-700 shadow-sm">Download metadata manifest</button><button type="button" onClick={() => restore(entry)} className="rounded bg-white px-3 py-1.5 text-xs font-medium text-green-700 shadow-sm">{onRestoreQueue ? 'Replace current queue' : entry.manifest.source ? 'Prepare queue to restore' : 'Try to restore queue'}</button></div>}
     </article>)}</div>
   </section>;
 }

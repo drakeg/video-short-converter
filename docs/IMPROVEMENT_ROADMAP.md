@@ -523,7 +523,7 @@ Acceptance criteria:
 - Keep dependencies, AWS-disabled policy, and local-only media processing unchanged.
 
 ## Sprint 58 - Clip queue reordering
-Status: **In progress**
+Status: **Complete**
 Goal:
 - Let users control the order of queued clips before batch/ZIP export without deleting and recreating ranges.
 
@@ -536,6 +536,21 @@ Acceptance criteria:
 - Make the reordered queue naturally drive batch export order and existing project recovery persistence.
 - Add focused component coverage for accessible controls and boundary states.
 - Add focused mutation coverage for successful, boundary, and missing-item moves.
+- Keep dependencies, AWS-disabled policy, and media-processing behavior unchanged.
+
+## Sprint 59 - Export history restore clarity
+Status: **In progress**
+Goal:
+- Make the effect and source-file requirements of export-history restoration clear before the user changes editor state.
+
+Acceptance criteria:
+- When history is shown inside an active editor, explain that restore replaces the current clip queue.
+- Label that active-editor action as Replace current queue.
+- When a source-aware history entry is restored outside an active editor, explain that recovery is prepared and the named source video must be re-selected.
+- Label that recovery action as Prepare queue to restore.
+- Keep a distinct fallback label/guidance for older manifests without source identity.
+- Preserve existing manifest download, local-only storage, recovery serialization, and restore behavior.
+- Update focused component tests for both direct queue replacement and source-specific recovery.
 - Keep dependencies, AWS-disabled policy, and media-processing behavior unchanged.
 
 Recommended next increments:
