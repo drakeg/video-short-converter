@@ -627,7 +627,7 @@ Acceptance criteria:
 - Link the feasibility decision from the README and keep planning docs synchronized.
 
 ## Sprint 65 - Local transcription prototype gate
-Status: **In progress**
+Status: **Complete**
 Goal:
 - Establish the developer-only capability and measurement boundary needed to prototype browser-local Whisper without adding production UX or silently increasing the normal editor bundle.
 
@@ -640,6 +640,22 @@ Acceptance criteria:
 - Add focused tests for disabled, WebGPU, WASM, and benchmark-calculation behavior.
 - Do not add a transcription runtime/model, production transcription button, source upload, cloud transcription, AWS change, or recurring cost in this boundary sprint.
 - Keep planning and local-development documentation synchronized.
+
+## Sprint 66 - Whisper prototype adapter
+Status: **In progress**
+Goal:
+- Implement and test the inference-facing contract while preserving reproducible installs and keeping the heavy runtime/model outside the normal application path.
+
+Acceptance criteria:
+- Pin the prototype model identity to `onnx-community/whisper-tiny.en`.
+- Accept an injected automatic-speech-recognition pipeline loader so runtime installation/loading remains independently reviewable.
+- Pass the Sprint 65 WebGPU/WASM execution preference to the pipeline loader.
+- Request timestamped transcription output and normalize valid chunks into the existing `TranscriptCue[]` contract.
+- Reject disabled execution and empty decoded audio.
+- Capture cold-load and transcription timing, provider, cue count, source duration, and model identity in the existing benchmark contract.
+- Add focused tests for chunk normalization, disabled execution, model/provider wiring, and benchmark evidence.
+- Do not hand-edit generated npm lock data, add a runtime CDN, expose production transcription UX, upload media, enable AWS, or add recurring cost.
+- Keep backlog/roadmap/feasibility documentation synchronized.
 
 Recommended next increments:
 - Continue extracting editor responsibilities behind typed helpers before adding larger features.
