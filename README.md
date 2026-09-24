@@ -119,6 +119,7 @@ Files that are empty or unsupported are rejected before FFmpeg initializes. File
 - [Development and coding standards](docs/DEVELOPMENT_STANDARDS.md) — TypeScript/React conventions, tests, CI, Git/PR practices, security, and documentation synchronization.
 - [Product backlog](docs/PRODUCT_BACKLOG.md) — prioritized active work and constraints.
 - [Improvement roadmap](docs/IMPROVEMENT_ROADMAP.md) — completed sprint history and near-term direction.
+- [Local transcription feasibility](docs/LOCAL_TRANSCRIPTION_FEASIBILITY.md) — evaluated browser-local transcription options, constraints, and staged recommendation.
 
 ## Deployment
 
