@@ -2,6 +2,7 @@ import {
   clearEditorRecovery,
   persistEditorRecovery,
   persistExportPreferences,
+  readEditorPersistence,
 } from '@/components/video-editor/editorPersistenceWrites';
 import { EXPORT_PREFERENCES_KEY } from '@/components/video-editor/exportPreferences';
 import { parseProjectRecovery, PROJECT_RECOVERY_KEY } from '@/components/video-editor/projectRecovery';
@@ -23,8 +24,32 @@ const settings: ClipExportSettings = {
 };
 
 describe('editor persistence writes', () => {
+  it('reads preferences and recovery through the established storage keys', () => {
+    const storage = {
+      getItem: jest.fn((key: string) => {
+        if (key === EXPORT_PREFERENCES_KEY) {
+          return JSON.stringify({ presetId: 'square', cropPosition: 41, cropPositionY: 52, quality: 'high' });
+        }
+        if (key === PROJECT_RECOVERY_KEY) return null;
+        return null;
+      }),
+    };
+
+    const hydrated = readEditorPersistence(storage);
+
+    expect(storage.getItem).toHaveBeenNthCalledWith(1, EXPORT_PREFERENCES_KEY);
+    expect(storage.getItem).toHaveBeenNthCalledWith(2, PROJECT_RECOVERY_KEY);
+    expect(hydrated.preferences).toEqual({
+      presetId: 'square',
+      cropPosition: 41,
+      cropPositionY: 52,
+      quality: 'high',
+    });
+    expect(hydrated.pendingRecovery).toBeNull();
+  });
+
   it('persists export preferences under the established storage key', () => {
-    const storage = { setItem: jest.fn(), removeItem: jest.fn() };
+    const storage = { getItem: jest.fn(), setItem: jest.fn(), removeItem: jest.fn() };
     persistExportPreferences(storage, { presetId: 'square', cropPosition: 42, cropPositionY: 50, quality: 'high' });
     expect(storage.setItem).toHaveBeenCalledWith(
       EXPORT_PREFERENCES_KEY,
@@ -35,6 +60,7 @@ describe('editor persistence writes', () => {
   it('persists a recoverable project snapshot without retaining live queue references', () => {
     const values = new Map<string, string>();
     const storage = {
+      getItem: jest.fn(),
       setItem: jest.fn((key: string, value: string) => values.set(key, value)),
       removeItem: jest.fn(),
     };
@@ -50,7 +76,7 @@ describe('editor persistence writes', () => {
   });
 
   it('clears recovery through the established storage key', () => {
-    const storage = { setItem: jest.fn(), removeItem: jest.fn() };
+    const storage = { getItem: jest.fn(), setItem: jest.fn(), removeItem: jest.fn() };
     clearEditorRecovery(storage);
     expect(storage.removeItem).toHaveBeenCalledWith(PROJECT_RECOVERY_KEY);
   });
