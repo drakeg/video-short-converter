@@ -494,7 +494,7 @@ Acceptance criteria:
 - Keep dependencies, AWS-disabled policy, cloud processing, and media-processing behavior otherwise unchanged.
 
 ## Sprint 56 - Preserve source container for processing
-Status: **In progress**
+Status: **Complete**
 Goal:
 - Avoid presenting every source to FFmpeg as an MP4-named temporary file when the editor explicitly supports MOV, WebM, and OGG inputs.
 
@@ -506,6 +506,20 @@ Acceptance criteria:
 - Retain an MP4 fallback for already-validated inputs whose container cannot otherwise be identified.
 - Keep output format, trim behavior, filters, audio handling, captions, and FFmpeg diagnostics unchanged.
 - Add focused unit tests for extension preservation, MIME fallback, conflict handling, and generated input names.
+- Keep dependencies, AWS-disabled policy, and local-only media processing unchanged.
+
+## Sprint 57 - Explicit export stream mapping
+Status: **In progress**
+Goal:
+- Make FFmpeg stream selection deterministic instead of relying on automatic mapping for ordinary exports.
+
+Acceptance criteria:
+- Explicitly map the primary source video stream for exports without burned-in captions.
+- Explicitly map the caption-filter output video stream when burned-in captions are enabled.
+- Map only the primary source audio stream and make it optional so silent videos remain exportable.
+- Omit audio mapping entirely for muted exports.
+- Preserve existing audio filters, AAC output, video filters, caption filters, output MP4 behavior, and diagnostics.
+- Add focused unit tests for normal, captioned, muted, and captioned-muted stream mappings.
 - Keep dependencies, AWS-disabled policy, and local-only media processing unchanged.
 
 Recommended next increments:
