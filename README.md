@@ -48,7 +48,9 @@ npm run dev
 
 Open `http://localhost:3000`.
 
-`NEXT_PUBLIC_AUTH_REQUIRED=false` in the local example lets the editor be tested without Cognito. Set it to `true` and provide the Cognito values when testing authentication.
+`NEXT_PUBLIC_AUTH_REQUIRED=false` in the local example lets the editor be tested without Cognito.
+
+`NEXT_PUBLIC_LOCAL_TRANSCRIPTION_PROTOTYPE=false` keeps the experimental local-transcription path disabled by default. Sprint 65 only establishes the developer capability/benchmark gate; it does not enable production transcription UX or download a model. Set it to `true` and provide the Cognito values when testing authentication.
 
 ## Local production-style testing with Node
 
