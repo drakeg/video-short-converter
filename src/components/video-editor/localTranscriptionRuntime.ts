@@ -14,9 +14,9 @@ export async function loadWhisperPipeline(
     throw new Error('Local transcription prototype is disabled.');
   }
 
-  const module = await importTransformers();
-  if (typeof module.pipeline !== 'function') {
+  const transformersModule = await importTransformers();
+  if (typeof transformersModule.pipeline !== 'function') {
     throw new Error('Transformers.js automatic-speech-recognition pipeline is unavailable.');
   }
-  return module.pipeline;
+  return transformersModule.pipeline;
 }
