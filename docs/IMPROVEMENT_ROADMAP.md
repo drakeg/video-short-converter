@@ -597,7 +597,7 @@ Acceptance criteria:
 - Keep backlog/roadmap documentation synchronized per the development standards.
 
 ## Sprint 63 - Extract editor startup hydration mapping
-Status: **In progress**
+Status: **Complete**
 Goal:
 - Remove persisted preference/recovery interpretation from `VideoEditor.tsx` by resolving startup state through a pure typed helper.
 
@@ -609,6 +609,22 @@ Acceptance criteria:
 - Add focused unit tests for complete and absent preference cases.
 - Keep persistence keys/formats, user-visible behavior, dependencies, AWS-disabled policy, and media processing unchanged.
 - Keep backlog/roadmap documentation synchronized per the development standards.
+
+## Sprint 64 - Local transcription feasibility spike
+Status: **In progress**
+Goal:
+- Determine whether useful automatic transcription can remain browser-local and zero recurring-cost before adding a model/runtime dependency.
+
+Acceptance criteria:
+- Evaluate Transformers.js + Whisper, direct ONNX Runtime Web, and whisper.cpp WASM approaches.
+- Document WebGPU/WASM compatibility and progressive-enhancement requirements.
+- Document model/runtime download, bundle, caching, static-deployment, memory, and long-source constraints.
+- Preserve SRT/VTT import as a supported fallback and `TranscriptCue[]` as the downstream contract.
+- Define the media privacy versus model-download network boundary.
+- Recommend a staged prototype/benchmark/UX/integration/hardening sequence.
+- Add a concrete next backlog item rather than silently implementing a transcription dependency.
+- Keep AWS disabled and add no dependency, paid service, cloud transcription, or runtime behavior in this spike.
+- Link the feasibility decision from the README and keep planning docs synchronized.
 
 Recommended next increments:
 - Continue extracting editor responsibilities behind typed helpers before adding larger features.
