@@ -480,7 +480,7 @@ Acceptance criteria:
 - Keep dependencies, AWS-disabled policy, cloud processing, and media-processing behavior unchanged.
 
 ## Sprint 55 - FFmpeg asset preflight
-Status: **In progress**
+Status: **Complete**
 Goal:
 - Detect missing or mis-served self-hosted FFmpeg assets before initialization so export failures identify the exact local asset problem immediately.
 
@@ -492,6 +492,21 @@ Acceptance criteria:
 - Ensure the repository's `npm start` static server handles HEAD requests without streaming file bodies; Docker/nginx remains compatible.
 - Add focused unit tests for URL resolution, successful preflight, HTTP failures, and network failures.
 - Keep dependencies, AWS-disabled policy, cloud processing, and media-processing behavior otherwise unchanged.
+
+## Sprint 56 - Preserve source container for processing
+Status: **In progress**
+Goal:
+- Avoid presenting every source to FFmpeg as an MP4-named temporary file when the editor explicitly supports MOV, WebM, and OGG inputs.
+
+Acceptance criteria:
+- Preserve supported MP4, MOV, WebM, and OGG filename extensions when creating the temporary FFmpeg input.
+- Treat source extensions case-insensitively.
+- Prefer a supported filename extension over conflicting MIME metadata.
+- Use the supported MIME type as a fallback when the filename has no recognized extension.
+- Retain an MP4 fallback for already-validated inputs whose container cannot otherwise be identified.
+- Keep output format, trim behavior, filters, audio handling, captions, and FFmpeg diagnostics unchanged.
+- Add focused unit tests for extension preservation, MIME fallback, conflict handling, and generated input names.
+- Keep dependencies, AWS-disabled policy, and local-only media processing unchanged.
 
 Recommended next increments:
 - Continue extracting editor responsibilities behind typed helpers before adding larger features.
