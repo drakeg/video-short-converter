@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { copyTextToClipboard } from './browserClipboard';
 
 export function isExportFailureMessage(message: string): boolean {
-  return /^(Video processing failed|Batch export failed|Unable to (load|initialize) the video processor|The video processor|Burned-in captions)/i.test(message);
+  return /^(Video processing failed|Batch export failed|Unable to (?:load .*video processor|initialize the video processor)|The video processor|Burned-in captions)/i.test(message);
 }
 
 export default function ExportErrorDetails({ message }: { message: string }) {
