@@ -568,7 +568,7 @@ Acceptance criteria:
 - Do not change runtime behavior, dependencies, AWS state, or media processing.
 
 ## Sprint 61 - Extract editor persistence writes
-Status: **In progress**
+Status: **Complete**
 Goal:
 - Reduce `VideoEditor.tsx` responsibility by moving browser-storage write/serialization behavior behind a typed, independently tested boundary.
 
@@ -579,6 +579,20 @@ Acceptance criteria:
 - Preserve source fingerprinting, project recovery schema, export preference shape, and local-only storage behavior.
 - Ensure saved recovery snapshots do not retain mutable references to the live clip queue.
 - Add focused unit tests for preference persistence, recovery persistence, snapshot isolation, and recovery clearing.
+- Keep user-visible behavior, dependencies, AWS-disabled policy, and media processing unchanged.
+- Keep backlog/roadmap documentation synchronized per the development standards.
+
+## Sprint 62 - Extract editor persistence reads
+Status: **In progress**
+Goal:
+- Complete the typed browser-storage boundary by removing raw persistence keys and hydration parsing from `VideoEditor.tsx`.
+
+Acceptance criteria:
+- Add a persistence read helper that reads the established export-preference and project-recovery keys.
+- Delegate parsing to the existing hydration helper so persisted formats and validation remain unchanged.
+- Remove direct storage-key and hydration-parser knowledge from `VideoEditor.tsx`.
+- Preserve preference application, pending recovery behavior, local-only storage, and project recovery compatibility.
+- Add focused unit coverage verifying both established storage keys and hydrated preference results.
 - Keep user-visible behavior, dependencies, AWS-disabled policy, and media processing unchanged.
 - Keep backlog/roadmap documentation synchronized per the development standards.
 
