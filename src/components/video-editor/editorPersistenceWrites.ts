@@ -5,6 +5,7 @@ import {
   serializeExportPreferences,
   type ExportPreferences,
 } from './exportPreferences';
+import { hydrateEditorPersistence, type EditorHydrationState } from './editorHydration';
 import {
   buildRecoverableProjectState,
   buildSourceFingerprint,
@@ -13,8 +14,16 @@ import {
 } from './projectRecovery';
 
 export interface EditorStorage {
+  getItem(key: string): string | null;
   setItem(key: string, value: string): void;
   removeItem(key: string): void;
+}
+
+export function readEditorPersistence(storage: Pick<EditorStorage, 'getItem'>): EditorHydrationState {
+  return hydrateEditorPersistence(
+    storage.getItem(EXPORT_PREFERENCES_KEY),
+    storage.getItem(PROJECT_RECOVERY_KEY),
+  );
 }
 
 export function persistExportPreferences(
