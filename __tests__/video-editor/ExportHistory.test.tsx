@@ -29,7 +29,8 @@ describe('ExportHistory', () => {
     }]));
 
     render(<ExportHistory onRestoreQueue={onRestoreQueue} />);
-    fireEvent.click(screen.getByRole('button', { name: 'Restore queue' }));
+    expect(screen.getByText('Restore replaces the current clip queue with this saved export setup.')).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Replace current queue' }));
     expect(onRestoreQueue).toHaveBeenCalledTimes(1);
     expect(onRestoreQueue.mock.calls[0][0]).toEqual([expect.objectContaining({ name: 'intro', start: 4, end: 34 })]);
     expect(screen.getByRole('status')).toHaveTextContent('Restored 1 clip to the current queue.');
@@ -48,7 +49,8 @@ describe('ExportHistory', () => {
 
     render(<ExportHistory />);
     expect(screen.getByText('Source: source.mov')).toBeInTheDocument();
-    fireEvent.click(screen.getByRole('button', { name: 'Restore queue' }));
+    expect(screen.getByText(/you will then re-select source\.mov/)).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Prepare queue to restore' }));
 
     const recovery = parseProjectRecovery(window.localStorage.getItem(PROJECT_RECOVERY_KEY));
     expect(recovery?.source).toEqual({ name: 'source.mov', size: 1234, lastModified: 1720000000000 });
