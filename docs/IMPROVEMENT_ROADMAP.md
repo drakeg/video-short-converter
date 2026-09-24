@@ -539,7 +539,7 @@ Acceptance criteria:
 - Keep dependencies, AWS-disabled policy, and media-processing behavior unchanged.
 
 ## Sprint 59 - Export history restore clarity
-Status: **In progress**
+Status: **Complete**
 Goal:
 - Make the effect and source-file requirements of export-history restoration clear before the user changes editor state.
 
@@ -552,6 +552,20 @@ Acceptance criteria:
 - Preserve existing manifest download, local-only storage, recovery serialization, and restore behavior.
 - Update focused component tests for both direct queue replacement and source-specific recovery.
 - Keep dependencies, AWS-disabled policy, and media-processing behavior unchanged.
+
+## Sprint 60 - Development standards documentation
+Status: **In progress**
+Goal:
+- Make the repository's sprint process, coding expectations, testing discipline, Git/PR conventions, security constraints, and documentation synchronization rules explicit for future development.
+
+Acceptance criteria:
+- Add a dedicated development/coding standards document.
+- Cover TypeScript/React practices, accessibility, error handling, tests, required validation, Git/PR conventions, architecture, security/secrets, and maintainability.
+- Require backlog, roadmap, README/operational docs, and process documentation to stay synchronized with implementation.
+- Link the standards from the Agile operating model and README.
+- Make compliance with the standards part of the Definition of Done.
+- Close Sprint 59 in the roadmap and advance the active backlog to Sprint 60.
+- Do not change runtime behavior, dependencies, AWS state, or media processing.
 
 Recommended next increments:
 - Continue extracting editor responsibilities behind typed helpers before adding larger features.
