@@ -465,7 +465,7 @@ Acceptance criteria:
 - Keep dependencies, AWS-disabled policy, cloud processing, and media-processing behavior unchanged.
 
 ## Sprint 54 - Export failure details panel
-Status: **In progress**
+Status: **Complete**
 Goal:
 - Turn processor failures into actionable, copyable diagnostics directly in the editor UI.
 
@@ -478,6 +478,20 @@ Acceptance criteria:
 - Add focused component tests for export-failure recognition, diagnostic rendering, and copy status.
 - Add focused tests for Clipboard API and fallback copy behavior.
 - Keep dependencies, AWS-disabled policy, cloud processing, and media-processing behavior unchanged.
+
+## Sprint 55 - FFmpeg asset preflight
+Status: **In progress**
+Goal:
+- Detect missing or mis-served self-hosted FFmpeg assets before initialization so export failures identify the exact local asset problem immediately.
+
+Acceptance criteria:
+- Resolve the required `ffmpeg-core.js`, `ffmpeg-core.wasm`, and `ffmpeg-core.worker.js` URLs from the current browser origin.
+- Issue lightweight HEAD checks for all required assets before creating/loading FFmpeg.
+- Report the exact asset filename plus HTTP status or network failure when preflight fails.
+- Keep FFmpeg initialization diagnostics intact for failures that occur after successful asset preflight.
+- Ensure the repository's `npm start` static server handles HEAD requests without streaming file bodies; Docker/nginx remains compatible.
+- Add focused unit tests for URL resolution, successful preflight, HTTP failures, and network failures.
+- Keep dependencies, AWS-disabled policy, cloud processing, and media-processing behavior otherwise unchanged.
 
 Recommended next increments:
 - Continue extracting editor responsibilities behind typed helpers before adding larger features.
