@@ -7,8 +7,8 @@ This backlog is the active, prioritized work queue for Video Shorts Editor. Comp
 | Priority | Item | State | User value / outcome | Acceptance summary |
 | --- | --- | --- | --- | --- |
 | P0 | Apply Sprint 42 profile CORS Terraform change | Blocked — manual approval/deployment required | Makes the merged profile fix live in API Gateway | Run the explicitly authorized/manual Terraform apply; automated AWS deployment remains disabled |
-| P2 | Sprint 69 — wire pinned Transformers.js runtime adapter | In progress | Makes the installed local inference runtime callable through the tested Whisper contract without affecting normal startup | Adapt the pinned runtime behind the Sprint 67 gate, validate runtime output, add focused tests, and keep model inference developer-only |
-| P2 | Extract 16 kHz mono audio and benchmark local Whisper | Ready | Validates end-to-end browser-local transcription performance on real media | Reuse the local FFmpeg processor to extract mono 16 kHz audio, run the gated prototype, and record reproducible browser benchmark evidence |
+| P2 | Sprint 70 — extract local transcription audio | In progress | Prepares local media for browser-only Whisper inference | Reuse FFmpeg to extract the first audio stream as mono 16 kHz Float32 samples, validate decoded data, clean temporary files, and test the command and decoding contract |
+| P2 | Benchmark local Whisper on real media | Ready | Validates end-to-end browser inference performance | Connect gated audio extraction to the runtime in a developer-only harness and capture real browser benchmark evidence |
 | P3 | Maintenance/dependency upgrades | Ready | Reduced security/maintenance drift | Renovate-compatible upgrades pass existing validation and do not reactivate dormant AWS deployment |
 | P3 | Performance profiling for larger source files | Ready | More predictable behavior on long/high-resolution video | Measure browser memory/processing bottlenecks and capture actionable thresholds before optimization |
 
