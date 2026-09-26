@@ -50,7 +50,7 @@ Open `http://localhost:3000`.
 
 `NEXT_PUBLIC_AUTH_REQUIRED=false` in the local example lets the editor be tested without Cognito.
 
-`NEXT_PUBLIC_LOCAL_TRANSCRIPTION_PROTOTYPE=false` keeps the experimental local-transcription path disabled by default. Sprint 65 only establishes the developer capability/benchmark gate; it does not enable production transcription UX or download a model. Set it to `true` and provide the Cognito values when testing authentication.
+`NEXT_PUBLIC_LOCAL_TRANSCRIPTION_PROTOTYPE=false` keeps experimental local transcription disabled by default. The pinned Transformers.js runtime is dynamically imported only after this developer gate is crossed; normal editor startup does not load a transcription model. The prototype still has no production transcription UI and does not upload source media. Model/runtime assets may require network access when the developer explicitly exercises the prototype.
 
 ## Local production-style testing with Node
 
