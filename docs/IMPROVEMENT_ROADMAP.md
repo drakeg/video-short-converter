@@ -688,7 +688,7 @@ Delivered:
 - Preserve the developer-only transcription gate, local-media privacy boundary, dormant AWS policy, and zero recurring-service-cost constraint.
 
 ## Sprint 69 - Transformers.js runtime adapter
-Status: **In progress**
+Status: **Complete**
 Goal:
 - Wire the pinned Transformers.js runtime through the existing developer-only Whisper contract without coupling normal editor startup to model loading.
 
@@ -699,3 +699,17 @@ Acceptance criteria:
 - Add focused regression tests for WebGPU/WASM provider forwarding, output normalization, disabled loading, and invalid runtime behavior.
 - Update README and backlog/roadmap documentation in the same sprint.
 - Do not add production transcription UX, source upload, AWS activation, billing, or recurring cost.
+
+
+## Sprint 70 - Browser-local transcription audio extraction
+Status: **In progress**
+Goal:
+- Prepare real local media for the developer-only Whisper prototype using the existing FFmpeg.wasm processor.
+
+Acceptance criteria:
+- Select the first audio stream and extract mono 16 kHz little-endian Float32 samples without uploading the source.
+- Decode potentially unaligned FFmpeg byte buffers safely and reject empty, truncated, or non-finite output.
+- Reuse the existing FFmpeg initialization, diagnostic handling, and temporary-file cleanup.
+- Test the FFmpeg argument contract and sample decoding without requiring model downloads in CI.
+- Keep the extraction API separate from production editor controls; browser inference/benchmark evidence is a subsequent increment.
+- Synchronize README and backlog/roadmap; do not enable AWS or paid services.
