@@ -658,7 +658,7 @@ Acceptance criteria:
 - Keep backlog/roadmap/feasibility documentation synchronized.
 
 ## Sprint 67 - Transcription runtime loading boundary
-Status: **In progress**
+Status: **Complete**
 Goal:
 - Protect normal editor startup from the experimental inference dependency before installing the heavy runtime.
 
@@ -678,3 +678,24 @@ Recommended next increments:
 - Continue maintenance upgrades through Renovate within the existing zero-cost/approval policy.
 
 Assisted features remain optional. The user remains in control of clip selection, framing, timing, captions, audio, and export.
+
+
+## Sprint 68 - Reproducible Transformers.js dependency
+Status: **Complete**
+Delivered:
+- Pin `@huggingface/transformers` 4.3.0 as the experimental browser-local transcription runtime.
+- Generate and commit dependency lock data through npm rather than hand-editing `package-lock.json`.
+- Preserve the developer-only transcription gate, local-media privacy boundary, dormant AWS policy, and zero recurring-service-cost constraint.
+
+## Sprint 69 - Transformers.js runtime adapter
+Status: **In progress**
+Goal:
+- Wire the pinned Transformers.js runtime through the existing developer-only Whisper contract without coupling normal editor startup to model loading.
+
+Acceptance criteria:
+- Dynamically import the installed runtime only after the existing prototype gate is crossed.
+- Adapt the broad Transformers.js pipeline result to the narrow `WhisperPipelineLoader` contract.
+- Validate callable pipeline creation and normalize runtime output before it reaches transcript logic.
+- Add focused regression tests for WebGPU/WASM provider forwarding, output normalization, disabled loading, and invalid runtime behavior.
+- Update README and backlog/roadmap documentation in the same sprint.
+- Do not add production transcription UX, source upload, AWS activation, billing, or recurring cost.
