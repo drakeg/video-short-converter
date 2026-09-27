@@ -6,6 +6,7 @@ import { DEFAULT_PRESET, DEFAULT_QUALITY, QUALITY_CRF, buildVideoFilter, getExpo
 import type { TranscriptCue } from '@/components/video-editor/transcript';
 import { verifyVideoProcessorAssets } from '@/utils/videoProcessorAssets';
 import { buildProcessorInputName } from '@/utils/videoSourceContainer';
+import { buildTranscriptionAudioCommand, buildTranscriptionInputName, decodeTranscriptionAudio } from '@/utils/transcriptionAudio';
 import { buildOutputStreamMapping } from '@/utils/videoStreamMapping';
 
 type FFmpegClient = ReturnType<typeof createFFmpeg>;
@@ -147,4 +148,25 @@ export async function trimVideo(file: File, startTime: number, endTime: number, 
     return new File([new Blob([outputBytes.buffer], { type: 'video/mp4' })], fileName, { type: 'video/mp4' });
   } catch (error) { if (error instanceof Error && (error.message.startsWith('Unable') || error.message.startsWith('The video') || error.message.startsWith('Burned-in'))) throw error; throw new Error(`Video processing failed: ${describeVideoProcessingFailure(error)}`); }
   finally { safeUnlink(ffmpeg, inputName); safeUnlink(ffmpeg, outputName); overlayNames.forEach((name) => safeUnlink(ffmpeg, name)); ffmpeg.setProgress(() => undefined); }
+}
+
+/** Extract mono 16 kHz Float32 audio for the developer-only local Whisper prototype. */
+export async function extractTranscriptionAudio(file: File): Promise<Float32Array> {
+  if (typeof window === 'undefined') throw new Error('Transcription audio extraction is only available in the browser.');
+  if (!file.size) throw new Error('Choose a non-empty local video file for transcription.');
+  const ffmpeg = await getFFmpegClient();
+  const suffix = `transcription-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+  const inputName = buildTranscriptionInputName(file, suffix);
+  const outputName = `audio-${suffix}.f32`;
+  try {
+    ffmpegDiagnostics.length = 0;
+    ffmpeg.FS('writeFile', inputName, await fetchFile(file));
+    await ffmpeg.run(...buildTranscriptionAudioCommand(inputName, outputName));
+    return decodeTranscriptionAudio(ffmpeg.FS('readFile', outputName));
+  } catch (error) {
+    throw new Error(`Local transcription audio extraction failed: ${describeVideoProcessingFailure(error)}`);
+  } finally {
+    safeUnlink(ffmpeg, inputName);
+    safeUnlink(ffmpeg, outputName);
+  }
 }
