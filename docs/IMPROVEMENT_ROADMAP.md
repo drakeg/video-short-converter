@@ -702,7 +702,7 @@ Acceptance criteria:
 
 
 ## Sprint 70 - Browser-local transcription audio extraction
-Status: **In progress**
+Status: **Complete**
 Goal:
 - Prepare real local media for the developer-only Whisper prototype using the existing FFmpeg.wasm processor.
 
@@ -713,3 +713,17 @@ Acceptance criteria:
 - Test the FFmpeg argument contract and sample decoding without requiring model downloads in CI.
 - Keep the extraction API separate from production editor controls; browser inference/benchmark evidence is a subsequent increment.
 - Synchronize README and backlog/roadmap; do not enable AWS or paid services.
+
+
+## Sprint 71 - Local transcription developer harness
+Status: **In progress**
+Goal:
+- Connect the existing browser-local FFmpeg extraction and gated Transformers.js Whisper boundaries so real browser benchmarks can be collected without exposing unfinished production UX.
+
+Acceptance criteria:
+- Orchestrate local audio extraction, dynamic runtime loading, Whisper inference, cue normalization, and benchmark result collection through one developer-only function.
+- Reject disabled execution and invalid source duration before FFmpeg or model/runtime work begins.
+- Keep dependencies injectable so orchestration behavior is covered without downloading model weights in unit tests.
+- Add focused tests proving the WebGPU provider/model contract and no-heavy-work disabled behavior.
+- Keep real benchmark measurements explicitly pending until observed in an actual browser run.
+- Synchronize README, backlog, roadmap, and feasibility documentation; do not upload media, activate AWS, or add recurring cost.

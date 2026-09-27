@@ -7,8 +7,8 @@ This backlog is the active, prioritized work queue for Video Shorts Editor. Comp
 | Priority | Item | State | User value / outcome | Acceptance summary |
 | --- | --- | --- | --- | --- |
 | P0 | Apply Sprint 42 profile CORS Terraform change | Blocked — manual approval/deployment required | Makes the merged profile fix live in API Gateway | Run the explicitly authorized/manual Terraform apply; automated AWS deployment remains disabled |
-| P2 | Sprint 70 — extract local transcription audio | In progress | Prepares local media for browser-only Whisper inference | Reuse FFmpeg to extract the first audio stream as mono 16 kHz Float32 samples, validate decoded data, clean temporary files, and test the command and decoding contract |
-| P2 | Benchmark local Whisper on real media | Ready | Validates end-to-end browser inference performance | Connect gated audio extraction to the runtime in a developer-only harness and capture real browser benchmark evidence |
+| P2 | Sprint 71 — local transcription developer harness | In progress | Connects the tested local audio and Whisper runtime boundaries without exposing unfinished production UX | Orchestrate local FFmpeg extraction, gated dynamic runtime loading, Whisper inference, and benchmark result collection behind the developer flag |
+| P2 | Record real-browser local Whisper benchmark | Ready | Establishes measured support/performance evidence before production UX | Exercise the developer harness on representative real media in supported browsers and record observed model load, inference time, realtime factor, timestamp quality, and compatibility without inventing measurements |
 | P3 | Maintenance/dependency upgrades | Ready | Reduced security/maintenance drift | Renovate-compatible upgrades pass existing validation and do not reactivate dormant AWS deployment |
 | P3 | Performance profiling for larger source files | Ready | More predictable behavior on long/high-resolution video | Measure browser memory/processing bottlenecks and capture actionable thresholds before optimization |
 
