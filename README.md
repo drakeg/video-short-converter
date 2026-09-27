@@ -50,7 +50,7 @@ Open `http://localhost:3000`.
 
 `NEXT_PUBLIC_AUTH_REQUIRED=false` in the local example lets the editor be tested without Cognito.
 
-`NEXT_PUBLIC_LOCAL_TRANSCRIPTION_PROTOTYPE=false` keeps experimental local transcription disabled by default. The pinned Transformers.js runtime is dynamically imported only after this developer gate is crossed; normal editor startup does not load a transcription model. A developer-only audio extraction helper can prepare the first local audio stream as mono 16 kHz Float32 samples through the existing FFmpeg.wasm processor; it is not yet connected to a production transcription control. The prototype still has no production transcription UI and does not upload source media. Model/runtime assets may require network access when the developer explicitly exercises the prototype.
+`NEXT_PUBLIC_LOCAL_TRANSCRIPTION_PROTOTYPE=false` keeps experimental local transcription disabled by default. The pinned Transformers.js runtime is dynamically imported only after this developer gate is crossed; normal editor startup does not load a transcription model. A developer-only harness connects local FFmpeg extraction, dynamically loaded Transformers.js Whisper inference, cue normalization, and benchmark result collection. It remains separate from production editor controls; real-browser benchmark measurements must be captured before production UX is considered. The prototype still has no production transcription UI and does not upload source media. Model/runtime assets may require network access when the developer explicitly exercises the prototype.
 
 ## Local production-style testing with Node
 
