@@ -730,7 +730,7 @@ Acceptance criteria:
 
 
 ## Sprint 72 - Local transcription benchmark diagnostic
-Status: **In progress**
+Status: **Complete**
 Goal:
 - Make real-browser local Whisper measurements repeatable and exportable while keeping the feature developer-only.
 
@@ -742,3 +742,17 @@ Acceptance criteria:
 - Add Playwright coverage proving the diagnostic remains inert when the developer flag is off.
 - Do not substitute ephemeral CI timing for representative macOS/Windows benchmark evidence.
 - Synchronize README, backlog, roadmap, and feasibility docs; do not upload media, activate AWS, or add recurring cost.
+
+
+## Sprint 73 - Sample-derived benchmark duration
+Status: **In progress**
+Goal:
+- Ensure local transcription realtime-factor evidence uses the duration of the actual decoded audio sent to Whisper, rather than a manually entered number.
+
+Acceptance criteria:
+- Derive source duration from decoded sample count and the fixed 16 kHz extraction rate.
+- Remove manual duration entry from the developer benchmark page and display measured audio duration.
+- Reject empty extracted audio before model/runtime import.
+- Test the derived duration and empty-audio guard while preserving disabled-mode protection.
+- Synchronize README, backlog, roadmap, and feasibility notes.
+- Do not upload media, activate AWS, add production transcription UI, or incur recurring cost.
