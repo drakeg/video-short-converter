@@ -10,7 +10,7 @@ const webGpu: LocalTranscriptionCapability = {
 
 describe('local transcription developer harness', () => {
   it('connects local audio extraction to the gated runtime and returns benchmark evidence', async () => {
-    const extractAudio = jest.fn().mockResolvedValue(new Float32Array([0.1, -0.1]));
+    const extractAudio = jest.fn().mockResolvedValue(new Float32Array(16000).fill(0.1));
     const transcriber = jest.fn().mockResolvedValue({
       text: 'hello',
       chunks: [{ text: ' hello ', timestamp: [0, 1] }],
@@ -20,7 +20,6 @@ describe('local transcription developer harness', () => {
 
     const result = await runLocalTranscriptionHarness(
       new File(['video'], 'source.mp4', { type: 'video/mp4' }),
-      1,
       webGpu,
       { extractAudio, importRuntime },
     );
@@ -47,7 +46,6 @@ describe('local transcription developer harness', () => {
     const importRuntime = jest.fn();
     await expect(runLocalTranscriptionHarness(
       new File(['video'], 'source.mp4'),
-      1,
       { enabled: false, webGpuAvailable: false, executionPreference: 'disabled', reason: 'disabled' },
       { extractAudio, importRuntime },
     )).rejects.toThrow('Local transcription prototype is disabled.');
@@ -55,16 +53,15 @@ describe('local transcription developer harness', () => {
     expect(importRuntime).not.toHaveBeenCalled();
   });
 
-  it('rejects invalid duration before extracting audio or loading the runtime', async () => {
-    const extractAudio = jest.fn();
+  it('rejects empty extracted audio before loading the runtime', async () => {
+    const extractAudio = jest.fn().mockResolvedValue(new Float32Array());
     const importRuntime = jest.fn();
     await expect(runLocalTranscriptionHarness(
       new File(['video'], 'source.mp4'),
-      0,
       webGpu,
       { extractAudio, importRuntime },
-    )).rejects.toThrow('Local transcription requires a valid source duration.');
-    expect(extractAudio).not.toHaveBeenCalled();
+    )).rejects.toThrow('Local transcription requires non-empty extracted audio.');
+    expect(extractAudio).toHaveBeenCalledTimes(1);
     expect(importRuntime).not.toHaveBeenCalled();
   });
 });
