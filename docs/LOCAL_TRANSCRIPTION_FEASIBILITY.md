@@ -127,7 +127,7 @@ A future implementation should:
 
 ## Proposed future implementation increments
 1. **Prototype:** hidden/developer-gated Transformers.js Whisper tiny English transcription on extracted local audio; no production UX. Sprints 65–70 established the capability gate, Whisper adapter, dynamic runtime, reproducible dependency, and 16 kHz mono FFmpeg extraction. Sprint 71 connects those boundaries in a developer harness while keeping measured browser results separate from implementation claims.
-2. **Benchmark:** capture model size, cold load, inference time, memory, timestamps, and browser compatibility.
+2. **Benchmark:** Sprint 72 adds a developer diagnostic that captures cold load, inference time, execution provider, realtime factor, timestamps/cues, browser identity, and WebGPU availability as downloadable JSON. Representative macOS/Windows runs remain required before support thresholds are claimed; memory/model-size evidence still requires explicit measurement.
 3. **UX:** add explicit Transcribe locally action, compatibility explanation, model download disclosure/progress/cancel, transcription progress/cancel, and actionable errors.
 4. **Integration:** adapt timestamped output to `TranscriptCue[]`; existing suggestions/captions/export remain downstream consumers.
 5. **Hardening:** worker lifecycle, cleanup, caching/version pinning, long-source chunking, automated tests, browser tests, and documented support thresholds.

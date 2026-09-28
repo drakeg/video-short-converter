@@ -716,7 +716,7 @@ Acceptance criteria:
 
 
 ## Sprint 71 - Local transcription developer harness
-Status: **In progress**
+Status: **Complete**
 Goal:
 - Connect the existing browser-local FFmpeg extraction and gated Transformers.js Whisper boundaries so real browser benchmarks can be collected without exposing unfinished production UX.
 
@@ -727,3 +727,18 @@ Acceptance criteria:
 - Add focused tests proving the WebGPU provider/model contract and no-heavy-work disabled behavior.
 - Keep real benchmark measurements explicitly pending until observed in an actual browser run.
 - Synchronize README, backlog, roadmap, and feasibility documentation; do not upload media, activate AWS, or add recurring cost.
+
+
+## Sprint 72 - Local transcription benchmark diagnostic
+Status: **In progress**
+Goal:
+- Make real-browser local Whisper measurements repeatable and exportable while keeping the feature developer-only.
+
+Acceptance criteria:
+- Add a dedicated developer diagnostic page that remains disabled unless the existing transcription prototype flag is enabled.
+- Require an explicitly selected local video and valid source duration before benchmark execution.
+- Display the observed execution provider, cold-load time, transcription time, realtime factor, and cue count from the existing benchmark contract.
+- Export JSON evidence containing timestamp, browser user agent, WebGPU availability, benchmark data, transcript text, and normalized cues.
+- Add Playwright coverage proving the diagnostic remains inert when the developer flag is off.
+- Do not substitute ephemeral CI timing for representative macOS/Windows benchmark evidence.
+- Synchronize README, backlog, roadmap, and feasibility docs; do not upload media, activate AWS, or add recurring cost.
