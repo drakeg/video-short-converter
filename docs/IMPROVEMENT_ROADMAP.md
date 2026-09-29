@@ -736,7 +736,7 @@ Goal:
 
 Acceptance criteria:
 - Add a dedicated developer diagnostic page that remains disabled unless the existing transcription prototype flag is enabled.
-- Require an explicitly selected local video and valid source duration before benchmark execution.
+- Require an explicitly selected local video before benchmark execution; Sprint 73 later replaced manual duration entry with sample-derived duration.
 - Display the observed execution provider, cold-load time, transcription time, realtime factor, and cue count from the existing benchmark contract.
 - Export JSON evidence containing timestamp, browser user agent, WebGPU availability, benchmark data, transcript text, and normalized cues.
 - Add Playwright coverage proving the diagnostic remains inert when the developer flag is off.
@@ -745,7 +745,7 @@ Acceptance criteria:
 
 
 ## Sprint 73 - Sample-derived benchmark duration
-Status: **In progress**
+Status: **Complete**
 Goal:
 - Ensure local transcription realtime-factor evidence uses the duration of the actual decoded audio sent to Whisper, rather than a manually entered number.
 
@@ -756,3 +756,18 @@ Acceptance criteria:
 - Test the derived duration and empty-audio guard while preserving disabled-mode protection.
 - Synchronize README, backlog, roadmap, and feasibility notes.
 - Do not upload media, activate AWS, add production transcription UI, or incur recurring cost.
+
+
+## Sprint 74 - Versioned transcription benchmark evidence
+Status: **In progress**
+Goal:
+- Make representative browser benchmark evidence reproducible and comparable instead of exporting an ad-hoc page object.
+
+Acceptance criteria:
+- Define a versioned typed evidence schema outside the diagnostic page.
+- Record local source fingerprint metadata (name, byte size, last-modified time, MIME type) without storing source bytes.
+- Record browser user agent and WebGPU availability alongside the exact model/provider/timing benchmark contract and realtime factor.
+- Preserve transcript text and normalized cues for timestamp-quality review.
+- Build immutable cue evidence and add focused unit coverage for schema content and realtime-factor calculation.
+- Keep representative macOS/Windows measurements pending until actually observed.
+- Synchronize README, backlog, roadmap, and feasibility docs; do not upload media, activate AWS, or add recurring cost.
