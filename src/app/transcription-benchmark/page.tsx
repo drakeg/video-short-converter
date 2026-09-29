@@ -3,6 +3,7 @@
 import { useMemo, useState } from 'react';
 import { calculateRealtimeFactor, resolveLocalTranscriptionCapability } from '@/components/video-editor/localTranscriptionPrototype';
 import { runLocalTranscriptionHarness } from '@/components/video-editor/localTranscriptionHarness';
+import { buildTranscriptionBenchmarkEvidence } from '@/components/video-editor/transcriptionBenchmarkEvidence';
 
 type Result = Awaited<ReturnType<typeof runLocalTranscriptionHarness>>;
 
@@ -29,15 +30,8 @@ export default function TranscriptionBenchmarkPage() {
 
   function downloadEvidence() {
     if (!result) return;
-    const evidence = {
-      capturedAt: new Date().toISOString(),
-      userAgent: navigator.userAgent,
-      webGpuAvailable: capability.webGpuAvailable,
-      benchmark: result.benchmark,
-      realtimeFactor: calculateRealtimeFactor(result.benchmark),
-      transcriptText: result.text,
-      cues: result.cues,
-    };
+    if (!file) return;
+    const evidence = buildTranscriptionBenchmarkEvidence(file, result, capability, navigator.userAgent);
     const url = URL.createObjectURL(new Blob([JSON.stringify(evidence, null, 2)], { type: 'application/json' }));
     const anchor = document.createElement('a');
     anchor.href = url; anchor.download = 'local-transcription-benchmark.json'; anchor.click();
