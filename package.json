@@ -2,6 +2,9 @@
   "name": "video-shorts-editor",
   "version": "0.1.0",
   "private": true,
+  "engines": {
+    "node": ">=20.20.2 <21"
+  },
   "scripts": {
     "dev": "next dev --webpack",
     "dev:fast": "next dev",
