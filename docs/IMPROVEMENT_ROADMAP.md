@@ -759,7 +759,7 @@ Acceptance criteria:
 
 
 ## Sprint 74 - Versioned transcription benchmark evidence
-Status: **In progress**
+Status: **Complete**
 Goal:
 - Make representative browser benchmark evidence reproducible and comparable instead of exporting an ad-hoc page object.
 
@@ -771,3 +771,16 @@ Acceptance criteria:
 - Build immutable cue evidence and add focused unit coverage for schema content and realtime-factor calculation.
 - Keep representative macOS/Windows measurements pending until actually observed.
 - Synchronize README, backlog, roadmap, and feasibility docs; do not upload media, activate AWS, or add recurring cost.
+
+
+## Sprint 75 - Node runtime contract
+Status: **In progress**
+Goal:
+- Prevent local development from silently drifting away from the Node runtime already pinned in CI and the production-style Docker build.
+
+Acceptance criteria:
+- Add a repository-level local Node version file matching CI and Docker Node 20.20.2.
+- Declare the supported Node 20 runtime range in package metadata without changing dependencies or generated lock data.
+- Document the local runtime expectation in the README.
+- Preserve the existing CI/Docker runtime, zero-cost maintenance policy, dormant AWS deployment, and local media processing.
+- Keep benchmark measurements pending until representative devices are actually exercised.
