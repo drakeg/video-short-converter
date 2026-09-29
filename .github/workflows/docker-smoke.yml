@@ -31,7 +31,20 @@ jobs:
     steps:
       - uses: actions/checkout@v7
       - name: Build image
-        run: docker build -t video-short-converter:test .
+        run: docker build --build-arg NEXT_PUBLIC_LOCAL_TRANSCRIPTION_PROTOTYPE=true -t video-short-converter:test .
+      - name: Verify transcription diagnostic build flag
+        run: |
+          docker run -d --name video-short-converter-flag -p 8081:80 video-short-converter:test
+          for attempt in {1..20}; do
+            if curl --fail --silent http://127.0.0.1:8081/transcription-benchmark/ | grep -q 'WebGPU is unavailable; benchmark the constrained WASM fallback only.'; then
+              docker rm -f video-short-converter-flag
+              exit 0
+            fi
+            sleep 1
+          done
+          docker logs video-short-converter-flag
+          docker rm -f video-short-converter-flag
+          exit 1
       - name: Start container
         run: docker run -d --name video-short-converter -p 8080:80 video-short-converter:test
       - name: Wait for health
