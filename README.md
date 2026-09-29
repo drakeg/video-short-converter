@@ -1,5 +1,7 @@
 # Video Shorts Editor
 
+Local development and CI use Node.js 20.20.2 (`.nvmrc`); `package.json` declares the supported Node 20 runtime range.
+
 A browser-based video editor for trimming local video files, reframing them for social platforms, previewing the processed result, and exporting MP4 clips with FFmpeg WebAssembly.
 
 ## Features
