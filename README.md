@@ -1,6 +1,6 @@
 # Video Shorts Editor
 
-Local development and CI use Node.js 20.20.2 (`.nvmrc`); `package.json` declares the supported Node 20 runtime range.
+Local development, CI, Docker, and Vercel use Node.js 24 (`.nvmrc`); `package.json` declares the supported Node 24 runtime.
 
 A browser-based video editor for trimming local video files, reframing them for social platforms, previewing the processed result, and exporting MP4 clips with FFmpeg WebAssembly.
 
@@ -30,7 +30,7 @@ Video processing and transcript/caption workflows are performed in the browser. 
 ## Prerequisites
 
 For Node development:
-- Node.js 20 or later
+- Node.js 24
 - npm
 
 For container testing:
