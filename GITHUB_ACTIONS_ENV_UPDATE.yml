@@ -7,3 +7,4 @@
 # If AWS is explicitly re-enabled in a future approved sprint, build-time public
 # settings must be reviewed from the then-current application and environment
 # examples rather than treating this historical snippet as authoritative.
+# Active local/Docker public settings are documented in .env.local.example.
