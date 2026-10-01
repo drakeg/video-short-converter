@@ -774,7 +774,7 @@ Acceptance criteria:
 
 
 ## Sprint 75 - Node runtime contract
-Status: **In progress**
+Status: **Complete**
 Goal:
 - Prevent local development from silently drifting away from the Node runtime already pinned in CI and the production-style Docker build.
 
@@ -784,3 +784,17 @@ Acceptance criteria:
 - Document the local runtime expectation in the README.
 - Preserve the existing CI/Docker runtime, zero-cost maintenance policy, dormant AWS deployment, and local media processing.
 - Keep benchmark measurements pending until representative devices are actually exercised.
+
+
+## Sprint 76 - Docker transcription prototype flag contract
+Status: **In progress**
+Goal:
+- Make the documented developer-only local transcription flag behave consistently when the application is built through Docker Compose.
+
+Acceptance criteria:
+- Forward `NEXT_PUBLIC_LOCAL_TRANSCRIPTION_PROTOTYPE` from Compose into the Docker build.
+- Declare the matching Docker build argument/environment value before the static Next.js build.
+- Keep the default disabled.
+- Extend Docker smoke validation to build with the flag enabled and verify the static benchmark route reports an enabled fallback capability in headless HTTP output.
+- Keep media local, AWS dormant, and recurring cost at zero.
+- Synchronize README, backlog, and roadmap documentation.
