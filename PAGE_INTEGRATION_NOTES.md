@@ -68,14 +68,7 @@ auth_logout_urls = [
 auth_cors_allow_origin = "https://shorts.madmallards.com"
 ```
 
-Then run:
-
-```bash
-cd terraform/app
-terraform init
-terraform plan
-terraform apply
-```
+AWS is dormant. Do **not** run Terraform against AWS as part of ordinary development. The retained Terraform is reference-only unless a future sprint explicitly re-enables AWS under the policy in `AWS_DEPLOYMENT.md`.
 
 ## 4. Add app files
 
@@ -137,29 +130,9 @@ Then wrap the editor card area:
 
 This keeps the title/instructions visible but requires sign-in before using the converter.
 
-## 7. Add build-time GitHub variables
+## 7. Historical deployed-environment configuration
 
-GitHub Actions needs the public auth config at build time because this is a static export.
-
-Add repository variables:
-
-```text
-NEXT_PUBLIC_COGNITO_DOMAIN
-NEXT_PUBLIC_COGNITO_CLIENT_ID
-NEXT_PUBLIC_COGNITO_REDIRECT_URI
-NEXT_PUBLIC_COGNITO_LOGOUT_URI
-NEXT_PUBLIC_PROFILE_API_BASE_URL
-```
-
-Use `terraform output` to get:
-
-```bash
-terraform output cognito_hosted_ui_base_url
-terraform output cognito_user_pool_client_id
-terraform output profile_api_base_url
-```
-
-Then update the workflow build step using `GITHUB_ACTIONS_ENV_UPDATE.yml`.
+The Cognito/profile `NEXT_PUBLIC_*` values below are historical deployed-environment configuration. There is no active AWS deployment workflow, and ordinary development must not add repository variables or recreate a deployment workflow from these notes. If AWS is explicitly re-enabled later, review all current public build settings (including auth/profile and developer feature flags) against the then-current application before creating a new workflow. See `AWS_DEPLOYMENT.md`.
 
 ## 8. Local development
 
