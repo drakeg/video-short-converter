@@ -1,4 +1,6 @@
-# Authentication and profile first increment
+# Authentication and profile historical deployment notes
+
+> AWS deployment is dormant. This document records the original auth/profile rollout context; it is not an instruction to apply Terraform or recreate AWS deployment automation. Follow `AWS_DEPLOYMENT.md` unless a future explicitly approved sprint re-enables AWS.
 
 This package adds a low-cost auth foundation without introducing fixed hourly services.
 
@@ -21,7 +23,7 @@ This stays serverless/pay-per-use:
 - Lambda/API Gateway should be free-tier/pennies for light use.
 - No RDS, NAT Gateway, ALB, ECS, or always-on compute.
 
-## Apply order
+## Historical apply order (do not execute while AWS is dormant)
 
 1. Add Terraform auth files.
 2. Add app files.
