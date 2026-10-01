@@ -774,9 +774,9 @@ Acceptance criteria:
 
 
 ## Sprint 75 - Node runtime contract
-Status: **Complete**
+Status: **Superseded by Sprint 77 runtime compatibility fix**
 Goal:
-- Prevent local development from silently drifting away from the Node runtime already pinned in CI and the production-style Docker build.
+- Prevent local development from silently drifting away from the Node runtime already pinned in CI and the production-style Docker build. The original Node 20 contract was later superseded when Vercel discontinued Node 20.
 
 Acceptance criteria:
 - Add a repository-level local Node version file matching CI and Docker Node 20.20.2.
@@ -812,3 +812,4 @@ Acceptance criteria:
 - Preserve historical architecture context without creating resources, credentials, repository variables, or costs.
 - Close Sprint 76 only after its CI and Docker smoke checks are verified successful.
 - Synchronize backlog and roadmap documentation.
+- Restore Vercel compatibility by upgrading the runtime contract from discontinued Node 20 to Node 24 across package metadata, `.nvmrc`, GitHub CI, and Docker.
