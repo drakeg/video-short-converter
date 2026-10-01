@@ -1,11 +1,9 @@
-# Add this env block to the "Build static site" step in .github/workflows/deploy-aws.yml
-# and create matching GitHub Actions repository variables.
-
-- name: Build static site
-  run: npm run build
-  env:
-    NEXT_PUBLIC_COGNITO_DOMAIN: ${{ vars.NEXT_PUBLIC_COGNITO_DOMAIN }}
-    NEXT_PUBLIC_COGNITO_CLIENT_ID: ${{ vars.NEXT_PUBLIC_COGNITO_CLIENT_ID }}
-    NEXT_PUBLIC_COGNITO_REDIRECT_URI: ${{ vars.NEXT_PUBLIC_COGNITO_REDIRECT_URI }}
-    NEXT_PUBLIC_COGNITO_LOGOUT_URI: ${{ vars.NEXT_PUBLIC_COGNITO_LOGOUT_URI }}
-    NEXT_PUBLIC_PROFILE_API_BASE_URL: ${{ vars.NEXT_PUBLIC_PROFILE_API_BASE_URL }}
+# Historical reference only.
+#
+# AWS deployment is intentionally dormant. Do not copy this file into an active
+# workflow or create repository variables from it during ordinary development.
+# See AWS_DEPLOYMENT.md before revisiting any AWS build/deployment automation.
+#
+# If AWS is explicitly re-enabled in a future approved sprint, build-time public
+# settings must be reviewed from the then-current application and environment
+# examples rather than treating this historical snippet as authoritative.
