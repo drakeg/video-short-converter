@@ -2,7 +2,7 @@ FROM node:24.21.0-alpine AS builder
 WORKDIR /app
 
 COPY package.json package-lock.json ./
-RUN npm ci
+RUN NODE_OPTIONS=--dns-result-order=ipv4first npm ci --fetch-retries=5 --fetch-retry-mintimeout=20000 --fetch-retry-maxtimeout=120000
 
 COPY . .
 
