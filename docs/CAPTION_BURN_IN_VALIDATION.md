@@ -2,19 +2,19 @@
 
 ## Decision
 
-The locked FFmpeg.wasm 0.11 core remains suitable for this project, but the production caption path does not rely on libass font discovery. Burned-in captions are rasterized by the browser into transparent PNG overlays and then composited by the existing self-hosted FFmpeg pipeline.
+The application now uses FFmpeg.wasm 0.12 with an asynchronous worker-backed API, but the production caption path does not rely on libass font discovery. Burned-in captions are rasterized by the browser into transparent PNG overlays and then composited by the existing self-hosted FFmpeg pipeline.
 
 This keeps caption export local, deterministic, and independent of operating-system fonts, a bundled font binary, a runtime font CDN, or a paid service.
 
 ## What Sprint 13 validated
 
-The FFmpeg.wasm 0.11 core build lineage includes the libraries required for ASS subtitle rendering:
+The original FFmpeg.wasm 0.11 core build lineage included the libraries required for ASS subtitle rendering:
 
 - `libass` for ASS/SSA subtitle rendering
 - FreeType for font rendering
 - FriBidi and HarfBuzz for text direction/shaping support
 
-The application also has deterministic ASS serialization from clipped/rebased caption cues. That work remains useful reference capability and confirms that a major FFmpeg.wasm migration is not required for caption work.
+The application also has deterministic ASS serialization from clipped/rebased caption cues. That work remains useful reference capability and remains useful after the 0.12 migration.
 
 ## Why Sprint 14 uses rasterized overlays
 
@@ -45,4 +45,4 @@ The runtime gate exercises actual caption compositing in the user's browser. A f
 
 ## Scope boundary
 
-Caption burn-in remains entirely browser-local. This work does not require AWS, an external transcription provider, a runtime CDN, or a major FFmpeg.wasm upgrade.
+Caption burn-in remains entirely browser-local. This work does not require AWS, an external transcription provider, a runtime CDN, or an external FFmpeg service.

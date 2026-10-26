@@ -36,7 +36,7 @@ For Node development:
 For container testing:
 - Docker with Docker Compose
 
-A modern browser with JavaScript, WebAssembly, Web Workers, canvas/PNG support, and local object-URL support is required. FFmpeg core assets are copied from the locked npm dependency into the static build and served by the application itself; video processing does not depend on a third-party runtime CDN. Before the first export, the app verifies that the local FFmpeg JavaScript, WebAssembly, and worker assets are reachable and reports the exact missing asset/status if that preflight fails.
+A modern browser with JavaScript, WebAssembly, Web Workers, canvas/PNG support, and local object-URL support is required. FFmpeg core assets are copied from the locked npm dependency into the static build and served by the application itself; video processing does not depend on a third-party runtime CDN. Before the first export, the app verifies that the local FFmpeg core JavaScript and WebAssembly assets are reachable and reports the exact missing asset/status if that preflight fails.
 
 ## Local development with Node
 
@@ -112,7 +112,7 @@ Files that are empty or unsupported are rejected before FFmpeg initializes. File
 
 - Next.js 16 / React 19 / TypeScript
 - Tailwind CSS
-- FFmpeg.wasm with self-hosted core assets
+- FFmpeg.wasm 0.12 with self-hosted UMD core assets and a bundled application worker
 - Jest and Testing Library
 - Playwright
 - Docker / nginx for local production-style testing
