@@ -3,7 +3,7 @@ name: Repair dependency security lockfile
 on:
   push:
     branches:
-      - renovate/npm-non-major-dependencies
+      - renovate/ffmpeg-packages
     paths:
       - package.json
       - .github/workflows/repair-security-lockfile.yml
@@ -39,5 +39,5 @@ jobs:
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git add package-lock.json
-          git commit -m 'fix(security): regenerate lockfile with patched transitive dependencies'
-          git push origin HEAD:renovate/npm-non-major-dependencies
+          git commit -m 'fix(ffmpeg): synchronize upgraded FFmpeg lockfile'
+          git push origin HEAD:renovate/ffmpeg-packages
