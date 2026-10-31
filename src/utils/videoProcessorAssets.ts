@@ -1,7 +1,6 @@
 export const VIDEO_PROCESSOR_ASSET_FILES = [
   'ffmpeg-core.js',
   'ffmpeg-core.wasm',
-  'ffmpeg-core.worker.js',
 ] as const;
 
 export type VideoProcessorAssetFile = typeof VIDEO_PROCESSOR_ASSET_FILES[number];
