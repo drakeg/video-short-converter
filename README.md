@@ -83,6 +83,10 @@ Authentication is disabled by default for the Docker local-testing path. To test
 Run the same checks used by pull-request CI:
 
 ```bash
+node --check jest.config.js
+node --check jest.setup.js
+node --check __mocks__/ffmpeg.js
+node --check scripts/copy-ffmpeg-core.mjs
 npm run typecheck
 npm run lint
 npm test -- --runInBand
