@@ -80,11 +80,10 @@ Authentication is disabled by default for the Docker local-testing path. To test
 
 ## Quality checks
 
-Run the same checks used by pull-request CI:
+Run the same checks used by pull-request CI (Jest transforms JSX in `jest.setup.js` during the test run; Node's plain `--check` cannot parse JSX):
 
 ```bash
 node --check jest.config.js
-node --check jest.setup.js
 node --check __mocks__/ffmpeg.js
 node --check scripts/copy-ffmpeg-core.mjs
 npm run typecheck
