@@ -34,7 +34,6 @@ jobs:
       - name: Validate JavaScript tooling syntax
         run: |
           node --check jest.config.js
-          node --check jest.setup.js
           node --check __mocks__/ffmpeg.js
           node --check scripts/copy-ffmpeg-core.mjs
 
