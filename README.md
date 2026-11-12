@@ -1,6 +1,6 @@
 # Video Shorts Editor
 
-Local development, CI, Docker, and Vercel use Node.js 24 (`.nvmrc`); `package.json` declares the supported Node 24 runtime.
+Local development and CI use the exact Node.js 24 version in `.nvmrc` (currently 24.22.2); the Docker builder and `package.json` use the same version. Run `node scripts/check-node-runtime.mjs` to verify that the runtime contract has not drifted. Vercel uses the supported Node 24 runtime family; its patch version is managed by the platform.
 
 A browser-based video editor for trimming local video files, reframing them for social platforms, previewing the processed result, and exporting MP4 clips with FFmpeg WebAssembly.
 
