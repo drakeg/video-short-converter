@@ -33,4 +33,24 @@ describe('resolveEditorKeyboardAction', () => {
     expect(resolveEditorKeyboardAction({ code: '', key: 'i' }, { ...context, targetIsContentEditable: true })).toBeNull();
     expect(resolveEditorKeyboardAction({ code: '', key: 'x' }, context)).toBeNull();
   });
+  it.each(['altKey', 'ctrlKey', 'metaKey', 'defaultPrevented', 'isComposing', 'repeat'] as const)(
+    'ignores shortcut events when %s is true',
+    (property) => {
+      for (const event of [
+        { code: 'Space', key: ' ' },
+        { code: '', key: 'ArrowLeft' },
+        { code: '', key: 'i' },
+        { code: '', key: 'o' },
+      ]) {
+        expect(resolveEditorKeyboardAction({ ...event, [property]: true }, context)).toBeNull();
+      }
+    },
+  );
+
+  it('preserves shifted letter markers, but ignores form controls regardless of tag casing', () => {
+    expect(resolveEditorKeyboardAction({ code: '', key: 'I', shiftKey: true }, context)).toBe('mark-start');
+    expect(resolveEditorKeyboardAction({ code: '', key: 'O', shiftKey: true }, context)).toBe('mark-end');
+    expect(resolveEditorKeyboardAction({ code: '', key: 'o' }, { ...context, targetTagName: 'input' })).toBeNull();
+  });
+
 });
