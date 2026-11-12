@@ -801,7 +801,7 @@ Acceptance criteria:
 
 
 ## Sprint 77 - Retire stale AWS activation instructions
-Status: **In progress**
+Status: **In progress** (runtime patch alignment and CI drift check pending merge)
 Goal:
 - Remove contradictory operational guidance that could accidentally reactivate dormant AWS infrastructure from historical auth notes.
 
@@ -813,3 +813,4 @@ Acceptance criteria:
 - Close Sprint 76 only after its CI and Docker smoke checks are verified successful.
 - Synchronize backlog and roadmap documentation.
 - Restore Vercel compatibility by upgrading the runtime contract from discontinued Node 20 to Node 24 across package metadata, `.nvmrc`, GitHub CI, and Docker.
+- Keep Node patch levels aligned across local development and the Docker builder; CI reads `.nvmrc` and runs a dependency-free drift check before installing packages.
