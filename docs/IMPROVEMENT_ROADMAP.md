@@ -814,3 +814,16 @@ Acceptance criteria:
 - Synchronize backlog and roadmap documentation.
 - Restore Vercel compatibility by upgrading the runtime contract from discontinued Node 20 to Node 24 across package metadata, `.nvmrc`, GitHub CI, and Docker.
 - Keep Node patch levels aligned across local development and the Docker builder; CI reads `.nvmrc` and runs a dependency-free drift check before installing packages.
+
+
+## Sprint 78 - Source-bound transcription benchmark evidence
+Status: **In progress**
+Goal:
+- Prevent benchmark exports from using a source different from the file that produced the result.
+
+Acceptance criteria:
+- Snapshot the source file at run start and build a completed evidence record from that source at run completion.
+- Timestamp evidence at completion rather than at download.
+- Disable source replacement during inference, clear previous results when choosing a new file, and never offer stale evidence for download.
+- Add UI regression coverage for running/selection transitions.
+- Keep transcription developer-only, source media local, AWS dormant, and real-device measurements pending.
