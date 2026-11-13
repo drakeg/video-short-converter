@@ -3,7 +3,7 @@
 import { useMemo, useState } from 'react';
 import { calculateRealtimeFactor, resolveLocalTranscriptionCapability } from '@/components/video-editor/localTranscriptionPrototype';
 import { runLocalTranscriptionHarness } from '@/components/video-editor/localTranscriptionHarness';
-import { buildTranscriptionBenchmarkEvidence, type TranscriptionBenchmarkEvidence } from '@/components/video-editor/transcriptionBenchmarkEvidence';
+import { assessTranscriptionBenchmarkEvidence, buildTranscriptionBenchmarkEvidence, type TranscriptionBenchmarkEvidence } from '@/components/video-editor/transcriptionBenchmarkEvidence';
 
 type Result = Awaited<ReturnType<typeof runLocalTranscriptionHarness>>;
 
@@ -48,6 +48,7 @@ export default function TranscriptionBenchmarkPage() {
     <button className="mt-5 rounded bg-black px-4 py-2 text-white disabled:opacity-50" disabled={!capability.enabled || status === 'running'} onClick={run} type="button">{status === 'running' ? 'Running…' : 'Run local benchmark'}</button>
     <p className="mt-4" data-testid="benchmark-status">{status}</p>
     {message ? <p data-testid="benchmark-message">{message}</p> : null}
+    {evidence && assessTranscriptionBenchmarkEvidence(evidence).length > 0 ? <section role="alert" data-testid="benchmark-evidence-warnings" className="mt-4 rounded border border-amber-500 p-3"><p>Evidence quality warnings — do not use this run to establish performance thresholds:</p><ul className="list-disc pl-5">{assessTranscriptionBenchmarkEvidence(evidence).map((warning) => <li key={warning}>{warning}</li>)}</ul></section> : null}
     {result ? <section className="mt-5">
       <p>Measured audio duration: {result.benchmark.sourceDurationSeconds.toFixed(2)} seconds</p>
       <p>Provider: {result.benchmark.executionProvider}</p>
