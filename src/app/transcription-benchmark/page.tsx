@@ -3,7 +3,7 @@
 import { useMemo, useState } from 'react';
 import { calculateRealtimeFactor, resolveLocalTranscriptionCapability } from '@/components/video-editor/localTranscriptionPrototype';
 import { runLocalTranscriptionHarness } from '@/components/video-editor/localTranscriptionHarness';
-import { buildTranscriptionBenchmarkEvidence } from '@/components/video-editor/transcriptionBenchmarkEvidence';
+import { buildTranscriptionBenchmarkEvidence, type TranscriptionBenchmarkEvidence } from '@/components/video-editor/transcriptionBenchmarkEvidence';
 
 type Result = Awaited<ReturnType<typeof runLocalTranscriptionHarness>>;
 
@@ -16,12 +16,16 @@ export default function TranscriptionBenchmarkPage() {
   const [status, setStatus] = useState<'idle' | 'running' | 'passed' | 'failed'>('idle');
   const [message, setMessage] = useState('');
   const [result, setResult] = useState<Result | null>(null);
+  const [evidence, setEvidence] = useState<TranscriptionBenchmarkEvidence | null>(null);
 
   async function run() {
     if (!file) { setStatus('failed'); setMessage('Choose a local video file.'); return; }
-    setStatus('running'); setMessage(''); setResult(null);
+    // Capture the exact input for this run; selection changes must never relabel its evidence.
+    const source = file;
+    setStatus('running'); setMessage(''); setResult(null); setEvidence(null);
     try {
-      const next = await runLocalTranscriptionHarness(file, capability);
+      const next = await runLocalTranscriptionHarness(source, capability);
+      setEvidence(buildTranscriptionBenchmarkEvidence(source, next, capability, navigator.userAgent));
       setResult(next); setStatus('passed');
     } catch (error) {
       setStatus('failed'); setMessage(error instanceof Error ? error.message : 'Local transcription benchmark failed.');
@@ -29,9 +33,7 @@ export default function TranscriptionBenchmarkPage() {
   }
 
   function downloadEvidence() {
-    if (!result) return;
-    if (!file) return;
-    const evidence = buildTranscriptionBenchmarkEvidence(file, result, capability, navigator.userAgent);
+    if (!evidence) return;
     const url = URL.createObjectURL(new Blob([JSON.stringify(evidence, null, 2)], { type: 'application/json' }));
     const anchor = document.createElement('a');
     anchor.href = url; anchor.download = 'local-transcription-benchmark.json'; anchor.click();
@@ -42,7 +44,7 @@ export default function TranscriptionBenchmarkPage() {
     <h1 className="text-2xl font-semibold">Local transcription benchmark</h1>
     <p className="mt-3 text-sm">Developer-only diagnostic. Source media stays in this browser; model/runtime assets may be fetched from their configured origin.</p>
     <p className="mt-3" data-testid="benchmark-capability">{capability.reason}</p>
-    <label className="mt-5 block">Local video<input className="mt-1 block" type="file" accept="video/*" onChange={(e) => setFile(e.target.files?.[0] ?? null)} /></label>
+    <label className="mt-5 block">Local video<input className="mt-1 block" type="file" accept="video/*" disabled={status === 'running'} onChange={(e) => { setFile(e.target.files?.[0] ?? null); setResult(null); setEvidence(null); setStatus('idle'); setMessage(''); }} /></label>
     <button className="mt-5 rounded bg-black px-4 py-2 text-white disabled:opacity-50" disabled={!capability.enabled || status === 'running'} onClick={run} type="button">{status === 'running' ? 'Running…' : 'Run local benchmark'}</button>
     <p className="mt-4" data-testid="benchmark-status">{status}</p>
     {message ? <p data-testid="benchmark-message">{message}</p> : null}
@@ -53,7 +55,7 @@ export default function TranscriptionBenchmarkPage() {
       <p>Transcription: {result.benchmark.transcriptionMs.toFixed(0)} ms</p>
       <p>Realtime factor: {calculateRealtimeFactor(result.benchmark)?.toFixed(2) ?? 'n/a'}</p>
       <p>Cues: {result.benchmark.cueCount}</p>
-      <button className="mt-3 underline" onClick={downloadEvidence} type="button">Download benchmark evidence</button>
+      <button className="mt-3 underline" onClick={downloadEvidence} disabled={!evidence} type="button">Download benchmark evidence</button>
     </section> : null}
   </main>;
 }
