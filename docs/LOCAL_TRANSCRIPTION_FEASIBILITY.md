@@ -147,3 +147,7 @@ Do **not**:
 - commit to larger models before browser measurements exist.
 
 This keeps the feature aligned with the project's local-first, zero-recurring-cost design while creating a measurable path toward one-click transcript-assisted editing.
+
+
+## Benchmark evidence integrity gate (Sprint 79)
+Developer-only evidence is assessed for invalid/non-finite timings, decoded duration, cue counts, and cue timestamp ranges. Warnings do not modify or discard the raw downloaded evidence, but flagged runs should not establish production support thresholds. Representative device measurements remain uncollected.
