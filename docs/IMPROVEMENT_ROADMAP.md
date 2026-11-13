@@ -801,7 +801,7 @@ Acceptance criteria:
 
 
 ## Sprint 77 - Retire stale AWS activation instructions
-Status: **In progress** (runtime patch alignment and CI drift check pending merge)
+Status: **Complete** (PR #221; CI, Docker, and caption-runtime smoke passed)
 Goal:
 - Remove contradictory operational guidance that could accidentally reactivate dormant AWS infrastructure from historical auth notes.
 
@@ -817,7 +817,7 @@ Acceptance criteria:
 
 
 ## Sprint 78 - Source-bound transcription benchmark evidence
-Status: **In progress**
+Status: **Complete** (PR #222; CI passed)
 Goal:
 - Prevent benchmark exports from using a source different from the file that produced the result.
 
@@ -827,3 +827,16 @@ Acceptance criteria:
 - Disable source replacement during inference, clear previous results when choosing a new file, and never offer stale evidence for download.
 - Add UI regression coverage for running/selection transitions.
 - Keep transcription developer-only, source media local, AWS dormant, and real-device measurements pending.
+
+
+## Sprint 79 - Transcription benchmark evidence quality checks
+Status: **In progress**
+Goal:
+- Warn developers before malformed timing or cue metadata is used to establish local Whisper performance thresholds.
+
+Acceptance criteria:
+- Check finite positive decoded-audio duration and finite nonnegative processing timings.
+- Check cue count against exported cues, and reject invalid/out-of-bounds cue timestamps from quality assessment.
+- Flag missing or nonfinite realtime factor without discarding the raw evidence for troubleshooting.
+- Display diagnostic-only nonblocking warnings and add focused unit coverage.
+- Keep model execution developer-gated, media in the browser, AWS dormant, and representative macOS/Windows/WASM evidence pending.
