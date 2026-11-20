@@ -830,7 +830,7 @@ Acceptance criteria:
 
 
 ## Sprint 79 - Transcription benchmark evidence quality checks
-Status: **In progress**
+Status: **Complete** (PR #223; CI passed)
 Goal:
 - Warn developers before malformed timing or cue metadata is used to establish local Whisper performance thresholds.
 
@@ -840,3 +840,16 @@ Acceptance criteria:
 - Flag missing or nonfinite realtime factor without discarding the raw evidence for troubleshooting.
 - Display diagnostic-only nonblocking warnings and add focused unit coverage.
 - Keep model execution developer-gated, media in the browser, AWS dormant, and representative macOS/Windows/WASM evidence pending.
+
+
+## Sprint 80 - Honest benchmark result status
+Status: **In progress**
+Goal:
+- Stop the developer benchmark page from labeling runs with malformed evidence as passed.
+
+Acceptance criteria:
+- A completed run with valid evidence retains the passed status.
+- A completed run with integrity warnings receives a distinct warning status and actionable explanation.
+- Retain raw metadata download for troubleshooting while clearly prohibiting its use for support/performance thresholds.
+- Add regression tests for both valid and invalid completed runs.
+- No change to browser-local media privacy, production transcription gate, or dormant AWS deployments.
