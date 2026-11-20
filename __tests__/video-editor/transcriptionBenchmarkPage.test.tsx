@@ -49,4 +49,30 @@ describe('local transcription benchmark evidence lifecycle', () => {
     await waitFor(() => expect(screen.queryByRole('button', { name: 'Download benchmark evidence' })).not.toBeInTheDocument());
     expect(screen.getByTestId('benchmark-status')).toHaveTextContent('idle');
   });
+  it('marks valid benchmark evidence as passed', async () => {
+    runMock.mockResolvedValueOnce(result);
+    render(<TranscriptionBenchmarkPage />);
+    fireEvent.change(screen.getByLabelText('Local video'), {
+      target: { files: [new File(['a'], 'valid.mp4', { type: 'video/mp4' })] },
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'Run local benchmark' }));
+    await waitFor(() => expect(screen.getByTestId('benchmark-status')).toHaveTextContent('passed'));
+    expect(screen.queryByTestId('benchmark-evidence-warnings')).not.toBeInTheDocument();
+  });
+
+  it('does not mark a completed run as passed when evidence quality fails', async () => {
+    runMock.mockResolvedValueOnce({
+      ...result,
+      benchmark: { ...result.benchmark, cueCount: 2 },
+    });
+    render(<TranscriptionBenchmarkPage />);
+    fireEvent.change(screen.getByLabelText('Local video'), {
+      target: { files: [new File(['a'], 'invalid.mp4', { type: 'video/mp4' })] },
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'Run local benchmark' }));
+    await waitFor(() => expect(screen.getByTestId('benchmark-status')).toHaveTextContent('warning'));
+    expect(screen.getByTestId('benchmark-evidence-warnings')).toHaveTextContent('Reported cue count differs');
+    expect(screen.getByRole('button', { name: 'Download benchmark evidence' })).toBeEnabled();
+  });
+
 });
