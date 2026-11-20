@@ -7,19 +7,41 @@
     ":semanticCommitTypeAll(chore)"
   ],
   "timezone": "America/New_York",
-  "labels": ["dependencies"],
-  "schedule": ["before 6am on monday"],
+  "labels": [
+    "dependencies"
+  ],
+  "schedule": [
+    "before 6am on monday"
+  ],
   "minimumReleaseAge": "3 days",
   "prConcurrentLimit": 3,
   "prHourlyLimit": 1,
   "rebaseWhen": "behind-base-branch",
   "rangeStrategy": "bump",
-  "ignorePaths": ["terraform/**"],
+  "ignorePaths": [
+    "terraform/**"
+  ],
   "packageRules": [
     {
+      "description": "Keep Node runtime metadata, nvm, and Docker upgrades in a single PR",
+      "matchPackageNames": [
+        "node",
+        "docker.io/library/node"
+      ],
+      "groupName": "node.js runtime",
+      "automerge": false
+    },
+    {
       "description": "Group and automerge safe npm non-major updates after CI",
-      "matchManagers": ["npm"],
-      "matchUpdateTypes": ["minor", "patch", "pin", "digest"],
+      "matchManagers": [
+        "npm"
+      ],
+      "matchUpdateTypes": [
+        "minor",
+        "patch",
+        "pin",
+        "digest"
+      ],
       "groupName": "npm non-major dependencies",
       "automerge": true,
       "automergeType": "pr",
@@ -27,33 +49,69 @@
     },
     {
       "description": "Do not automerge major npm updates",
-      "matchManagers": ["npm"],
-      "matchUpdateTypes": ["major"],
+      "matchManagers": [
+        "npm"
+      ],
+      "matchUpdateTypes": [
+        "major"
+      ],
       "automerge": false,
       "dependencyDashboardApproval": true
     },
     {
       "description": "Do not automerge ffmpeg packages",
-      "matchPackageNames": ["@ffmpeg/ffmpeg", "@ffmpeg/core", "@ffmpeg/util"],
+      "matchPackageNames": [
+        "@ffmpeg/ffmpeg",
+        "@ffmpeg/core",
+        "@ffmpeg/util"
+      ],
       "automerge": false,
       "dependencyDashboardApproval": true,
       "groupName": "ffmpeg packages"
     },
     {
       "description": "Do not automerge Next.js/React major framework packages",
-      "matchPackageNames": ["next", "react", "react-dom", "eslint-config-next"],
-      "matchUpdateTypes": ["major"],
+      "matchPackageNames": [
+        "next",
+        "react",
+        "react-dom",
+        "eslint-config-next"
+      ],
+      "matchUpdateTypes": [
+        "major"
+      ],
       "automerge": false,
       "dependencyDashboardApproval": true
     },
     {
       "description": "Group and automerge GitHub Actions non-major updates",
-      "matchManagers": ["github-actions"],
-      "matchUpdateTypes": ["minor", "patch", "pin", "digest"],
+      "matchManagers": [
+        "github-actions"
+      ],
+      "matchUpdateTypes": [
+        "minor",
+        "patch",
+        "pin",
+        "digest"
+      ],
       "groupName": "github actions non-major dependencies",
       "automerge": true,
       "automergeType": "pr",
       "platformAutomerge": true
+    }
+  ],
+  "customManagers": [
+    {
+      "customType": "regex",
+      "managerFilePatterns": [
+        "/^package\\.json$/"
+      ],
+      "matchStrings": [
+        "\"engines\"\\s*:\\s*\\{\\s*\"node\"\\s*:\\s*\"(?<currentValue>\\d+\\.\\d+\\.\\d+)\""
+      ],
+      "depNameTemplate": "node",
+      "datasourceTemplate": "node-version",
+      "versioningTemplate": "node"
     }
   ]
 }
