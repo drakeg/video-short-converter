@@ -151,3 +151,7 @@ This keeps the feature aligned with the project's local-first, zero-recurring-co
 
 ## Benchmark evidence integrity gate (Sprint 79)
 Developer-only evidence is assessed for invalid/non-finite timings, decoded duration, cue counts, and cue timestamp ranges. Warnings do not modify or discard the raw downloaded evidence, but flagged runs should not establish production support thresholds. Representative device measurements remain uncollected.
+
+
+## Diagnostic status policy (Sprint 80)
+A completed developer benchmark is marked **passed** only when its evidence satisfies the existing quality checks. Completed runs with invalid evidence are marked **warning**, not **passed**, and remain downloadable for investigation. This distinction is about evidence validity, not whether transcription accuracy/performance is approved for production. Representative macOS/Windows/WASM measurements are still pending.

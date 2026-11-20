@@ -13,7 +13,7 @@ export default function TranscriptionBenchmarkPage() {
     typeof navigator === 'undefined' ? undefined : navigator,
   ), []);
   const [file, setFile] = useState<File | null>(null);
-  const [status, setStatus] = useState<'idle' | 'running' | 'passed' | 'failed'>('idle');
+  const [status, setStatus] = useState<'idle' | 'running' | 'passed' | 'warning' | 'failed'>('idle');
   const [message, setMessage] = useState('');
   const [result, setResult] = useState<Result | null>(null);
   const [evidence, setEvidence] = useState<TranscriptionBenchmarkEvidence | null>(null);
@@ -25,8 +25,10 @@ export default function TranscriptionBenchmarkPage() {
     setStatus('running'); setMessage(''); setResult(null); setEvidence(null);
     try {
       const next = await runLocalTranscriptionHarness(source, capability);
-      setEvidence(buildTranscriptionBenchmarkEvidence(source, next, capability, navigator.userAgent));
-      setResult(next); setStatus('passed');
+      const completedEvidence = buildTranscriptionBenchmarkEvidence(source, next, capability, navigator.userAgent);
+      setEvidence(completedEvidence);
+      setResult(next);
+      setStatus(assessTranscriptionBenchmarkEvidence(completedEvidence).length ? 'warning' : 'passed');
     } catch (error) {
       setStatus('failed'); setMessage(error instanceof Error ? error.message : 'Local transcription benchmark failed.');
     }
@@ -48,7 +50,7 @@ export default function TranscriptionBenchmarkPage() {
     <button className="mt-5 rounded bg-black px-4 py-2 text-white disabled:opacity-50" disabled={!capability.enabled || status === 'running'} onClick={run} type="button">{status === 'running' ? 'Running…' : 'Run local benchmark'}</button>
     <p className="mt-4" data-testid="benchmark-status">{status}</p>
     {message ? <p data-testid="benchmark-message">{message}</p> : null}
-    {evidence && assessTranscriptionBenchmarkEvidence(evidence).length > 0 ? <section role="alert" data-testid="benchmark-evidence-warnings" className="mt-4 rounded border border-amber-500 p-3"><p>Evidence quality warnings — do not use this run to establish performance thresholds:</p><ul className="list-disc pl-5">{assessTranscriptionBenchmarkEvidence(evidence).map((warning) => <li key={warning}>{warning}</li>)}</ul></section> : null}
+    {evidence && assessTranscriptionBenchmarkEvidence(evidence).length > 0 ? <section role="alert" data-testid="benchmark-evidence-warnings" className="mt-4 rounded border border-amber-500 p-3"><p>Benchmark completed with warnings — evidence is downloadable for investigation, but must not be used to establish performance thresholds:</p><ul className="list-disc pl-5">{assessTranscriptionBenchmarkEvidence(evidence).map((warning) => <li key={warning}>{warning}</li>)}</ul></section> : null}
     {result ? <section className="mt-5">
       <p>Measured audio duration: {result.benchmark.sourceDurationSeconds.toFixed(2)} seconds</p>
       <p>Provider: {result.benchmark.executionProvider}</p>
