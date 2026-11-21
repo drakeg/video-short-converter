@@ -155,3 +155,7 @@ Developer-only evidence is assessed for invalid/non-finite timings, decoded dura
 
 ## Diagnostic status policy (Sprint 80)
 A completed developer benchmark is marked **passed** only when its evidence satisfies the existing quality checks. Completed runs with invalid evidence are marked **warning**, not **passed**, and remain downloadable for investigation. This distinction is about evidence validity, not whether transcription accuracy/performance is approved for production. Representative macOS/Windows/WASM measurements are still pending.
+
+
+## Local evidence review (Sprint 81)
+The developer benchmark page now accepts previously downloaded evidence JSON files for a browser-local comparison table. This is a review utility, not measured validation: users must still run representative Chrome/macOS and Chrome/Windows workloads, with WASM fallback where practical. Imports are schema-validated and capped at 2 MB each; media and benchmark evidence are not uploaded.
