@@ -45,12 +45,12 @@ export default function TranscriptionBenchmarkPage() {
     URL.revokeObjectURL(url);
   }
 
-  async function importEvidence(files: FileList | null) {
-    if (!files?.length) return;
+  async function importEvidence(files: File[]) {
+    if (!files.length) return;
     setReviewError('');
     try {
       const items: ReviewedBenchmark[] = [];
-      for (const selected of Array.from(files).slice(0, 10)) {
+      for (const selected of files.slice(0, 10)) {
         if (selected.size > 2_000_000) throw new Error(`${selected.name}: Evidence exceeds the 2 MB review limit.`);
         try { items.push(parseBenchmarkEvidence(await selected.text())); }
         catch (error) { throw new Error(`${selected.name}: ${error instanceof Error ? error.message : 'Invalid evidence.'}`); }
@@ -83,7 +83,7 @@ export default function TranscriptionBenchmarkPage() {
     <section className="mt-8 border-t pt-5" aria-label="Review saved benchmark evidence">
       <h2 className="text-lg font-semibold">Review saved benchmark evidence</h2>
       <p className="mt-2 text-sm">Choose up to ten previously downloaded benchmark JSON files to compare measured duration, provider, and realtime factor locally. Imported files are not uploaded. Quality warnings remain visible.</p>
-      <label className="mt-3 block">Benchmark JSON files<input className="mt-1 block" type="file" accept=".json,application/json" multiple onChange={(event) => { void importEvidence(event.target.files); event.currentTarget.value = ''; }} /></label>
+      <label className="mt-3 block">Benchmark JSON files<input className="mt-1 block" type="file" accept=".json,application/json" multiple onChange={(event) => { const files = Array.from(event.currentTarget.files ?? []); event.currentTarget.value = ''; void importEvidence(files); }} /></label>
       {reviewError ? <p role="alert" className="mt-2 text-red-700">{reviewError}</p> : null}
       {reviewed.length ? <div className="mt-3 overflow-x-auto"><table className="w-full text-left text-sm"><thead><tr><th scope="col">Source</th><th scope="col">Provider</th><th scope="col">Audio (s)</th><th scope="col">Realtime factor</th><th scope="col">Quality</th></tr></thead><tbody>{reviewed.map((item, index) => <tr key={`${item.evidence.capturedAt}-${index}`}><td className="py-2 pr-2">{item.evidence.source.name}</td><td className="pr-2">{item.evidence.benchmark.executionProvider}</td><td className="pr-2">{item.evidence.benchmark.sourceDurationSeconds.toFixed(2)}</td><td className="pr-2">{item.evidence.realtimeFactor?.toFixed(2) ?? 'n/a'}</td><td>{item.warnings.length ? `Warning: ${item.warnings.join(' ')}` : 'Checks passed'}</td></tr>)}</tbody></table></div> : null}
     </section>
