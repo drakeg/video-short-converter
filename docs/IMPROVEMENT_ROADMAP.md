@@ -843,7 +843,7 @@ Acceptance criteria:
 
 
 ## Sprint 80 - Honest benchmark result status
-Status: **In progress**
+Status: **Complete** (PR #225; branch and post-merge CI passed)
 Goal:
 - Stop the developer benchmark page from labeling runs with malformed evidence as passed.
 
@@ -853,3 +853,16 @@ Acceptance criteria:
 - Retain raw metadata download for troubleshooting while clearly prohibiting its use for support/performance thresholds.
 - Add regression tests for both valid and invalid completed runs.
 - No change to browser-local media privacy, production transcription gate, or dormant AWS deployments.
+
+
+## Sprint 81 - Review saved benchmark evidence locally
+Status: **In progress**
+Goal:
+- Make independently collected developer benchmarks comparable without uploading JSON or media.
+
+Acceptance criteria:
+- Import up to ten local versioned benchmark JSON files, each at most 2 MB.
+- Validate schema and required nested fields before quality assessment.
+- Compare source name, provider, decoded audio duration, realtime factor, and quality warnings in one review table.
+- Keep local inference disabled by default; importing saved evidence must not initialize models or FFmpeg.
+- Add parser tests and keep real-device benchmark measurements explicitly pending.
