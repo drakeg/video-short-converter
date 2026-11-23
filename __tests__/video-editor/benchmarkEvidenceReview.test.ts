@@ -1,4 +1,4 @@
-import { parseBenchmarkEvidence } from '@/components/video-editor/benchmarkEvidenceReview';
+import { parseBenchmarkEvidence, validateBenchmarkEvidenceFiles } from '@/components/video-editor/benchmarkEvidenceReview';
 import { buildTranscriptionBenchmarkEvidence } from '@/components/video-editor/transcriptionBenchmarkEvidence';
 
 const valid = () => buildTranscriptionBenchmarkEvidence(
@@ -43,4 +43,16 @@ describe('imported benchmark review', () => {
   it('limits JSON text size', () => {
     expect(() => parseBenchmarkEvidence(' '.repeat(2_000_001))).toThrow('2 MB');
   });
+  it('rejects selections larger than the documented ten-file limit', () => {
+    const selected = Array.from({ length: 11 }, (_, index) => ({ name: `run-${index}.json`, size: 20 }));
+    expect(validateBenchmarkEvidenceFiles(selected)).toMatch(/11 were selected/);
+    expect(validateBenchmarkEvidenceFiles(selected.slice(0, 10))).toBeNull();
+  });
+
+  it('rejects oversized and empty benchmark files before reading', () => {
+    expect(validateBenchmarkEvidenceFiles([{ name: 'large.json', size: 2_000_001 }])).toMatch(/2 MB/);
+    expect(validateBenchmarkEvidenceFiles([{ name: 'empty.json', size: 0 }])).toMatch(/empty/);
+    expect(validateBenchmarkEvidenceFiles([{ name: 'maximum.json', size: 2_000_000 }])).toBeNull();
+  });
+
 });

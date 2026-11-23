@@ -3,7 +3,7 @@
 import { useMemo, useState } from 'react';
 import { calculateRealtimeFactor, resolveLocalTranscriptionCapability } from '@/components/video-editor/localTranscriptionPrototype';
 import { runLocalTranscriptionHarness } from '@/components/video-editor/localTranscriptionHarness';
-import { parseBenchmarkEvidence, type ReviewedBenchmark } from '@/components/video-editor/benchmarkEvidenceReview';
+import { parseBenchmarkEvidence, validateBenchmarkEvidenceFiles, type ReviewedBenchmark } from '@/components/video-editor/benchmarkEvidenceReview';
 import { assessTranscriptionBenchmarkEvidence, buildTranscriptionBenchmarkEvidence, type TranscriptionBenchmarkEvidence } from '@/components/video-editor/transcriptionBenchmarkEvidence';
 
 type Result = Awaited<ReturnType<typeof runLocalTranscriptionHarness>>;
@@ -48,10 +48,11 @@ export default function TranscriptionBenchmarkPage() {
   async function importEvidence(files: File[]) {
     if (!files.length) return;
     setReviewError('');
+    const validationError = validateBenchmarkEvidenceFiles(files);
+    if (validationError) { setReviewError(validationError); return; }
     try {
       const items: ReviewedBenchmark[] = [];
-      for (const selected of files.slice(0, 10)) {
-        if (selected.size > 2_000_000) throw new Error(`${selected.name}: Evidence exceeds the 2 MB review limit.`);
+      for (const selected of files) {
         try { items.push(parseBenchmarkEvidence(await selected.text())); }
         catch (error) { throw new Error(`${selected.name}: ${error instanceof Error ? error.message : 'Invalid evidence.'}`); }
       }

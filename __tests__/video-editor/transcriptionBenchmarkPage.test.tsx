@@ -75,4 +75,15 @@ describe('local transcription benchmark evidence lifecycle', () => {
     expect(screen.getByRole('button', { name: 'Download benchmark evidence' })).toBeEnabled();
   });
 
+  it('reports an oversized evidence selection instead of silently importing only ten', async () => {
+    render(<TranscriptionBenchmarkPage />);
+    const evidenceFiles = Array.from({ length: 11 }, (_, index) =>
+      new File(['{}'], `run-${index}.json`, { type: 'application/json' }));
+    fireEvent.change(screen.getByLabelText('Benchmark JSON files'), {
+      target: { files: evidenceFiles },
+    });
+    expect(await screen.findByRole('alert')).toHaveTextContent('11 were selected');
+    expect(screen.queryByRole('table')).not.toBeInTheDocument();
+  });
+
 });
