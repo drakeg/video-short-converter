@@ -856,7 +856,7 @@ Acceptance criteria:
 
 
 ## Sprint 81 - Review saved benchmark evidence locally
-Status: **In progress**
+Status: **Complete** (PR #226; CI passed)
 Goal:
 - Make independently collected developer benchmarks comparable without uploading JSON or media.
 
@@ -866,3 +866,15 @@ Acceptance criteria:
 - Compare source name, provider, decoded audio duration, realtime factor, and quality warnings in one review table.
 - Keep local inference disabled by default; importing saved evidence must not initialize models or FFmpeg.
 - Add parser tests and keep real-device benchmark measurements explicitly pending.
+
+
+## Sprint 82 - Explicit benchmark import limits
+Status: **In progress**
+Goal:
+- Avoid misleading benchmark comparisons caused by silently discarded or empty selected evidence files.
+
+Acceptance criteria:
+- Reject selections above the ten-file limit rather than silently importing only the first ten.
+- Reject empty or greater-than-2-MB files before starting the import and show a clear error.
+- Keep earlier successfully reviewed results intact when a new selection is rejected at pre-validation.
+- Add pure-helper and UI regression coverage; retain browser-local privacy, developer-only inference, and dormant AWS policy.
