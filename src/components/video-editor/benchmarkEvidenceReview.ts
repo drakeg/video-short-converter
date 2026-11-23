@@ -49,3 +49,27 @@ function isNumber(value: unknown): value is number { return typeof value === 'nu
 function isNonnegativeNumber(value: unknown): boolean {
   return isNumber(value) && Number.isFinite(value) && value >= 0;
 }
+
+export const MAX_BENCHMARK_EVIDENCE_FILES = 10;
+export const MAX_BENCHMARK_EVIDENCE_BYTES = 2_000_000;
+
+/**
+ * Validate the complete selection before reading anything. In particular, never
+ * silently ignore files beyond the review limit or partially replace a review.
+ */
+export function validateBenchmarkEvidenceFiles(
+  files: ReadonlyArray<Pick<File, 'name' | 'size'>>,
+): string | null {
+  if (files.length > MAX_BENCHMARK_EVIDENCE_FILES) {
+    return `Choose no more than ${MAX_BENCHMARK_EVIDENCE_FILES} benchmark JSON files; ${files.length} were selected.`;
+  }
+  for (const file of files) {
+    if (file.size > MAX_BENCHMARK_EVIDENCE_BYTES) {
+      return `${file.name}: Evidence exceeds the 2 MB review limit.`;
+    }
+    if (file.size === 0) {
+      return `${file.name}: This benchmark evidence file is empty.`;
+    }
+  }
+  return null;
+}
