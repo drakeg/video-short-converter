@@ -159,3 +159,7 @@ A completed developer benchmark is marked **passed** only when its evidence sati
 
 ## Local evidence review (Sprint 81)
 The developer benchmark page now accepts previously downloaded evidence JSON files for a browser-local comparison table. This is a review utility, not measured validation: users must still run representative Chrome/macOS and Chrome/Windows workloads, with WASM fallback where practical. Imports are schema-validated and capped at 2 MB each; media and benchmark evidence are not uploaded.
+
+
+## Benchmark import safeguards (Sprint 82)
+Selecting more than ten benchmark evidence files now produces a clear error rather than silently discarding extra runs. Empty or oversized (>2 MB) files are rejected before import. Existing reviewed results remain visible when a new selection fails this pre-validation, making the comparison less likely to omit intended data without explanation.
