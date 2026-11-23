@@ -3,6 +3,7 @@
 import { useMemo, useState } from 'react';
 import { calculateRealtimeFactor, resolveLocalTranscriptionCapability } from '@/components/video-editor/localTranscriptionPrototype';
 import { runLocalTranscriptionHarness } from '@/components/video-editor/localTranscriptionHarness';
+import { parseBenchmarkEvidence, type ReviewedBenchmark } from '@/components/video-editor/benchmarkEvidenceReview';
 import { assessTranscriptionBenchmarkEvidence, buildTranscriptionBenchmarkEvidence, type TranscriptionBenchmarkEvidence } from '@/components/video-editor/transcriptionBenchmarkEvidence';
 
 type Result = Awaited<ReturnType<typeof runLocalTranscriptionHarness>>;
@@ -17,6 +18,8 @@ export default function TranscriptionBenchmarkPage() {
   const [message, setMessage] = useState('');
   const [result, setResult] = useState<Result | null>(null);
   const [evidence, setEvidence] = useState<TranscriptionBenchmarkEvidence | null>(null);
+  const [reviewed, setReviewed] = useState<ReviewedBenchmark[]>([]);
+  const [reviewError, setReviewError] = useState('');
 
   async function run() {
     if (!file) { setStatus('failed'); setMessage('Choose a local video file.'); return; }
@@ -42,6 +45,23 @@ export default function TranscriptionBenchmarkPage() {
     URL.revokeObjectURL(url);
   }
 
+  async function importEvidence(files: File[]) {
+    if (!files.length) return;
+    setReviewError('');
+    try {
+      const items: ReviewedBenchmark[] = [];
+      for (const selected of files.slice(0, 10)) {
+        if (selected.size > 2_000_000) throw new Error(`${selected.name}: Evidence exceeds the 2 MB review limit.`);
+        try { items.push(parseBenchmarkEvidence(await selected.text())); }
+        catch (error) { throw new Error(`${selected.name}: ${error instanceof Error ? error.message : 'Invalid evidence.'}`); }
+      }
+      setReviewed(items);
+    } catch (error) {
+      setReviewed([]);
+      setReviewError(error instanceof Error ? error.message : 'Unable to review evidence.');
+    }
+  }
+
   return <main className="mx-auto max-w-2xl p-8">
     <h1 className="text-2xl font-semibold">Local transcription benchmark</h1>
     <p className="mt-3 text-sm">Developer-only diagnostic. Source media stays in this browser; model/runtime assets may be fetched from their configured origin.</p>
@@ -60,5 +80,12 @@ export default function TranscriptionBenchmarkPage() {
       <p>Cues: {result.benchmark.cueCount}</p>
       <button className="mt-3 underline" onClick={downloadEvidence} disabled={!evidence} type="button">Download benchmark evidence</button>
     </section> : null}
+    <section className="mt-8 border-t pt-5" aria-label="Review saved benchmark evidence">
+      <h2 className="text-lg font-semibold">Review saved benchmark evidence</h2>
+      <p className="mt-2 text-sm">Choose up to ten previously downloaded benchmark JSON files to compare measured duration, provider, and realtime factor locally. Imported files are not uploaded. Quality warnings remain visible.</p>
+      <label className="mt-3 block">Benchmark JSON files<input className="mt-1 block" type="file" accept=".json,application/json" multiple onChange={(event) => { const files = Array.from(event.currentTarget.files ?? []); event.currentTarget.value = ''; void importEvidence(files); }} /></label>
+      {reviewError ? <p role="alert" className="mt-2 text-red-700">{reviewError}</p> : null}
+      {reviewed.length ? <div className="mt-3 overflow-x-auto"><table className="w-full text-left text-sm"><thead><tr><th scope="col">Source</th><th scope="col">Provider</th><th scope="col">Audio (s)</th><th scope="col">Realtime factor</th><th scope="col">Quality</th></tr></thead><tbody>{reviewed.map((item, index) => <tr key={`${item.evidence.capturedAt}-${index}`}><td className="py-2 pr-2">{item.evidence.source.name}</td><td className="pr-2">{item.evidence.benchmark.executionProvider}</td><td className="pr-2">{item.evidence.benchmark.sourceDurationSeconds.toFixed(2)}</td><td className="pr-2">{item.evidence.realtimeFactor?.toFixed(2) ?? 'n/a'}</td><td>{item.warnings.length ? `Warning: ${item.warnings.join(' ')}` : 'Checks passed'}</td></tr>)}</tbody></table></div> : null}
+    </section>
   </main>;
 }
