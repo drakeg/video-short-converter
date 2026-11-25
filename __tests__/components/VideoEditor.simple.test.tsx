@@ -120,4 +120,21 @@ describe('VideoEditor', () => {
       expect(screen.getByRole('button', { name: 'Process 00:09.0 Short' })).toBeEnabled();
     });
   });
+
+  it('shows source diagnostics after media metadata loads', async () => {
+    const file = new File(['example'], 'source.mp4', { type: 'video/mp4' });
+    Object.defineProperty(file, 'size', { value: 10_000_000, configurable: true });
+    const { container } = render(<VideoEditorContent />);
+    const input = container.querySelector('input[type="file"]') as HTMLInputElement;
+    fireEvent.change(input, { target: { files: [file] } });
+    const video = screen.getByLabelText('Video player') as HTMLVideoElement;
+    Object.defineProperty(video, 'duration', { value: 10, configurable: true });
+    Object.defineProperty(video, 'videoWidth', { value: 1920, configurable: true });
+    Object.defineProperty(video, 'videoHeight', { value: 1080, configurable: true });
+    fireEvent.loadedMetadata(video);
+    expect(await screen.findByRole('region', { name: 'Source video diagnostics' })).toHaveTextContent('8.00 Mbps');
+    expect(screen.getByRole('region', { name: 'Source video diagnostics' })).toHaveTextContent('2.07 MP');
+  });
+
+
 });
