@@ -1,5 +1,8 @@
 # Video Shorts Editor
 
+[![License](https://img.shields.io/github/license/drakeg/video-short-converter)](https://github.com/drakeg/video-short-converter/blob/main/LICENSE)
+
+
 Local development and CI use the exact Node.js 24 version in `.nvmrc` (currently 24.22.3); the Docker builder and `package.json` use the same version. Run `node scripts/check-node-runtime.mjs` to verify that the runtime contract has not drifted. Vercel uses the supported Node 24 runtime family; its patch version is managed by the platform.
 
 A browser-based video editor for trimming local video files, reframing them for social platforms, previewing the processed result, and exporting MP4 clips with FFmpeg WebAssembly.
