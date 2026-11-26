@@ -138,3 +138,7 @@ AWS hosting is intentionally dormant and the repository contains no AWS deployme
 
 ### Local export timing
 After a successful single-clip export, the editor reports observed processing seconds and a processing-to-clip-duration ratio. Measurements are local to the browser session, not telemetry, and do not predict other devices or files. Batch exports are not yet profiled.
+
+
+### Batch export timing
+A successful or partially successful local batch export displays observed elapsed time (including ZIP packaging), the combined duration of successfully exported clips, and successful/failed clip counts. This is session-only diagnostic information; it is not telemetry, a memory metric, or a prediction of future export speed.

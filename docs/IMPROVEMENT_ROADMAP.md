@@ -894,7 +894,7 @@ Acceptance criteria:
 
 
 ## Sprint 84 - Observed single-clip local export timing
-Status: **In progress**
+Status: **Complete** (PR #232; branch and post-merge CI passed)
 Goal:
 - Record meaningful browser-local processing time rather than estimating speed from file size.
 
@@ -903,3 +903,15 @@ Acceptance criteria:
 - Show elapsed seconds, clip duration and observed processing-to-clip ratio; do not imply performance guarantees or RAM measurements.
 - Clear previous timing on new source selection and new single-clip processing attempts; failed attempts do not produce a successful timing record.
 - Add deterministic helper unit tests; retain local-only processing, dormant AWS, and no paid services.
+
+
+## Sprint 85 - Observed local batch-export timing
+Status: **In progress**
+Goal:
+- Give creators measured local batch-export duration without claiming memory usage or forecasting throughput.
+
+Acceptance criteria:
+- Capture monotonic time for the whole batch including ZIP packaging; report elapsed seconds against total duration of successfully exported clips.
+- Clearly distinguish successful and failed clip counts; retain partial batch timing when a downloadable result exists.
+- Do not report timing for all-failed or invalid batches, and reset prior timing on new source selections and batch attempts.
+- Add tests for complete, partial, and invalid batch timing; retain browser-local processing and dormant AWS.
