@@ -17,7 +17,7 @@ export function calculateBatchExportTiming(
   if (!attemptedClips.length || failedClipIds.length > attemptedClips.length) return null;
   const failures = new Set(failedClipIds);
   const successful = attemptedClips.filter((clip) => !failures.has(clip.id));
-  if (failures.size !== failedClipIds.length || attemptedClips.some((clip) => !Number.isFinite(clip.start) || !Number.isFinite(clip.end) || clip.end <= clip.start)) return null;
+  if (failures.size !== failedClipIds.length || failures.size > 0 && [...failures].some((id) => !attemptedClips.some((clip) => clip.id === id)) || attemptedClips.some((clip) => !Number.isFinite(clip.start) || !Number.isFinite(clip.end) || clip.end <= clip.start)) return null;
   const clipSeconds = successful.reduce((seconds, clip) => seconds + clip.end - clip.start, 0);
   const base = calculateLocalExportTiming(startedMs, finishedMs, clipSeconds);
   if (!base) return null;
