@@ -881,7 +881,7 @@ Acceptance criteria:
 
 
 ## Sprint 83 - Metadata-based source video diagnostics
-Status: **In progress**
+Status: **Complete** (PR #230; branch CI passed)
 Goal:
 - Give creators factual source-video context before attempting expensive browser-local processing.
 
@@ -891,3 +891,15 @@ Acceptance criteria:
 - Do not present these derived metrics as observed RAM consumption, export speed, or a guarantee of browser processing success.
 - Hide diagnostics until valid media metadata is available; add focused unit tests.
 - Keep existing export, browser-local media processing, dormant AWS policy, and real-device performance measurement backlog unchanged.
+
+
+## Sprint 84 - Observed single-clip local export timing
+Status: **In progress**
+Goal:
+- Record meaningful browser-local processing time rather than estimating speed from file size.
+
+Acceptance criteria:
+- Time only a successful single-clip FFmpeg export, using monotonic browser timestamps around processing.
+- Show elapsed seconds, clip duration and observed processing-to-clip ratio; do not imply performance guarantees or RAM measurements.
+- Clear previous timing on new source selection and new single-clip processing attempts; failed attempts do not produce a successful timing record.
+- Add deterministic helper unit tests; retain local-only processing, dormant AWS, and no paid services.

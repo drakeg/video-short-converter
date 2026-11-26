@@ -10,7 +10,7 @@ This backlog is the active, prioritized work queue for Video Shorts Editor. Comp
 | P1 | Sprint 77 — runtime compatibility + stale AWS instruction cleanup | Done — PR #221 merged and CI/Docker/caption checks passed | Keeps local, CI, and Docker builds reproducible on Node 24 while preserving dormant-AWS safeguards | Match package.json, .nvmrc, Docker, and Node-powered workflows; add drift check; retain historical AWS notes as non-executable |
 | P2 | Record representative local Whisper benchmark evidence | Ready — import safeguards merged; real-device measurements pending | Establishes measured support/performance evidence before production UX | Run the diagnostic on representative real media in Chromium/macOS and Chromium/Windows, plus WASM fallback where practical; retain observed evidence and support thresholds without inventing measurements |
 | P3 | Maintenance/dependency upgrades | Ready | Reduced security/maintenance drift | Renovate-compatible upgrades pass existing validation and do not reactivate dormant AWS deployment |
-| P3 | Performance profiling for larger source files | In progress — Sprint 83 source metadata diagnostics | More predictable behavior on long/high-resolution video | Measure browser memory/processing bottlenecks and capture actionable thresholds before optimization |
+| P3 | Performance profiling for larger source files | In progress — Sprint 84 observed single-clip export timing | More predictable behavior on long/high-resolution video | Measure browser memory/processing bottlenecks and capture actionable thresholds before optimization |
 
 ## Backlog constraints
 - AWS deployment remains disabled.
