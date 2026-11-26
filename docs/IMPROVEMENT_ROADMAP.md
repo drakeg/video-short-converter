@@ -869,7 +869,7 @@ Acceptance criteria:
 
 
 ## Sprint 82 - Explicit benchmark import limits
-Status: **In progress**
+Status: **Complete** (PR #227; CI passed)
 Goal:
 - Avoid misleading benchmark comparisons caused by silently discarded or empty selected evidence files.
 
@@ -878,3 +878,16 @@ Acceptance criteria:
 - Reject empty or greater-than-2-MB files before starting the import and show a clear error.
 - Keep earlier successfully reviewed results intact when a new selection is rejected at pre-validation.
 - Add pure-helper and UI regression coverage; retain browser-local privacy, developer-only inference, and dormant AWS policy.
+
+
+## Sprint 83 - Metadata-based source video diagnostics
+Status: **In progress**
+Goal:
+- Give creators factual source-video context before attempting expensive browser-local processing.
+
+Acceptance criteria:
+- After metadata loads, show source file size, frame megapixels, and average total file bitrate based on actual byte count and duration.
+- Surface advisory warnings for source files >= 500 MiB, resolutions >= 8 megapixels/frame, or duration >= 30 minutes.
+- Do not present these derived metrics as observed RAM consumption, export speed, or a guarantee of browser processing success.
+- Hide diagnostics until valid media metadata is available; add focused unit tests.
+- Keep existing export, browser-local media processing, dormant AWS policy, and real-device performance measurement backlog unchanged.

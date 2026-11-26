@@ -26,6 +26,7 @@ A browser-based video editor for trimming local video files, reframing them for 
 - Preview a processed clip before downloading and return to editing without re-uploading.
 - Remember non-sensitive export preferences locally in the browser.
 - Validate browser capabilities and video files before expensive processing begins.
+- Inspect source-file size, frame resolution in megapixels, and average total-file bitrate after media metadata loads, with advisory warnings for especially large, high-resolution, or long sources; no unmeasured memory or processing-speed claims.
 - Optional Cognito authentication for deployed environments.
 
 Video processing and transcript/caption workflows are performed in the browser. Source videos and imported transcript contents are not uploaded by these workflows. Session recovery stores only source-file identity metadata and editor settings/clip ranges in browser local storage; the video itself is never persisted there.
