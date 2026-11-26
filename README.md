@@ -135,3 +135,6 @@ Files that are empty or unsupported are rejected before FFmpeg initializes. File
 ## Deployment
 
 AWS hosting is intentionally dormant and the repository contains no AWS deployment workflow. The retained Terraform is reference-only and excluded from Renovate while AWS is disabled. See [AWS_DEPLOYMENT.md](AWS_DEPLOYMENT.md) for the current policy. Vercel preview deployments continue to validate pull requests without activating AWS resources.
+
+### Local export timing
+After a successful single-clip export, the editor reports observed processing seconds and a processing-to-clip-duration ratio. Measurements are local to the browser session, not telemetry, and do not predict other devices or files. Batch exports are not yet profiled.
