@@ -18,13 +18,48 @@ export default function Home() {
   const [showInstructions, setShowInstructions] = useState(false);
   const modalRef = useRef<HTMLDivElement>(null);
 
+  const helpTriggerRef = useRef<HTMLButtonElement>(null);
+
   useEffect(() => {
-    function handleClickOutside(event: MouseEvent) {
-      if (modalRef.current && !modalRef.current.contains(event.target as Node)) setShowInstructions(false);
+    if (!showInstructions) return;
+    const dialog = modalRef.current;
+    if (!dialog) return;
+    // Restore focus to the control that opened the dialog when it closes.
+    const priorFocus = document.activeElement instanceof HTMLElement ? document.activeElement : helpTriggerRef.current;
+    const closeButton = dialog.querySelector<HTMLButtonElement>('[aria-label="Close instructions"]');
+    closeButton?.focus();
+
+    function handleDialogKeyDown(event: KeyboardEvent) {
+      if (event.key === 'Escape') {
+        event.preventDefault();
+        setShowInstructions(false);
+        return;
+      }
+      if (event.key !== 'Tab' || !dialog) return;
+      const focusable = Array.from(dialog.querySelectorAll<HTMLElement>(
+        'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])',
+      ));
+      if (!focusable.length) {
+        event.preventDefault();
+        return;
+      }
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      if (event.shiftKey && (document.activeElement === first || !dialog.contains(document.activeElement))) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && (document.activeElement === last || !dialog.contains(document.activeElement))) {
+        event.preventDefault();
+        first.focus();
+      }
     }
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
+
+    document.addEventListener('keydown', handleDialogKeyDown);
+    return () => {
+      document.removeEventListener('keydown', handleDialogKeyDown);
+      priorFocus?.focus();
+    };
+  }, [showInstructions]);
 
   return (
     <div className="studio-shell min-h-screen text-slate-100">
@@ -46,7 +81,7 @@ export default function Home() {
                 <span className="inline-flex items-center gap-2"><BoltIcon className="h-5 w-5 text-cyan-300" /> No cloud processing</span>
               </div>
             </div>
-            <button type="button" onClick={() => setShowInstructions(true)} className="studio-help inline-flex shrink-0 items-center justify-center gap-2 rounded-full border px-5 py-3 text-sm font-semibold transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-lime-300">
+            <button ref={helpTriggerRef} type="button" onClick={() => setShowInstructions(true)} className="studio-help inline-flex shrink-0 items-center justify-center gap-2 rounded-full border px-5 py-3 text-sm font-semibold transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-lime-300">
               <QuestionMarkCircleIcon className="h-5 w-5" /> How it works
             </button>
           </div>
@@ -60,7 +95,7 @@ export default function Home() {
         </RequireAuth>
 
         {showInstructions && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/85 p-4" role="presentation">
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/85 p-4" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) setShowInstructions(false); }}>
             <div ref={modalRef} className="studio-modal max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-3xl border bg-white shadow-2xl" role="dialog" aria-modal="true" aria-labelledby="studio-instructions-title">
               <div className="sticky top-0 flex items-center justify-between border-b border-gray-200 bg-white p-4">
                 <h2 id="studio-instructions-title" className="text-2xl font-bold text-gray-800">How to Create a Short Clip</h2>
