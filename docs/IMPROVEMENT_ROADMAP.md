@@ -915,3 +915,16 @@ Acceptance criteria:
 - Clearly distinguish successful and failed clip counts; retain partial batch timing when a downloadable result exists.
 - Do not report timing for all-failed or invalid batches, and reset prior timing on new source selections and batch attempts.
 - Add tests for complete, partial, and invalid batch timing; retain browser-local processing and dormant AWS.
+
+
+## Sprint 86 - Video Shorts Studio look-and-feel refresh
+Status: **In progress**
+Goal:
+- Replace the mismatched blue/purple landing treatment and gray editor panels with a coherent, accessible creator-focused studio interface.
+
+Acceptance criteria:
+- Establish and document product-specific tokens, hierarchy, responsive layout and typography without installing new UI runtimes.
+- Restyle landing hero, video upload/drop area, editing timeline, panels and key actions while preserving existing control semantics and editor tests.
+- Align title, description and theme metadata to local-first recording conversion.
+- Verify CI typecheck, lint, tests and production build, then perform responsive and keyboard/contrast checks in a real browser before claiming visual QA.
+- Preserve browser-local source processing, optional authentication and dormant AWS deployment safeguards.
