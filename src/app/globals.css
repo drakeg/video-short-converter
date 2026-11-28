@@ -25,3 +25,72 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+
+/* Video Shorts Studio — isolated visual system; no component runtime dependency. */
+.studio-shell {
+  --studio-ink: #0b111c;
+  --studio-panel: #172234;
+  --studio-border: rgba(163, 184, 206, .18);
+  --studio-lime: #c9fa72;
+  --studio-cyan: #7bdbe9;
+  background: radial-gradient(ellipse at 85% 0%, rgba(53, 98, 119, .28), transparent 42%),
+    radial-gradient(ellipse at 0% 48%, rgba(47, 76, 70, .19), transparent 35%), #0b111c;
+  min-height: 100vh;
+  color: #f2f6fa;
+}
+.studio-display { font-family: "Arial Narrow", "Helvetica Neue", Arial, sans-serif; }
+.studio-hero { position: relative; isolation: isolate; border-color: rgba(201,250,114,.20);
+  background: linear-gradient(120deg, #17283b 0%, #12202e 50%, #0c1726 100%);
+  box-shadow: 0 28px 70px rgba(0,0,0,.17); }
+.studio-hero-grid {
+  pointer-events: none; z-index: -1; opacity: .25;
+  background-image: linear-gradient(rgba(178,222,225,.12) 1px, transparent 1px), linear-gradient(90deg, rgba(178,222,225,.12) 1px, transparent 1px);
+  background-size: 52px 52px; mask-image: linear-gradient(to left, black, transparent 78%);
+}
+.studio-monogram { color: #0d1924; background: var(--studio-lime); transform: rotate(-5deg); }
+.studio-help { border-color: rgba(201,250,114,.5); color: var(--studio-lime); background: rgba(201,250,114,.07); }
+.studio-help:hover { background: rgba(201,250,114,.16); }
+.studio-editor-frame { background: #111b29; border-color: var(--studio-border); box-shadow: 0 28px 64px rgba(0,0,0,.25); }
+.studio-editor-canvas { background: #172234; border-color: var(--studio-border); }
+.studio-video-stage { border-color: rgba(180,208,227,.24); box-shadow: 0 14px 35px rgba(0,0,0,.26); }
+.studio-play-button { background: var(--studio-lime); color: #111d28; }
+.studio-play-button:hover { background: #e2ffac; }
+.studio-mark-start { background: #245a58; color: #e1fffa; }
+.studio-mark-start:hover { background: #2c716e; }
+.studio-mark-end { background: #594657; color: #fff0f2; }
+.studio-mark-end:hover { background: #73556f; }
+.studio-export-button { background: var(--studio-lime); color: #0c1824; box-shadow: 0 6px 18px rgba(147, 205, 61, .13); }
+.studio-export-button:not(:disabled):hover { background: #e1ffab; transform: translateY(-1px); }
+.studio-upload { background: radial-gradient(circle at 50% 0%, rgba(123,219,233,.12), transparent 55%), #172538;
+  border-color: rgba(123,219,233,.42); outline-offset: 4px; }
+.studio-upload:hover, .studio-upload-active { border-color: var(--studio-lime); background-color: #1c3043; }
+.studio-upload:focus-within { outline: 3px solid var(--studio-lime); }
+.studio-upload-icon { color: var(--studio-lime); background: rgba(201,250,114,.10); border: 1px solid rgba(201,250,114,.22); }
+.studio-upload-action { color: #0c1824; background: var(--studio-lime); }
+.studio-upload:hover .studio-upload-action { background: #e2ffac; }
+
+/* The editor contains long-standing utility components. Scope their neutral
+   surfaces and inputs so all steps read as one coherent workspace. */
+.studio-workspace .bg-gray-50 { background-color: #1c2a3d; }
+.studio-workspace .bg-white { background-color: #202f43; }
+.studio-workspace .bg-gray-200 { background-color: #33465b; }
+.studio-workspace .border-gray-200, .studio-workspace .border-gray-300 { border-color: rgba(177,202,220,.23); }
+.studio-workspace .text-gray-500, .studio-workspace .text-gray-600 { color: #afc0cf; }
+.studio-workspace .text-gray-700, .studio-workspace .text-gray-800, .studio-workspace .text-gray-900 { color: #e5edf5; }
+.studio-workspace .bg-gray-200, .studio-workspace .bg-gray-50, .studio-workspace .bg-white { color: #e9f0f6; }
+.studio-workspace button:not(:disabled):not(.studio-export-button):not(.studio-play-button) { transition: filter .15s ease, transform .15s ease; }
+.studio-workspace button:not(:disabled):hover { filter: brightness(1.11); }
+.studio-workspace input:not([type="range"]):not([type="file"]), .studio-workspace select, .studio-workspace textarea {
+  background: #0e1b2a; color: #f2f6fa; border-color: #526678; }
+.studio-workspace input::placeholder, .studio-workspace textarea::placeholder { color: #9bafc1; }
+.studio-workspace input[type="range"] { accent-color: var(--studio-lime); }
+.studio-workspace :is(button, input, select, textarea, a):focus-visible {
+  outline: 3px solid var(--studio-lime); outline-offset: 3px; }
+.studio-workspace .studio-upload input:focus-visible { outline: none; }
+.studio-workspace .studio-upload { color: #f2f6fa; }
+.studio-editor-grid > aside > * { border-color: var(--studio-border); }
+.studio-modal { border-color: #e1e5ea; }
+@media (prefers-reduced-motion: reduce) {
+  .studio-shell *, .studio-shell *::before, .studio-shell *::after { scroll-behavior: auto !important; transition-duration: .01ms !important; animation-duration: .01ms !important; }
+}

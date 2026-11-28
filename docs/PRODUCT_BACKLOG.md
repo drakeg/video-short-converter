@@ -21,3 +21,6 @@ This backlog is the active, prioritized work queue for Video Shorts Editor. Comp
 
 ## Refinement notes
 The backlog is intentionally concise. When an item is selected, its pull request/roadmap sprint entry should include detailed acceptance criteria, non-goals, risks, and validation targets. New discoveries should be added here rather than silently expanding an active sprint.
+
+## Visual refresh
+- **Active:** Distinctive Video Shorts Studio visual refresh — production-desk hero, cohesive editing surfaces, accessible upload state and component styling (see `docs/BRAND.md`). Keep existing editor behavior and auth flows unchanged; require CI and real-browser visual QA before release.

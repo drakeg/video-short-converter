@@ -28,7 +28,8 @@ describe('VideoEditor', () => {
   it('renders the empty editor state', () => {
     render(<VideoEditorContent />);
     expect(screen.getByRole('heading', { name: 'Video Trimmer' })).toBeInTheDocument();
-    expect(screen.getByText('Click or drop a video file here')).toBeInTheDocument();
+    expect(screen.getByText('Drop your next big moment here.')).toBeInTheDocument();
+    expect(screen.getByText('Choose video')).toBeInTheDocument();
   });
 
   it('handles file upload', async () => {

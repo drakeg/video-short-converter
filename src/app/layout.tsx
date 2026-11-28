@@ -4,8 +4,8 @@ import ThemeToggle from "./ThemeToggle";
 import AuthNav from "@/components/AuthNav";
 
 export const metadata: Metadata = {
-  title: "YouTube to Shorts Converter | Trim & Resize Videos",
-  description: "Easily trim any section of a YouTube video and convert it to portrait format for Shorts, Reels, and TikTok",
+  title: "Video Shorts Studio | Local Video Editor",
+  description: "Turn your own local recordings into short-form videos. Trim, reframe, caption, preview and export directly in your browser.",
   icons: {
     icon: "/favicon.ico",
   },
@@ -14,9 +14,7 @@ export const metadata: Metadata = {
 export const viewport: Viewport = {
   width: 'device-width',
   initialScale: 1,
-  maximumScale: 1,
-  themeColor: '#ffffff',
-  userScalable: false
+  themeColor: '#0b111c'
 };
 
 export default function RootLayout({
@@ -27,8 +25,6 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
-        <meta name="theme-color" content="#ffffff" />
-        <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
       </head>
       <body className="font-sans">
         <div className="fixed right-4 top-4 z-50">
