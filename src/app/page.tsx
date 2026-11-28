@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import dynamic from 'next/dynamic';
-import { QuestionMarkCircleIcon, XMarkIcon } from '@heroicons/react/24/outline';
+import { QuestionMarkCircleIcon, XMarkIcon, FilmIcon, ShieldCheckIcon, BoltIcon } from '@heroicons/react/24/outline';
 import RequireAuth from '@/components/RequireAuth';
 
 const VideoEditor = dynamic(() => import('@/components/VideoEditor'), {
@@ -27,29 +27,43 @@ export default function Home() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-purple-50 text-gray-900 dark:from-slate-950 dark:to-slate-900 dark:text-gray-100">
-      <main className="container mx-auto px-4 py-8">
-        <div className="mb-8 text-center">
-          <h1 className="mb-2 text-3xl font-bold text-gray-800 dark:text-gray-100 md:text-4xl">Video Shorts Converter</h1>
-          <p className="mx-auto mb-4 max-w-2xl text-gray-600 dark:text-gray-300">
-            Trim a local video, choose the framing and platform preset, then preview the processed clip before downloading it.
-          </p>
-          <button onClick={() => setShowInstructions(true)} className="inline-flex items-center text-sm font-medium text-blue-600 hover:text-blue-800">
-            <QuestionMarkCircleIcon className="mr-1 h-4 w-4" /> View Detailed Instructions
-          </button>
-        </div>
+    <div className="studio-shell min-h-screen text-slate-100">
+      <main className="mx-auto max-w-[1680px] px-4 pb-12 pt-8 sm:px-6 lg:px-10 lg:pt-12">
+        <header className="studio-hero mb-8 overflow-hidden rounded-[2rem] border p-6 sm:p-9 lg:p-12">
+          <div className="relative z-10 flex flex-col justify-between gap-8 lg:flex-row lg:items-end">
+            <div className="max-w-3xl">
+              <div className="mb-5 flex items-center gap-3">
+                <span className="studio-monogram flex h-11 w-11 items-center justify-center rounded-2xl" aria-hidden="true"><FilmIcon className="h-6 w-6" /></span>
+                <span className="text-xs font-bold uppercase tracking-[0.24em] text-lime-300">Video Shorts Studio</span>
+              </div>
+              <p className="mb-3 text-xs font-semibold uppercase tracking-[0.24em] text-slate-400">Your footage. Your next great clip.</p>
+              <h1 className="studio-display max-w-3xl text-4xl font-semibold leading-[1.05] tracking-tight text-white sm:text-5xl lg:text-6xl">Make every moment <span className="text-lime-300">count.</span></h1>
+              <p className="mt-5 max-w-2xl text-base leading-7 text-slate-300 sm:text-lg">
+                Turn long recordings into polished, platform-ready shorts. Mark your best moments, frame the action and export — right in your browser.
+              </p>
+              <div className="mt-6 flex flex-wrap gap-x-6 gap-y-3 text-sm text-slate-300">
+                <span className="inline-flex items-center gap-2"><ShieldCheckIcon className="h-5 w-5 text-lime-300" /> Source video stays local</span>
+                <span className="inline-flex items-center gap-2"><BoltIcon className="h-5 w-5 text-cyan-300" /> No cloud processing</span>
+              </div>
+            </div>
+            <button type="button" onClick={() => setShowInstructions(true)} className="studio-help inline-flex shrink-0 items-center justify-center gap-2 rounded-full border px-5 py-3 text-sm font-semibold transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-lime-300">
+              <QuestionMarkCircleIcon className="h-5 w-5" /> How it works
+            </button>
+          </div>
+          <div aria-hidden="true" className="studio-hero-grid absolute inset-0" />
+        </header>
 
         <RequireAuth>
-          <div className="rounded-lg bg-white p-6 shadow-lg dark:border dark:border-slate-700 dark:bg-slate-900">
+          <div className="studio-editor-frame overflow-hidden rounded-[1.75rem] border p-3 sm:p-5 lg:p-7">
             <VideoEditor />
           </div>
         </RequireAuth>
 
         {showInstructions && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4" role="presentation">
-            <div ref={modalRef} className="max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-xl bg-white shadow-2xl">
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/85 p-4" role="presentation">
+            <div ref={modalRef} className="studio-modal max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-3xl border bg-white shadow-2xl" role="dialog" aria-modal="true" aria-labelledby="studio-instructions-title">
               <div className="sticky top-0 flex items-center justify-between border-b border-gray-200 bg-white p-4">
-                <h2 className="text-2xl font-bold text-gray-800">How to Create a Short Clip</h2>
+                <h2 id="studio-instructions-title" className="text-2xl font-bold text-gray-800">How to Create a Short Clip</h2>
                 <button onClick={() => setShowInstructions(false)} className="text-gray-400 hover:text-gray-600" aria-label="Close instructions">
                   <XMarkIcon className="h-6 w-6" />
                 </button>
@@ -78,14 +92,14 @@ export default function Home() {
               </div>
 
               <div className="flex justify-end border-t border-gray-200 bg-gray-50 px-6 py-4">
-                <button onClick={() => setShowInstructions(false)} className="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700">Got it</button>
+                <button onClick={() => setShowInstructions(false)} className="rounded-full bg-slate-900 px-5 py-2.5 text-sm font-semibold text-white hover:bg-slate-700">Got it</button>
               </div>
             </div>
           </div>
         )}
       </main>
 
-      <footer className="mt-16 py-6 text-center text-sm text-gray-500">Video Shorts Editor — browser-based trimming and social-video export</footer>
+      <footer className="pb-8 pt-5 text-center text-sm text-slate-400">Video Shorts Editor — browser-based trimming and social-video export</footer>
     </div>
   );
 }
