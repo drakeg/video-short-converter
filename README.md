@@ -7,6 +7,8 @@ Local development and CI use the exact Node.js 24 version in `.nvmrc` (currently
 
 A browser-based video editor for trimming local video files, reframing them for social platforms, previewing the processed result, and exporting MP4 clips with FFmpeg WebAssembly.
 
+The visual design system and interface decisions are documented in [docs/BRAND.md](docs/BRAND.md).
+
 ## Features
 
 - Upload or drag/drop MP4, WebM, MOV, and OGG video files from your device.
