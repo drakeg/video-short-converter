@@ -918,7 +918,7 @@ Acceptance criteria:
 
 
 ## Sprint 86 - Video Shorts Studio look-and-feel refresh
-Status: **In progress**
+Status: **Complete** (PR #234; branch and post-merge CI passed; real-browser visual QA remains outstanding)
 Goal:
 - Replace the mismatched blue/purple landing treatment and gray editor panels with a coherent, accessible creator-focused studio interface.
 
@@ -928,3 +928,15 @@ Acceptance criteria:
 - Align title, description and theme metadata to local-first recording conversion.
 - Verify CI typecheck, lint, tests and production build, then perform responsive and keyboard/contrast checks in a real browser before claiming visual QA.
 - Preserve browser-local source processing, optional authentication and dormant AWS deployment safeguards.
+
+
+## Sprint 87 - Keyboard-accessible studio help dialog
+Status: **In progress**
+Goal:
+- Let keyboard and assistive-technology users access and dismiss the studio instructions without losing their place in the editor.
+
+Acceptance criteria:
+- Opening the dialog focuses its close control; Tab/Shift+Tab remains within modal controls.
+- Escape and backdrop click dismiss the dialog; focus returns to the original trigger.
+- Preserve existing content, visual identity, privacy defaults, and editing workflows.
+- Add regression coverage for focus management and dismissal; CI validates changes, while real-browser accessibility QA remains a separate pending task.
