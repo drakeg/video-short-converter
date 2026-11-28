@@ -31,3 +31,6 @@ Use system-safe Helvetica Neue/Arial for interface text and condensed Arial Narr
 
 ## Verification
 CI typecheck, lint, unit tests and production build must pass. Real browser visual QA at 390, 768, 1024 and 1440 px; keyboard-only navigation; modal focus behavior; form contrast; light/dark theme switching; and video export workflows remain follow-up checks until executed. Do not mark them passed based on appearance of the source code alone.
+
+## Studio instructions keyboard behavior (Sprint 87)
+The help dialog moves focus to its Close control, contains Tab/Shift+Tab navigation, closes on Escape or backdrop activation, and restores focus to the previous control. Automated coverage is required; actual browser and screen-reader verification remain pending.
